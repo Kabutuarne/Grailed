@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 public class PlayerStatusEffects : MonoBehaviour
 {
+    [System.Serializable]
     public class Effect
     {
         public string id;
@@ -44,17 +45,18 @@ public class PlayerStatusEffects : MonoBehaviour
         }
     }
 
-    public void AddEffect(string id, float duration, float speedMult = 1, float hps = 0)
+    public void AddEffect(string id, float duration, float speedMult = 1f, float hps = 0f)
     {
         activeEffects.Add(new Effect(id, duration, speedMult, hps));
     }
 
     public float GetSpeedMultiplier()
     {
-        float mult = 1;
+        float mult = 1f;
         foreach (var e in activeEffects)
             mult *= e.speedMultiplier;
 
         return mult;
     }
 }
+// gonna be many more effects later probably
