@@ -13,15 +13,24 @@ public class PlayerController : MonoBehaviour
 
     [Header("Sprint / Stamina")]
     public float staminaUsePerSecond = 25f;
-    public float staminaRegenPerSecond = 15f;
+    public float staminaRegenPerSecond = 15f; // legacy base fallback — PlayerStats now provides per-player derived rate
 
     [Header("Look / Camera")]
-    public Transform cameraPivot;       // child of DEF-head, at eye position
+    public Transform cameraPivot;       // child of Player at eye height (NOT head bone)
     public float lookSensitivity = 0.1f;
-    public float maxHeadYaw = 75f;      // how far the head can twist left/right
+    public float maxHeadYaw = 75f;      // how far the "head" can twist left/right
     public float maxPitchUp = 80f;
     public float maxPitchDown = -80f;
     public float bodyTurnSpeed = 360f;  // deg/sec: how fast body aligns to view
+
+    [Header("Camera Height")]
+    public Vector3 standingCamLocalPos = new Vector3(0, 1.6f, 0);
+    public Vector3 crouchingCamLocalPos = new Vector3(0, 1.0f, 0);
+    public float camHeightLerpSpeed = 10f;
+
+    [Header("Head / Rig")]
+    public Transform headBone;          // assign DEF-head here
+    public float headTurnSpeed = 10f;   // how fast head rotates toward camera
 
     [Header("UI")]
     public PlayerUI playerUI;           // assign in Inspector
@@ -36,7 +45,7 @@ public class PlayerController : MonoBehaviour
 
     // "View" vs "Body"
     private float cameraPitch;  // vertical
-    private float targetYaw;    // where the player is looking
+    private float targetYaw;    // where the player is looking (clamped around body)
     private float bodyYaw;      // where the body is actually facing
 
     private Animator animator;
@@ -44,6 +53,8 @@ public class PlayerController : MonoBehaviour
 
     private PlayerStats stats;
     private PlayerStatusEffects statusEffects;
+
+    private bool isCrouching;
 
     void Awake()
     {
@@ -87,12 +98,21 @@ public class PlayerController : MonoBehaviour
         float y = transform.eulerAngles.y;
         bodyYaw = y;
         targetYaw = y;
+
+        if (cameraPivot != null)
+            cameraPivot.localPosition = standingCamLocalPos;
     }
 
     void Update()
     {
         HandleLook();
         HandleMovement();
+        UpdateCameraHeight();
+    }
+
+    void LateUpdate()
+    {
+        UpdateHeadRotation();
     }
 
     void HandleLook()
@@ -104,20 +124,19 @@ public class PlayerController : MonoBehaviour
         float mouseX = lookInput.x * lookSensitivity;
         float mouseY = lookInput.y * lookSensitivity;
 
-        // where we want to look (unclamped yaw)
-        targetYaw += mouseX;
-
         // vertical pitch
         cameraPitch -= mouseY;
         cameraPitch = Mathf.Clamp(cameraPitch, maxPitchDown, maxPitchUp);
 
-        // difference between body direction and view direction
-        float deltaYaw = Mathf.DeltaAngle(bodyYaw, targetYaw);
+        // yaw clamped around body to avoid "jump" when you hit the limit
+        float desiredYaw = targetYaw + mouseX;
+        float deltaFromBody = Mathf.DeltaAngle(bodyYaw, desiredYaw);
+        deltaFromBody = Mathf.Clamp(deltaFromBody, -maxHeadYaw, maxHeadYaw);
+        targetYaw = bodyYaw + deltaFromBody;
 
-        // clamp head twist
-        float headYaw = Mathf.Clamp(deltaYaw, -maxHeadYaw, maxHeadYaw);
+        // local head yaw relative to body (this is also what camera uses)
+        float headYaw = Mathf.DeltaAngle(bodyYaw, targetYaw); // guaranteed within clamp
 
-        // rotate only the camera pivot relative to the head
         if (cameraPivot != null)
         {
             cameraPivot.localRotation = Quaternion.Euler(cameraPitch, headYaw, 0f);
@@ -139,7 +158,9 @@ public class PlayerController : MonoBehaviour
 
             // Stamina still regenerates while you're standing around in menus
             if (stats != null)
-                stats.RegenStamina(staminaRegenPerSecond * Time.deltaTime);
+                stats.RegenStamina(stats.staminaRegenPerSecond * Time.deltaTime);
+
+            isCrouching = false;
 
             if (animator != null)
             {
@@ -158,6 +179,7 @@ public class PlayerController : MonoBehaviour
 
         // crouch with C (raw keyboard)
         bool crouchHeld = Keyboard.current != null && Keyboard.current.cKey.isPressed;
+        isCrouching = crouchHeld;
 
         // no sprint while crouched
         if (crouchHeld)
@@ -211,11 +233,10 @@ public class PlayerController : MonoBehaviour
             if (isSprinting && new Vector3(move.x, 0f, move.z).sqrMagnitude > 0.001f)
                 stats.ConsumeStamina(staminaUsePerSecond * Time.deltaTime);
             else if (isGrounded && !sprintHeld)
-                stats.RegenStamina(staminaRegenPerSecond * Time.deltaTime);
+                stats.RegenStamina(stats.staminaRegenPerSecond * Time.deltaTime);
         }
 
         // --- BODY TURN TOWARD VIEW ---
-
         Vector3 horizontalMove = new Vector3(move.x, 0f, move.z);
         bool isMoving = horizontalMove.sqrMagnitude > 0.001f;
 
@@ -265,6 +286,51 @@ public class PlayerController : MonoBehaviour
         }
 
         wasGrounded = isGrounded;
+    }
+
+    void UpdateCameraHeight()
+    {
+        if (cameraPivot == null) return;
+
+        Vector3 targetPos = isCrouching ? crouchingCamLocalPos : standingCamLocalPos;
+
+        cameraPivot.localPosition = Vector3.Lerp(
+            cameraPivot.localPosition,
+            targetPos,
+            camHeightLerpSpeed * Time.deltaTime
+        );
+    }
+
+    void UpdateHeadRotation()
+    {
+        // Optional: rotate rig head to roughly match camera
+        if (headBone == null || cameraPivot == null)
+            return;
+
+        Vector3 lookDir = cameraPivot.forward;
+        if (lookDir.sqrMagnitude < 0.0001f)
+            return;
+
+        Quaternion targetWorldRot = Quaternion.LookRotation(lookDir, Vector3.up);
+
+        Transform parent = headBone.parent;
+        if (parent != null)
+        {
+            Quaternion targetLocal = Quaternion.Inverse(parent.rotation) * targetWorldRot;
+            headBone.localRotation = Quaternion.Slerp(
+                headBone.localRotation,
+                targetLocal,
+                Time.deltaTime * headTurnSpeed
+            );
+        }
+        else
+        {
+            headBone.rotation = Quaternion.Slerp(
+                headBone.rotation,
+                targetWorldRot,
+                Time.deltaTime * headTurnSpeed
+            );
+        }
     }
 
     void ToggleBackpack()

@@ -154,6 +154,24 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Consume"",
+                    ""type"": ""Button"",
+                    ""id"": ""d48fa6e0-f631-4794-ba31-dad4566af9e6"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Cast"",
+                    ""type"": ""Button"",
+                    ""id"": ""5e89323e-2297-40a5-961a-6c2500763478"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -288,6 +306,28 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""Backpack"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f7299d3b-2343-47a6-9243-f6765d574f1a"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Consume"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0f70d299-736a-49c3-9c55-9b31454fb8d1"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Cast"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -303,6 +343,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
         m_Player_Crouch = m_Player.FindAction("Crouch", throwIfNotFound: true);
         m_Player_Backpack = m_Player.FindAction("Backpack", throwIfNotFound: true);
+        m_Player_Consume = m_Player.FindAction("Consume", throwIfNotFound: true);
+        m_Player_Cast = m_Player.FindAction("Cast", throwIfNotFound: true);
     }
 
     ~@PlayerInputActions()
@@ -390,6 +432,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Interact;
     private readonly InputAction m_Player_Crouch;
     private readonly InputAction m_Player_Backpack;
+    private readonly InputAction m_Player_Consume;
+    private readonly InputAction m_Player_Cast;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -429,6 +473,14 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/Backpack".
         /// </summary>
         public InputAction @Backpack => m_Wrapper.m_Player_Backpack;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Consume".
+        /// </summary>
+        public InputAction @Consume => m_Wrapper.m_Player_Consume;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Cast".
+        /// </summary>
+        public InputAction @Cast => m_Wrapper.m_Player_Cast;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -476,6 +528,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Backpack.started += instance.OnBackpack;
             @Backpack.performed += instance.OnBackpack;
             @Backpack.canceled += instance.OnBackpack;
+            @Consume.started += instance.OnConsume;
+            @Consume.performed += instance.OnConsume;
+            @Consume.canceled += instance.OnConsume;
+            @Cast.started += instance.OnCast;
+            @Cast.performed += instance.OnCast;
+            @Cast.canceled += instance.OnCast;
         }
 
         /// <summary>
@@ -508,6 +566,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Backpack.started -= instance.OnBackpack;
             @Backpack.performed -= instance.OnBackpack;
             @Backpack.canceled -= instance.OnBackpack;
+            @Consume.started -= instance.OnConsume;
+            @Consume.performed -= instance.OnConsume;
+            @Consume.canceled -= instance.OnConsume;
+            @Cast.started -= instance.OnCast;
+            @Cast.performed -= instance.OnCast;
+            @Cast.canceled -= instance.OnCast;
         }
 
         /// <summary>
@@ -597,5 +661,19 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnBackpack(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Consume" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnConsume(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Cast" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnCast(InputAction.CallbackContext context);
     }
 }

@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -40,8 +42,11 @@ public class PlayerUI : MonoBehaviour
     [Header("Character Sheet Texts (Backpack)")]
     public Text healthText;       // shows: "current / max"
     public Text manaText;         // shows: "current / max"
-    public Text staminaText;      // "Stamina: x / y"
-    public Text intelligenceText; // "Intelligence: x"
+    public Text staminaText;      // "Stamina: x / y" (resource)
+    public Text intelligenceText; // "Intelligence: x" (attribute)
+    public Text strengthText;     // "Strength: x" (attribute)
+    public Text staminaAttrText;  // "Stamina: x" (attribute) - attribute vs resource name distinction
+    public Text agilityText;      // "Agility: x" (attribute)
 
     [Header("Backpack Root Panel")]
     public GameObject backpackRoot;      // panel you show/hide with Tab
@@ -106,15 +111,68 @@ public class PlayerUI : MonoBehaviour
         foreach (Transform child in statusEffectsRoot)
             Destroy(child.gameObject);
 
+        // Group by carrier (EffectCarrier) where possible, show one entry per carrier using the longest remaining timer
+        var entries = new Dictionary<object, float>(); // key: EffectCarrier or effect id string (for null carrier)
+
         foreach (var e in statusEffects.activeEffects)
         {
-            GameObject go = Instantiate(statusEffectPrefab, statusEffectsRoot);
-            Text t = go.GetComponentInChildren<Text>();
-            if (t != null)
+            if (e.carrier != null)
             {
-                int seconds = Mathf.CeilToInt(e.timer);
-                t.text = $"{e.id} ({seconds}s)";
+                // Carrier key
+                float current = entries.ContainsKey(e.carrier) ? entries[e.carrier] : 0f;
+                if (e.duration < 0f)
+                {
+                    // toggle -> mark as -1 (ON)
+                    entries[e.carrier] = -1f;
+                }
+                else
+                {
+                    float val = e.timer;
+                    entries[e.carrier] = Mathf.Max(current, val);
+                }
             }
+            else
+            {
+                // no carrier - use id string as key and show each separately
+                string key = e.id + "_" + System.Guid.NewGuid().ToString();
+                entries[key] = e.duration < 0f ? -1f : e.timer;
+            }
+        }
+
+        // Instantiate UI entries
+        foreach (var kv in entries)
+        {
+            GameObject go = Instantiate(statusEffectPrefab, statusEffectsRoot);
+
+            // set text (title and time-left)
+            Text t = go.GetComponentInChildren<Text>();
+            string titleText = "";
+            float timeVal = kv.Value;
+
+            if (kv.Key is EffectCarrier carrierKey)
+            {
+                titleText = carrierKey.title;
+                if (timeVal < 0f)
+                    titleText = $"{titleText} (ON)";
+                else
+                    titleText = $"{titleText} ({Mathf.CeilToInt(timeVal)}s)";
+
+                // try set an Image if present
+                var img = go.GetComponentInChildren<UnityEngine.UI.Image>();
+                if (img != null && carrierKey.icon != null)
+                    img.sprite = carrierKey.icon;
+            }
+            else
+            {
+                // key is a string id mapping
+                if (timeVal < 0f)
+                    titleText = $"{kv.Key} (ON)";
+                else
+                    titleText = $"{kv.Key} ({Mathf.CeilToInt(timeVal)}s)";
+            }
+
+            if (t != null)
+                t.text = titleText;
         }
     }
 
@@ -179,12 +237,22 @@ public class PlayerUI : MonoBehaviour
         if (manaText != null)
             manaText.text = $"{Mathf.RoundToInt(stats.mana)} / {Mathf.RoundToInt(stats.maxMana)}";
 
-        // Stamina & INT keep labels
+        // Resource labels
         if (staminaText != null)
             staminaText.text = $"Stamina: {Mathf.RoundToInt(stats.stamina)} / {Mathf.RoundToInt(stats.maxStamina)}";
 
+        // Attribute labels
         if (intelligenceText != null)
-            intelligenceText.text = $"Intelligence: {Mathf.RoundToInt(stats.intelligence)}";
+            intelligenceText.text = $"Intelligence: {Mathf.RoundToInt(stats.effectiveIntelligence)}";
+
+        if (strengthText != null)
+            strengthText.text = $"Strength: {Mathf.RoundToInt(stats.effectiveStrength)}";
+
+        if (staminaAttrText != null)
+            staminaAttrText.text = $"Stamina (attr): {Mathf.RoundToInt(stats.effectiveStaminaAttr)}";
+
+        if (agilityText != null)
+            agilityText.text = $"Agility: {Mathf.RoundToInt(stats.effectiveAgility)}";
     }
 
     void HandleInventoryChanged()
