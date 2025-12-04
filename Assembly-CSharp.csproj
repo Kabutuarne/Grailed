@@ -51,6 +51,7 @@
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerInventory.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\ConsumableItem.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerInteractor.cs" />
+    <Compile Include="Assets\Scripts\PlayerScripts\PlayerConsume.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Effects\DurationEffect.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Effects\PlayerEffect.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Effects\InstantEffect.cs" />

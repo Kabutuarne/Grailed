@@ -53,6 +53,7 @@ public class PlayerController : MonoBehaviour
 
     private PlayerStats stats;
     private PlayerStatusEffects statusEffects;
+    private PlayerInventory inventory;
 
     private bool isCrouching;
 
@@ -62,6 +63,7 @@ public class PlayerController : MonoBehaviour
         animator = GetComponentInChildren<Animator>();
         stats = GetComponent<PlayerStats>();
         statusEffects = GetComponent<PlayerStatusEffects>();
+        inventory = GetComponent<PlayerInventory>();
 
         input = new PlayerInputActions();
         input.Player.Enable();
@@ -76,6 +78,12 @@ public class PlayerController : MonoBehaviour
 
         // Backpack (Tab) toggle
         input.Player.Backpack.performed += ctx => ToggleBackpack();
+
+        // Consume input
+        input.Player.Consume.performed += ctx => OnConsumeInput();
+
+        // Drop item input
+        input.Player.DropItem.performed += ctx => OnDropItemInput();
     }
 
     void OnEnable()
@@ -115,6 +123,44 @@ public class PlayerController : MonoBehaviour
         UpdateHeadRotation();
     }
 
+    // ----------------- NEW INPUT HANDLERS -----------------
+
+    void OnConsumeInput()
+    {
+        if (inventory == null)
+            return;
+
+        // Backpack open: consume hovered backpack item
+        if (playerUI != null && playerUI.IsBackpackOpen)
+        {
+            if (playerUI.TryConsumeHoveredBackpackItem(gameObject))
+                return;
+        }
+
+        // Backpack closed (or no hovered item): consume item in hand
+        inventory.ConsumeFromHand(gameObject);
+    }
+
+    void OnDropItemInput()
+    {
+        if (inventory == null)
+            return;
+
+        Transform dropOrigin = cameraPivot != null ? cameraPivot : transform;
+
+        // Backpack open: drop hovered backpack item
+        if (playerUI != null && playerUI.IsBackpackOpen)
+        {
+            if (playerUI.TryDropHoveredBackpackItem(dropOrigin))
+                return;
+        }
+
+        // Backpack closed (or no hovered item): drop item in hand
+        inventory.DropFromHand(dropOrigin);
+    }
+
+    // ----------------- EXISTING STUFF -----------------
+
     void HandleLook()
     {
         // If backpack is open, don't rotate camera
@@ -134,8 +180,7 @@ public class PlayerController : MonoBehaviour
         deltaFromBody = Mathf.Clamp(deltaFromBody, -maxHeadYaw, maxHeadYaw);
         targetYaw = bodyYaw + deltaFromBody;
 
-        // local head yaw relative to body (this is also what camera uses)
-        float headYaw = Mathf.DeltaAngle(bodyYaw, targetYaw); // guaranteed within clamp
+        float headYaw = Mathf.DeltaAngle(bodyYaw, targetYaw);
 
         if (cameraPivot != null)
         {
@@ -156,7 +201,6 @@ public class PlayerController : MonoBehaviour
             verticalVelocity += gravity * Time.deltaTime;
             controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
 
-            // Stamina still regenerates while you're standing around in menus
             if (stats != null)
                 stats.RegenStamina(stats.staminaRegenPerSecond * Time.deltaTime);
 
@@ -174,27 +218,22 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // input flags
         bool sprintHeld = input.Player.Sprint.IsPressed();
 
         // crouch with C (raw keyboard)
         bool crouchHeld = Keyboard.current != null && Keyboard.current.cKey.isPressed;
         isCrouching = crouchHeld;
 
-        // no sprint while crouched
         if (crouchHeld)
             sprintHeld = false;
 
-        // local movement direction
         Vector3 inputDir = new Vector3(moveInput.x, 0f, moveInput.y);
         inputDir = Vector3.ClampMagnitude(inputDir, 1f);
 
-        // sprint logic uses stamina
         bool wantsToSprint = sprintHeld && inputDir.z > 0.1f && !crouchHeld;
         bool canSprint = stats != null && stats.stamina > 0.1f;
         bool isSprinting = wantsToSprint && canSprint;
 
-        // select speed
         float speed;
         if (crouchHeld)
             speed = crouchSpeed;
@@ -203,17 +242,14 @@ public class PlayerController : MonoBehaviour
         else
             speed = walkSpeed;
 
-        // apply status effects speed multiplier
         float speedMult = statusEffects != null ? statusEffects.GetSpeedMultiplier() : 1f;
         speed *= speedMult;
 
         Vector3 move = transform.TransformDirection(inputDir);
 
-        // jump / gravity
         if (isGrounded && verticalVelocity < 0f)
             verticalVelocity = -1f;
 
-        // no jumping while crouched
         if (isGrounded && !crouchHeld && input.Player.Jump.WasPressedThisFrame())
         {
             verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
@@ -227,7 +263,6 @@ public class PlayerController : MonoBehaviour
 
         controller.Move(move * speed * Time.deltaTime);
 
-        // stamina use / regen
         if (stats != null)
         {
             if (isSprinting && new Vector3(move.x, 0f, move.z).sqrMagnitude > 0.001f)
@@ -236,7 +271,6 @@ public class PlayerController : MonoBehaviour
                 stats.RegenStamina(stats.staminaRegenPerSecond * Time.deltaTime);
         }
 
-        // --- BODY TURN TOWARD VIEW ---
         Vector3 horizontalMove = new Vector3(move.x, 0f, move.z);
         bool isMoving = horizontalMove.sqrMagnitude > 0.001f;
 
@@ -246,10 +280,8 @@ public class PlayerController : MonoBehaviour
             bodyYaw = Mathf.MoveTowardsAngle(bodyYaw, targetYaw, maxStep);
         }
 
-        // apply body rotation
         transform.rotation = Quaternion.Euler(0f, bodyYaw, 0f);
 
-        // --- ANIMATOR PARAMETERS ---
         if (animator != null)
         {
             float inputMagnitude = inputDir.magnitude;
@@ -258,11 +290,11 @@ public class PlayerController : MonoBehaviour
             if (inputMagnitude > 0.01f)
             {
                 if (crouchHeld)
-                    targetSpeed01 = 0.5f;   // crouch move
+                    targetSpeed01 = 0.5f;
                 else if (isSprinting)
-                    targetSpeed01 = 1f;     // sprint
+                    targetSpeed01 = 1f;
                 else
-                    targetSpeed01 = 0.5f;   // walk
+                    targetSpeed01 = 0.5f;
             }
 
             animator.SetFloat("Speed", targetSpeed01, 0.1f, Time.deltaTime);
@@ -274,7 +306,7 @@ public class PlayerController : MonoBehaviour
             else if (forwardInput < -0.01f)
                 forwardSign = -1f;
             else
-                forwardSign = 1f; // strafing or idle
+                forwardSign = 1f;
 
             animator.SetFloat("ForwardSign", forwardSign);
             animator.SetBool("IsCrouching", crouchHeld);
@@ -303,7 +335,6 @@ public class PlayerController : MonoBehaviour
 
     void UpdateHeadRotation()
     {
-        // Optional: rotate rig head to roughly match camera
         if (headBone == null || cameraPivot == null)
             return;
 

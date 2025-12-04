@@ -9,6 +9,7 @@ public class PlayerInteractor : MonoBehaviour
 
     private PlayerInputActions input;
     private PlayerInventory inventory;
+    private ItemPickup lookedAtItem;
 
     void Awake()
     {
@@ -32,6 +33,9 @@ public class PlayerInteractor : MonoBehaviour
 
     void Update()
     {
+        // Each frame check what we're looking at and log when it changes (debug)
+        CheckLookAtItem();
+
         if (input.Player.Interact.WasPressedThisFrame())
         {
             TryInteract();
@@ -45,9 +49,34 @@ public class PlayerInteractor : MonoBehaviour
             ItemPickup item = hit.collider.GetComponent<ItemPickup>();
             if (item != null)
             {
-                inventory.PickupToBackpack(item.gameObject);
-                item.OnPickedUp();
+                bool placedInBackpack = inventory.PickupToBackpack(item.gameObject);
+                if (placedInBackpack)
+                    item.OnPickedUp();
             }
+        }
+    }
+
+    void CheckLookAtItem()
+    {
+        if (Physics.Raycast(cam.transform.position, cam.transform.forward, out RaycastHit hit, interactRange, interactMask))
+        {
+            ItemPickup item = hit.collider.GetComponent<ItemPickup>();
+            if (item != null)
+            {
+                if (item != lookedAtItem)
+                {
+                    lookedAtItem = item;
+                    Debug.Log($"Looking at item: {item.itemName} (gameobject {item.gameObject.name})");
+                }
+                return;
+            }
+        }
+
+        // no item looked at
+        if (lookedAtItem != null)
+        {
+            lookedAtItem = null;
+            // optional: log when stop looking
         }
     }
 }

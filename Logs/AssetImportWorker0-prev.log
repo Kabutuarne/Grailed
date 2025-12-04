@@ -1,0 +1,1454 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.2/staging' branch; Version is '6000.2.12f1 (e89d5df0e333) revision 15244637'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 10  (10.0.19045) 64bit Core' Language: 'en' Physical Memory: 7913 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-Thoas Shelby" at "2025-12-03T13:00:31.718383Z"
+Date: 2025-12-03T13:00:31Z
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.2.12f1\Editor\Unity.exe
+-adb2
+-batchMode
+-noUpm
+-name
+AssetImportWorker0
+-projectPath
+C:/UnityProjects/DungeonBroker
+-logFile
+Logs/AssetImportWorker0.log
+-srvPort
+53515
+-licensingIpc
+LicenseClient-Thoas Shelby
+-job-worker-count
+1
+-background-job-worker-count
+8
+-gc-helper-count
+1
+-name
+AssetImport
+Successfully changed project path to: C:/UnityProjects/DungeonBroker
+C:/UnityProjects/DungeonBroker
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gfx=262144"
+Player connection [12280]  Target information:
+
+Player connection [12280]  * "[IP] 10.185.253.150 [Port] 0 [Flags] 2 [Guid] 559352587 [EditorId] 559352587 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-1TRP659) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [12280] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [12280] Host joined alternative multi-casting on [225.0.0.222:34997]...
+JobSystem: Creating JobQueue using job-worker-count value 1
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+Library Redirect Path: Library/
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Refreshing native plugins compatible for Editor in 13.64 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 6000.2.12f1 (e89d5df0e333)
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.2.12f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path C:/UnityProjects/DungeonBroker/Assets
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.1]
+    Renderer: Intel(R) HD Graphics 620 (ID=0x5916)
+    Vendor:   Intel
+    VRAM:     3956 MB
+    Driver:   31.0.101.2111
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.2.12f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.2.12f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.2.12f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56232
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.2.12f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
+[Licensing::Module] Licensing is not yet initialized.
+[Licensing::Client] Error: HandshakeResponse reported an error:
+	ResponseCode: 505
+	ResponseStatus: Unsupported protocol version '1.17.4'.
+[Licensing::Module] Error: Failed to handshake to channel: "LicenseClient-Thoas Shelby"
+[Licensing::IpcConnector] LicenseClient-Thoas Shelby channel disconnected successfully.
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-Thoas Shelby-6000.2.12" at "2025-12-03T13:00:35.7055187Z"
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.17.4+4293ba1
+  Session Id:              0e76a87dd0384feb817988572f473c52
+  Correlation Id:          d6637afc46e262ff09e19bdff13ec685
+  External correlation Id: 2803536896272430899
+  Machine Id:              FL0bVdQzmEQdIvB0MzBryVamXPE=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-Thoas Shelby-6000.2.12" (connect: 0.01s, validation: 0.01s, handshake: 3.79s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-Thoas Shelby-6000.2.12-notifications" at "2025-12-03T13:00:39.5119171Z"
+[Licensing::Module] Licensing Background thread has ended after 7.79s
+[Licensing::Module] Licensing is initialized (took 5.30s).
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: 5773928858965-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.2.12f1/Editor/Data/PlaybackEngines/VisionOSPlayer/UnityEditor.VisionOS.Extensions.dll
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.2.12f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+[Licensing::Client] Successfully resolved entitlement details
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.2.12f1/Editor/Data/PlaybackEngines/MetroSupport/UnityEditor.UWP.Extensions.dll
+Registered in 5.402084 seconds.
+- Loaded All Assemblies, in  7.171 seconds
+Native extension for UWP target not found
+Native extension for WindowsStandalone target not found
+Failed to load: C:/Program Files/Unity/Hub/Editor/6000.2.12f1/Editor/Data/PlaybackEngines/VisionOSPlayer\x64\UnityEditor.VisionOS.Native.dll
+Native extension for VisionOS target not found
+Native extension for WebGL target not found
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  1.414 seconds
+Domain Reload Profiling: 8572ms
+	BeginReloadAssembly (621ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (0ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (4ms)
+	RebuildCommonClasses (150ms)
+	RebuildNativeTypeToScriptingClass (48ms)
+	initialDomainReloadingComplete (5621ms)
+	LoadAllAssembliesAndSetupDomain (717ms)
+		LoadAssemblies (617ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (696ms)
+			TypeCache.Refresh (692ms)
+				TypeCache.ScanAssembly (594ms)
+			BuildScriptInfoCaches (0ms)
+			ResolveRequiredComponents (2ms)
+	FinalizeReload (1416ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (1275ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (338ms)
+			SetLoadedEditorAssemblies (8ms)
+			BeforeProcessingInitializeOnLoad (232ms)
+			ProcessInitializeOnLoadAttributes (492ms)
+			ProcessInitializeOnLoadMethodAttributes (205ms)
+			AfterProcessingInitializeOnLoad (0ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (0ms)
+========================================================================
+Worker process is ready to serve import requests
+Import Worker Mode flag is 0x00
+Begin MonoManager ReloadAssembly
+[Licensing::Client] Successfully resolved entitlement details
+- Loaded All Assemblies, in  3.032 seconds
+Refreshing native plugins compatible for Editor in 2.50 ms, found 3 plugins.
+Native extension for UWP target not found
+Native extension for WindowsStandalone target not found
+Failed to load: C:/Program Files/Unity/Hub/Editor/6000.2.12f1/Editor/Data/PlaybackEngines/VisionOSPlayer\x64\UnityEditor.VisionOS.Native.dll
+Native extension for VisionOS target not found
+Native extension for WebGL target not found
+Package Manager log level set to [2]
+[Package Manager] Failed to launch server process. Reason: Unity was launched with the -noUpm command-line argument
+[Package Manager] Unable to send message (not connected to server process).
+[Package Manager] Cannot connect to Unity Package Manager local server
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  3.162 seconds
+Domain Reload Profiling: 6175ms
+	BeginReloadAssembly (644ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (35ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (91ms)
+	RebuildCommonClasses (117ms)
+	RebuildNativeTypeToScriptingClass (36ms)
+	initialDomainReloadingComplete (127ms)
+	LoadAllAssembliesAndSetupDomain (2088ms)
+		LoadAssemblies (1633ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (770ms)
+			TypeCache.Refresh (591ms)
+				TypeCache.ScanAssembly (543ms)
+			BuildScriptInfoCaches (132ms)
+			ResolveRequiredComponents (40ms)
+	FinalizeReload (3163ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (2252ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (64ms)
+			SetLoadedEditorAssemblies (14ms)
+			BeforeProcessingInitializeOnLoad (478ms)
+			ProcessInitializeOnLoadAttributes (1433ms)
+			ProcessInitializeOnLoadMethodAttributes (243ms)
+			AfterProcessingInitializeOnLoad (20ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (23ms)
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.06 seconds
+Refreshing native plugins compatible for Editor in 5.05 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 6195 unused Assets / (4.6 MB). Loaded Objects now: 6912.
+Memory consumption went from 130.6 MB to 126.0 MB.
+Total: 24.589000 ms (FindLiveObjects: 1.070800 ms CreateObjectMapping: 2.892700 ms MarkObjects: 13.794900 ms  DeleteObjects: 6.827100 ms)
+
+========================================================================
+Received Import Request.
+  Time since last request: 105941.251096 seconds.
+  path: Assets/Models/Items/FancyTallPotion.fbx
+  artifactKey: Guid(0d24ec6d64d7f4943b24d99905b64677) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Models/Items/FancyTallPotion.fbx using Guid(0d24ec6d64d7f4943b24d99905b64677) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'f2342f0257adc683882b1eba3be690bf') in 1.6192373 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 30
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000053 seconds.
+  path: Assets/Models/Items/FancyTrianglePotion.fbx
+  artifactKey: Guid(708259e12c4e1c94797a37df03cb59e0) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Models/Items/FancyTrianglePotion.fbx using Guid(708259e12c4e1c94797a37df03cb59e0) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '9806a3c18606a23b997fb9bbd23c065a') in 0.1258144 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 24
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000049 seconds.
+  path: Assets/Models/Items/TallSpikePotion.fbx
+  artifactKey: Guid(34b7d849deffb6b4e88a2819afe23877) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Models/Items/TallSpikePotion.fbx using Guid(34b7d849deffb6b4e88a2819afe23877) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'b727d0a452366760be1989909ca183bf') in 0.1306357 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 24
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000053 seconds.
+  path: Assets/Models/Items/TallTrianglePotion.fbx
+  artifactKey: Guid(c8964f3dbef83dd40a5f7595f4e080bf) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Models/Items/TallTrianglePotion.fbx using Guid(c8964f3dbef83dd40a5f7595f4e080bf) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'fa2d9b5202acac1ef404792f7d1da7a7') in 0.1816496 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 30
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000059 seconds.
+  path: Assets/Models/Items/TallPotion.fbx
+  artifactKey: Guid(0f54835ce228b23429c545eb9c54b5ef) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Models/Items/TallPotion.fbx using Guid(0f54835ce228b23429c545eb9c54b5ef) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '397cb5d54a7a8a3393fc5b39c2606b93') in 0.1758953 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 30
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000095 seconds.
+  path: Assets/Models/Items/SmallRombPotion.fbx
+  artifactKey: Guid(88ca849df7d4d8a47b9cb68bc2d96290) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Models/Items/SmallRombPotion.fbx using Guid(88ca849df7d4d8a47b9cb68bc2d96290) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '82aac069020de59e582ba92ef4a0fddd') in 0.1525697 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 30
+
+========================================================================
+Received Import Request.
+  Time since last request: 6.244295 seconds.
+  path: Assets/Materials/steel.mat
+  artifactKey: Guid(54fb628bae04241498d1db37dd310951) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/steel.mat using Guid(54fb628bae04241498d1db37dd310951) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '50e69df740aa389fe130f727b188d59b') in 0.3425072 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 5
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000079 seconds.
+  path: Assets/Scripts/PlayerScripts/PlayerInventory.cs
+  artifactKey: Guid(9ae7b90b95efeee4287a37a08d91f927) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Scripts/PlayerScripts/PlayerInventory.cs using Guid(9ae7b90b95efeee4287a37a08d91f927) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '2c49174f2544ab4f362e4977bc433a20') in 0.0406344 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000051 seconds.
+  path: Assets/Scripts/PlayerScripts/ConsumableEntity.cs
+  artifactKey: Guid(af6226a870ad96b45b24fce286c4a729) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Scripts/PlayerScripts/ConsumableEntity.cs using Guid(af6226a870ad96b45b24fce286c4a729) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '4f29d5bc1d31be9681e2bddd56edcee2') in 0.0253082 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000028 seconds.
+  path: Assets/Models/Items/TallTrianglePotion.fbx
+  artifactKey: Guid(c8964f3dbef83dd40a5f7595f4e080bf) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Models/Items/TallTrianglePotion.fbx using Guid(c8964f3dbef83dd40a5f7595f4e080bf) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'be31a17188dcd84571190dbeb5bfd39a') in 0.148577 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 30
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000037 seconds.
+  path: Assets/Scripts/PlayerScripts/PlayerConsume.cs
+  artifactKey: Guid(a6318f4311fe01740b6fa90e1b71772a) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Scripts/PlayerScripts/PlayerConsume.cs using Guid(a6318f4311fe01740b6fa90e1b71772a) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'a6897a3dc8823e882c11ff9db72afc73') in 0.0247508 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000057 seconds.
+  path: Assets/Scripts/PlayerScripts/PlayerUI.cs
+  artifactKey: Guid(583b1536d169ac5418322a6996d0ab33) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Scripts/PlayerScripts/PlayerUI.cs using Guid(583b1536d169ac5418322a6996d0ab33) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'fa30a47b2280f948487888826e947a92') in 0.0352585 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000038 seconds.
+  path: Assets/Scripts/PlayerScripts/PlayerInteractor.cs
+  artifactKey: Guid(a3d5bd2bc2114b749a40daf74011eb02) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Scripts/PlayerScripts/PlayerInteractor.cs using Guid(a3d5bd2bc2114b749a40daf74011eb02) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '5fc0018ed0b107711a1743cb7c773893') in 0.0315922 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000056 seconds.
+  path: Assets/Models/Items/TallSpikePotion.fbx
+  artifactKey: Guid(34b7d849deffb6b4e88a2819afe23877) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Models/Items/TallSpikePotion.fbx using Guid(34b7d849deffb6b4e88a2819afe23877) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'b70e666394adb1fbc2b0fd1da4e45bcc') in 0.04708 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 24
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000046 seconds.
+  path: Assets/Models/Items/FancyTallPotion.fbx
+  artifactKey: Guid(0d24ec6d64d7f4943b24d99905b64677) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Models/Items/FancyTallPotion.fbx using Guid(0d24ec6d64d7f4943b24d99905b64677) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'd2334ba7c88ba9a1b7da3ae1dedb0c89') in 0.071103 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 30
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000089 seconds.
+  path: Assets/Models/Items/FancyTrianglePotion.fbx
+  artifactKey: Guid(708259e12c4e1c94797a37df03cb59e0) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Models/Items/FancyTrianglePotion.fbx using Guid(708259e12c4e1c94797a37df03cb59e0) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '5ed0855c048796c512c9a49f4bb922e4') in 0.0561793 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 24
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000058 seconds.
+  path: Assets/Models/Items/TallPotion.fbx
+  artifactKey: Guid(0f54835ce228b23429c545eb9c54b5ef) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Models/Items/TallPotion.fbx using Guid(0f54835ce228b23429c545eb9c54b5ef) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'c87d3a9f2f5f3a27534e1369ea50f26b') in 0.0486714 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 30
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000046 seconds.
+  path: Assets/Materials/cabin_floor.mat
+  artifactKey: Guid(9326002c363edf7409890f499fa94094) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/cabin_floor.mat using Guid(9326002c363edf7409890f499fa94094) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '682bfc8430550666e1cbf7727896be20') in 0.0324748 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 4
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000033 seconds.
+  path: Assets/Models/Items/SmallRombPotion.fbx
+  artifactKey: Guid(88ca849df7d4d8a47b9cb68bc2d96290) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Models/Items/SmallRombPotion.fbx using Guid(88ca849df7d4d8a47b9cb68bc2d96290) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '84721c526b40c2fe60f5c74e59e522ce') in 0.0534317 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 30
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000043 seconds.
+  path: Assets/Scenes/TestingScene.unity
+  artifactKey: Guid(4444b3f600b7f3748aeefc648e6381fa) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Scenes/TestingScene.unity using Guid(4444b3f600b7f3748aeefc648e6381fa) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '49e95790934ac3752b73b000bb3feddc') in 0.0303278 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000053 seconds.
+  path: Assets/Sprites/Potions
+  artifactKey: Guid(ff9dd15ca4d9e4641939d9a7173114b7) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/Potions using Guid(ff9dd15ca4d9e4641939d9a7173114b7) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '0b5b83a3d7cc9fdb4f62169633116e1f') in 0.0011316 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 1.115887 seconds.
+  path: Assets/Sprites/Potions
+  artifactKey: Guid(ff9dd15ca4d9e4641939d9a7173114b7) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/Potions using Guid(ff9dd15ca4d9e4641939d9a7173114b7) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '8a6aedabbba3ba4fca9ca628c350ad3a') in 0.0310134 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 19.990400 seconds.
+  path: Assets/Sprites/FancyTallPotion.png
+  artifactKey: Guid(b8b3e3d4ebaa73b40b1468c4fd219604) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/FancyTallPotion.png using Guid(b8b3e3d4ebaa73b40b1468c4fd219604) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '0c63f1a890fc64e6aeedeb099fcfbe66') in 0.0913877 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000075 seconds.
+  path: Assets/Sprites/RombPotionRedBlue.png
+  artifactKey: Guid(8e3ef0778c692ed4fadfecc28bacc8da) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/RombPotionRedBlue.png using Guid(8e3ef0778c692ed4fadfecc28bacc8da) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '76dd50e123fbccdd0d9a919d9fdf7ac1') in 0.0602466 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000093 seconds.
+  path: Assets/Sprites/TallPotion Red.png
+  artifactKey: Guid(65eb4650a08bc394c92dd5b0771998c1) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/TallPotion Red.png using Guid(65eb4650a08bc394c92dd5b0771998c1) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '8ee4ecf0209997ee21b17eddf88fe641') in 0.052044 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000070 seconds.
+  path: Assets/Sprites/RombPotionRed.png
+  artifactKey: Guid(186bf289318d6a14498b2ee5da966d7e) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/RombPotionRed.png using Guid(186bf289318d6a14498b2ee5da966d7e) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'b517e34f52e0d4494282908bc4bc483a') in 0.0397022 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000165 seconds.
+  path: Assets/Sprites/TallPotionBlue.png
+  artifactKey: Guid(25b5ad3578694d84690614cc1fbefa27) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/TallPotionBlue.png using Guid(25b5ad3578694d84690614cc1fbefa27) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'fce7db53dffb4e67fb236aeea8325856') in 0.0225607 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000029 seconds.
+  path: Assets/Sprites/FancyTrianglePotion.png
+  artifactKey: Guid(2d615879aeb504c4d962fb03c674c708) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/FancyTrianglePotion.png using Guid(2d615879aeb504c4d962fb03c674c708) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '2cbe78230b9340ac29b21a73ebe333eb') in 0.0193599 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000075 seconds.
+  path: Assets/Sprites/TallTrianglePotionGreen.png
+  artifactKey: Guid(6a32b5854cc4fb642aab52c326f7bed0) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/TallTrianglePotionGreen.png using Guid(6a32b5854cc4fb642aab52c326f7bed0) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '8271b76a335dfb4a51e8f2a723434f0e') in 0.0400535 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000124 seconds.
+  path: Assets/Sprites/TallSpikePotionLightBlue.png
+  artifactKey: Guid(2f2598ade6eb01a4da4db7ba058f8faa) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/TallSpikePotionLightBlue.png using Guid(2f2598ade6eb01a4da4db7ba058f8faa) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'b559e3b9668bb51689f817ae204ed37d') in 0.0343923 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000041 seconds.
+  path: Assets/Sprites/TallTrianglePotionPurple.png
+  artifactKey: Guid(9845051b8af1ca24b983673937804e4e) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/TallTrianglePotionPurple.png using Guid(9845051b8af1ca24b983673937804e4e) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '3daa5a13091eb766f65fa050cf0da348') in 0.0203576 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000044 seconds.
+  path: Assets/Sprites/TallPotionGreen.png
+  artifactKey: Guid(4517b195851eef94dbe9f80cf89807a9) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/TallPotionGreen.png using Guid(4517b195851eef94dbe9f80cf89807a9) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '6a5d1c975abd6cb2df3643a485ac8027') in 0.0196669 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000045 seconds.
+  path: Assets/Sprites/TallSpikePotionOrange.png
+  artifactKey: Guid(c4038e514d93bcd40914b3c9166f2e09) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/TallSpikePotionOrange.png using Guid(c4038e514d93bcd40914b3c9166f2e09) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'f821a2d33065a84e1d0c5afb592ba5dd') in 0.0214697 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000030 seconds.
+  path: Assets/Sprites/RombPotionGreen.png
+  artifactKey: Guid(0253d45aa5673754cb7f9e0afd867b5d) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/RombPotionGreen.png using Guid(0253d45aa5673754cb7f9e0afd867b5d) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'd5fea33667dfaecefcb0f07edc3408e1') in 0.019925 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.035825 seconds.
+  path: Assets/Sprites/TallSpikePotionOrange.png
+  artifactKey: Guid(c4038e514d93bcd40914b3c9166f2e09) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/TallSpikePotionOrange.png using Guid(c4038e514d93bcd40914b3c9166f2e09) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '180e6cc1e9d42b04611cb970bf31960e') in 0.1011806 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000039 seconds.
+  path: Assets/Sprites/RombPotionRed.png
+  artifactKey: Guid(186bf289318d6a14498b2ee5da966d7e) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/RombPotionRed.png using Guid(186bf289318d6a14498b2ee5da966d7e) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '0b62513868c1e0a39bde64ee39cad69e') in 0.0345557 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000044 seconds.
+  path: Assets/Sprites/RombPotionRedBlue.png
+  artifactKey: Guid(8e3ef0778c692ed4fadfecc28bacc8da) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/RombPotionRedBlue.png using Guid(8e3ef0778c692ed4fadfecc28bacc8da) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '68cc62d121157b5fa54c67cd3a108879') in 0.0336856 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000031 seconds.
+  path: Assets/Sprites/FancyTrianglePotion.png
+  artifactKey: Guid(2d615879aeb504c4d962fb03c674c708) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/FancyTrianglePotion.png using Guid(2d615879aeb504c4d962fb03c674c708) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'e66735dd5a5396d1d27503d2991db566') in 0.0392432 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000034 seconds.
+  path: Assets/Sprites/TallPotion Red.png
+  artifactKey: Guid(65eb4650a08bc394c92dd5b0771998c1) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/TallPotion Red.png using Guid(65eb4650a08bc394c92dd5b0771998c1) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '20f74bf752d6935413c4057715f9710c') in 0.0423761 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000043 seconds.
+  path: Assets/Sprites/TallTrianglePotionGreen.png
+  artifactKey: Guid(6a32b5854cc4fb642aab52c326f7bed0) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/TallTrianglePotionGreen.png using Guid(6a32b5854cc4fb642aab52c326f7bed0) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'b2e241b8fe4e61cdad62684bc52d845e') in 0.0387874 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000031 seconds.
+  path: Assets/Sprites/TallPotionGreen.png
+  artifactKey: Guid(4517b195851eef94dbe9f80cf89807a9) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/TallPotionGreen.png using Guid(4517b195851eef94dbe9f80cf89807a9) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '4e8109223acb182e69493e695ce24fd1') in 0.0386351 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000033 seconds.
+  path: Assets/Sprites/FancyTallPotion.png
+  artifactKey: Guid(b8b3e3d4ebaa73b40b1468c4fd219604) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/FancyTallPotion.png using Guid(b8b3e3d4ebaa73b40b1468c4fd219604) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'd9750c0f12d1d082b4cd6d108344e584') in 0.0354424 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000044 seconds.
+  path: Assets/Sprites/TallPotionBlue.png
+  artifactKey: Guid(25b5ad3578694d84690614cc1fbefa27) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/TallPotionBlue.png using Guid(25b5ad3578694d84690614cc1fbefa27) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'f10ff3df85a7bb397432de209bd363ff') in 0.0359607 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000037 seconds.
+  path: Assets/Sprites/TallTrianglePotionPurple.png
+  artifactKey: Guid(9845051b8af1ca24b983673937804e4e) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/TallTrianglePotionPurple.png using Guid(9845051b8af1ca24b983673937804e4e) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '18686d31216f10edb6a9ad9b454e1d16') in 0.0346593 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000276 seconds.
+  path: Assets/Sprites/TallSpikePotionLightBlue.png
+  artifactKey: Guid(2f2598ade6eb01a4da4db7ba058f8faa) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/TallSpikePotionLightBlue.png using Guid(2f2598ade6eb01a4da4db7ba058f8faa) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '93317a613b8c7a73dd53c51e08ba9afe') in 0.0765035 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000044 seconds.
+  path: Assets/Sprites/RombPotionGreen.png
+  artifactKey: Guid(0253d45aa5673754cb7f9e0afd867b5d) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/RombPotionGreen.png using Guid(0253d45aa5673754cb7f9e0afd867b5d) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '1523bfd7bea651f4e80e10f6b938d70d') in 0.0346777 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 5.296747 seconds.
+  path: Assets/Sprites/Potions/TallPotion Red.png
+  artifactKey: Guid(65eb4650a08bc394c92dd5b0771998c1) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/Potions/TallPotion Red.png using Guid(65eb4650a08bc394c92dd5b0771998c1) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'db78b9efd72efe55abec75521bf4bb90') in 0.0291248 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000060 seconds.
+  path: Assets/Sprites/Potions/RombPotionRedBlue.png
+  artifactKey: Guid(8e3ef0778c692ed4fadfecc28bacc8da) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/Potions/RombPotionRedBlue.png using Guid(8e3ef0778c692ed4fadfecc28bacc8da) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '8cbebfdcfcfef9a4101aa1536857b220') in 0.0370019 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000052 seconds.
+  path: Assets/Sprites/Potions/RombPotionRed.png
+  artifactKey: Guid(186bf289318d6a14498b2ee5da966d7e) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/Potions/RombPotionRed.png using Guid(186bf289318d6a14498b2ee5da966d7e) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'c35733a798849fb254ec36d4fbe0645b') in 0.0330951 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000033 seconds.
+  path: Assets/Sprites/Potions/TallSpikePotionOrange.png
+  artifactKey: Guid(c4038e514d93bcd40914b3c9166f2e09) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/Potions/TallSpikePotionOrange.png using Guid(c4038e514d93bcd40914b3c9166f2e09) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '0e701c55495b2bb44f50960d86b9a472') in 0.0381836 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000043 seconds.
+  path: Assets/Sprites/Potions/FancyTrianglePotion.png
+  artifactKey: Guid(2d615879aeb504c4d962fb03c674c708) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/Potions/FancyTrianglePotion.png using Guid(2d615879aeb504c4d962fb03c674c708) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'a44313637f424ea58b75642e4756e2d5') in 0.0316724 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000052 seconds.
+  path: Assets/Sprites/Potions/TallTrianglePotionGreen.png
+  artifactKey: Guid(6a32b5854cc4fb642aab52c326f7bed0) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/Potions/TallTrianglePotionGreen.png using Guid(6a32b5854cc4fb642aab52c326f7bed0) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '5e52e0b8be610cf583a424aeb9e5cdb6') in 0.0324744 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000039 seconds.
+  path: Assets/Sprites/Potions/TallPotionGreen.png
+  artifactKey: Guid(4517b195851eef94dbe9f80cf89807a9) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/Potions/TallPotionGreen.png using Guid(4517b195851eef94dbe9f80cf89807a9) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '689633105f5ff389378707dc871917a9') in 0.0401242 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000045 seconds.
+  path: Assets/Sprites/Potions/FancyTallPotion.png
+  artifactKey: Guid(b8b3e3d4ebaa73b40b1468c4fd219604) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/Potions/FancyTallPotion.png using Guid(b8b3e3d4ebaa73b40b1468c4fd219604) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'f776eaff0696e8000380b26829698bfb') in 0.0429958 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000053 seconds.
+  path: Assets/Sprites/Potions/TallPotionBlue.png
+  artifactKey: Guid(25b5ad3578694d84690614cc1fbefa27) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/Potions/TallPotionBlue.png using Guid(25b5ad3578694d84690614cc1fbefa27) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '7376d8e698561316ac317be126277197') in 0.0378999 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000037 seconds.
+  path: Assets/Sprites/Potions/RombPotionGreen.png
+  artifactKey: Guid(0253d45aa5673754cb7f9e0afd867b5d) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/Potions/RombPotionGreen.png using Guid(0253d45aa5673754cb7f9e0afd867b5d) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '56612c58810c51dadde69d9db86f1f0c') in 0.0288967 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000040 seconds.
+  path: Assets/Sprites/Potions/TallTrianglePotionPurple.png
+  artifactKey: Guid(9845051b8af1ca24b983673937804e4e) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/Potions/TallTrianglePotionPurple.png using Guid(9845051b8af1ca24b983673937804e4e) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'c42a141b0ba84931530b5237a78da1ea') in 0.0389049 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000061 seconds.
+  path: Assets/Sprites/Potions/TallSpikePotionLightBlue.png
+  artifactKey: Guid(2f2598ade6eb01a4da4db7ba058f8faa) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Sprites/Potions/TallSpikePotionLightBlue.png using Guid(2f2598ade6eb01a4da4db7ba058f8faa) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'ac5d5d9cd8b173eff2115636e37dbee4') in 0.0330249 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 307.249768 seconds.
+  path: Assets/Materials/cabin_floor.mat
+  artifactKey: Guid(9326002c363edf7409890f499fa94094) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/cabin_floor.mat using Guid(9326002c363edf7409890f499fa94094) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '4497e4104638bc370c0c9df4c7c1a7f1') in 0.0338838 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 4
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000053 seconds.
+  path: Assets/Materials/steel.mat
+  artifactKey: Guid(54fb628bae04241498d1db37dd310951) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/steel.mat using Guid(54fb628bae04241498d1db37dd310951) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '50896b1d07e320eb65770124709fc361') in 0.0484804 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 5
+
+========================================================================
+Received Import Request.
+  Time since last request: 36.323193 seconds.
+  path: Assets/Sprites/Potions/TallSpikePotionOrange.png
+  artifactKey: Guid(c4038e514d93bcd40914b3c9166f2e09) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/Potions/TallSpikePotionOrange.png using Guid(c4038e514d93bcd40914b3c9166f2e09) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '5f1c03b2bd38d97f2ff98be1e8d157b2') in 0.0634257 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000056 seconds.
+  path: Assets/Sprites/Potions/FancyTallPotion.png
+  artifactKey: Guid(b8b3e3d4ebaa73b40b1468c4fd219604) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/Potions/FancyTallPotion.png using Guid(b8b3e3d4ebaa73b40b1468c4fd219604) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '8d7d71f221412bcd2518ff1795585413') in 0.0370777 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000085 seconds.
+  path: Assets/Sprites/Potions/RombPotionRedBlue.png
+  artifactKey: Guid(8e3ef0778c692ed4fadfecc28bacc8da) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/Potions/RombPotionRedBlue.png using Guid(8e3ef0778c692ed4fadfecc28bacc8da) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '906d3d539a7bb39761c0ed4fde38f554') in 0.0511237 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000057 seconds.
+  path: Assets/Sprites/Potions/TallPotion Red.png
+  artifactKey: Guid(65eb4650a08bc394c92dd5b0771998c1) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/Potions/TallPotion Red.png using Guid(65eb4650a08bc394c92dd5b0771998c1) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '1c80d8a608ecb74efecd002ccd40a225') in 0.0580538 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000084 seconds.
+  path: Assets/Sprites/Potions/RombPotionRed.png
+  artifactKey: Guid(186bf289318d6a14498b2ee5da966d7e) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/Potions/RombPotionRed.png using Guid(186bf289318d6a14498b2ee5da966d7e) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'bdeef90ef4bc1724aeb65fe82751a7fb') in 0.0410397 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000079 seconds.
+  path: Assets/Sprites/Potions/TallPotionBlue.png
+  artifactKey: Guid(25b5ad3578694d84690614cc1fbefa27) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/Potions/TallPotionBlue.png using Guid(25b5ad3578694d84690614cc1fbefa27) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '3ae1854cf7be1ea67df452583f0faeec') in 0.0359692 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000045 seconds.
+  path: Assets/Sprites/Potions/FancyTrianglePotion.png
+  artifactKey: Guid(2d615879aeb504c4d962fb03c674c708) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/Potions/FancyTrianglePotion.png using Guid(2d615879aeb504c4d962fb03c674c708) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '542f4a9a3f4d98691d56475a039c318d') in 0.0390627 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000041 seconds.
+  path: Assets/Sprites/Potions/TallTrianglePotionGreen.png
+  artifactKey: Guid(6a32b5854cc4fb642aab52c326f7bed0) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/Potions/TallTrianglePotionGreen.png using Guid(6a32b5854cc4fb642aab52c326f7bed0) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '4dc2de9f4877b833d1c327fbce8b9020') in 0.0378986 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000084 seconds.
+  path: Assets/Sprites/Potions/TallSpikePotionLightBlue.png
+  artifactKey: Guid(2f2598ade6eb01a4da4db7ba058f8faa) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/Potions/TallSpikePotionLightBlue.png using Guid(2f2598ade6eb01a4da4db7ba058f8faa) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '91afe5cd06b598fc7dc5cd6831ebec6a') in 0.0371447 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000072 seconds.
+  path: Assets/Sprites/Potions/TallTrianglePotionPurple.png
+  artifactKey: Guid(9845051b8af1ca24b983673937804e4e) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/Potions/TallTrianglePotionPurple.png using Guid(9845051b8af1ca24b983673937804e4e) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '03a4f8294cfcc5f649ecdcd0e02856ae') in 0.0468344 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000064 seconds.
+  path: Assets/Sprites/Potions/TallPotionGreen.png
+  artifactKey: Guid(4517b195851eef94dbe9f80cf89807a9) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/Potions/TallPotionGreen.png using Guid(4517b195851eef94dbe9f80cf89807a9) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '67b4c55b92112dd7d565a2256f6e5e27') in 0.0448898 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000054 seconds.
+  path: Assets/Sprites/Potions/RombPotionGreen.png
+  artifactKey: Guid(0253d45aa5673754cb7f9e0afd867b5d) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Sprites/Potions/RombPotionGreen.png using Guid(0253d45aa5673754cb7f9e0afd867b5d) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'd72d68eb320eb1f6fedde41a01358f39') in 0.0409218 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Prepare
+Begin MonoManager ReloadAssembly
+[Licensing::Client] Successfully resolved entitlement details
+- Loaded All Assemblies, in  1.598 seconds
+Refreshing native plugins compatible for Editor in 2.49 ms, found 3 plugins.
+Native extension for UWP target not found
+Native extension for WindowsStandalone target not found
+Failed to load: C:/Program Files/Unity/Hub/Editor/6000.2.12f1/Editor/Data/PlaybackEngines/VisionOSPlayer\x64\UnityEditor.VisionOS.Native.dll
+Native extension for VisionOS target not found
+Native extension for WebGL target not found
+[Package Manager] Failed to launch server process. Reason: Unity was launched with the -noUpm command-line argument
+[Package Manager] Unable to send message (not connected to server process).
+[Package Manager] Cannot connect to Unity Package Manager local server
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  2.004 seconds
+Domain Reload Profiling: 3596ms
+	BeginReloadAssembly (496ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (48ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (126ms)
+	RebuildCommonClasses (76ms)
+	RebuildNativeTypeToScriptingClass (29ms)
+	initialDomainReloadingComplete (55ms)
+	LoadAllAssembliesAndSetupDomain (935ms)
+		LoadAssemblies (760ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (374ms)
+			TypeCache.Refresh (10ms)
+				TypeCache.ScanAssembly (0ms)
+			BuildScriptInfoCaches (333ms)
+			ResolveRequiredComponents (26ms)
+	FinalizeReload (2005ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (1653ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (41ms)
+			SetLoadedEditorAssemblies (9ms)
+			BeforeProcessingInitializeOnLoad (381ms)
+			ProcessInitializeOnLoadAttributes (1008ms)
+			ProcessInitializeOnLoadMethodAttributes (191ms)
+			AfterProcessingInitializeOnLoad (22ms)
+			EditorAssembliesLoaded (1ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (47ms)
+Refreshing native plugins compatible for Editor in 6.14 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 6194 unused Assets / (4.4 MB). Loaded Objects now: 7000.
+Memory consumption went from 139.5 MB to 135.1 MB.
+Total: 24.296900 ms (FindLiveObjects: 1.212000 ms CreateObjectMapping: 3.476000 ms MarkObjects: 12.712000 ms  DeleteObjects: 6.895300 ms)
+
+Prepare: number of updated asset objects reloaded= 0
+========================================================================
+Received Prepare
+Begin MonoManager ReloadAssembly
+[Licensing::Client] Successfully resolved entitlement details
+- Loaded All Assemblies, in  1.771 seconds
+Refreshing native plugins compatible for Editor in 2.22 ms, found 3 plugins.
+Native extension for UWP target not found
+Native extension for WindowsStandalone target not found
+Failed to load: C:/Program Files/Unity/Hub/Editor/6000.2.12f1/Editor/Data/PlaybackEngines/VisionOSPlayer\x64\UnityEditor.VisionOS.Native.dll
+Native extension for VisionOS target not found
+Native extension for WebGL target not found
+[Package Manager] Failed to launch server process. Reason: Unity was launched with the -noUpm command-line argument
+[Package Manager] Unable to send message (not connected to server process).
+[Package Manager] Cannot connect to Unity Package Manager local server
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  2.156 seconds
+Domain Reload Profiling: 3922ms
+	BeginReloadAssembly (523ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (20ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (77ms)
+	RebuildCommonClasses (202ms)
+	RebuildNativeTypeToScriptingClass (30ms)
+	initialDomainReloadingComplete (67ms)
+	LoadAllAssembliesAndSetupDomain (944ms)
+		LoadAssemblies (898ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (363ms)
+			TypeCache.Refresh (10ms)
+				TypeCache.ScanAssembly (0ms)
+			BuildScriptInfoCaches (323ms)
+			ResolveRequiredComponents (24ms)
+	FinalizeReload (2157ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (1753ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (41ms)
+			SetLoadedEditorAssemblies (10ms)
+			BeforeProcessingInitializeOnLoad (356ms)
+			ProcessInitializeOnLoadAttributes (1133ms)
+			ProcessInitializeOnLoadMethodAttributes (189ms)
+			AfterProcessingInitializeOnLoad (23ms)
+			EditorAssembliesLoaded (1ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (65ms)
+Refreshing native plugins compatible for Editor in 3.74 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 6193 unused Assets / (4.6 MB). Loaded Objects now: 7003.
+Memory consumption went from 139.3 MB to 134.7 MB.
+Total: 23.209500 ms (FindLiveObjects: 1.195900 ms CreateObjectMapping: 2.272800 ms MarkObjects: 13.178000 ms  DeleteObjects: 6.561200 ms)
+
+Prepare: number of updated asset objects reloaded= 0
+========================================================================
+Received Import Request.
+  Time since last request: 557.757188 seconds.
+  path: Assets/PBS Materials Variety Pack/Paint
+  artifactKey: Guid(e7e2db6f49b53ee47b9ea5037ae28429) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/PBS Materials Variety Pack/Paint using Guid(e7e2db6f49b53ee47b9ea5037ae28429) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'a8d084438e60d5c2f2caa6a34818c941') in 0.0243643 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 40.920370 seconds.
+  path: Assets/PBS Materials Variety Pack/Paint/Paint 2.mat
+  artifactKey: Guid(e7ba1e4e1ef9eec4fb59dee9e355dfa2) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/PBS Materials Variety Pack/Paint/Paint 2.mat using Guid(e7ba1e4e1ef9eec4fb59dee9e355dfa2) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '412b598783ebe2f2ff38f551d989865c') in 1.3306 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 5
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000135 seconds.
+  path: Assets/PBS Materials Variety Pack/Paint/Paint 2.mat
+  artifactKey: Guid(e7ba1e4e1ef9eec4fb59dee9e355dfa2) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/PBS Materials Variety Pack/Paint/Paint 2.mat using Guid(e7ba1e4e1ef9eec4fb59dee9e355dfa2) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '375b2131d4b6201707ebf61c2d3ad1f4') in 0.3365017 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 5
+
+========================================================================
+Received Import Request.
+  Time since last request: 141.918011 seconds.
+  path: Assets/PBS Materials Variety Pack/Paint/Paint 2.mat
+  artifactKey: Guid(e7ba1e4e1ef9eec4fb59dee9e355dfa2) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/PBS Materials Variety Pack/Paint/Paint 2.mat using Guid(e7ba1e4e1ef9eec4fb59dee9e355dfa2) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'e98ba7a542f4762fbd7d23dd20a7ade2') in 0.0318416 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 5
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000089 seconds.
+  path: Assets/PBS Materials Variety Pack/Paint/Paint 3.mat
+  artifactKey: Guid(850e0c9b4e7200345ad6e29da24b99f3) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/PBS Materials Variety Pack/Paint/Paint 3.mat using Guid(850e0c9b4e7200345ad6e29da24b99f3) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '1754b14c8e9fa96c8d3838d02e41f406') in 0.0435321 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 5
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.635880 seconds.
+  path: Assets/PBS Materials Variety Pack/Paint/Paint 2.mat
+  artifactKey: Guid(e7ba1e4e1ef9eec4fb59dee9e355dfa2) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/PBS Materials Variety Pack/Paint/Paint 2.mat using Guid(e7ba1e4e1ef9eec4fb59dee9e355dfa2) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '423099d580108b03e2f1004df135fc58') in 0.0459458 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 5
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000045 seconds.
+  path: Assets/PBS Materials Variety Pack/Paint/Paint 3.mat
+  artifactKey: Guid(850e0c9b4e7200345ad6e29da24b99f3) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/PBS Materials Variety Pack/Paint/Paint 3.mat using Guid(850e0c9b4e7200345ad6e29da24b99f3) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '6772196468d800537ecc0d4cd424ad60') in 0.0321548 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 5
+
+========================================================================
+Received Prepare
+Begin MonoManager ReloadAssembly
+[Licensing::Client] Successfully resolved entitlement details
+- Loaded All Assemblies, in  1.586 seconds
+Refreshing native plugins compatible for Editor in 2.41 ms, found 3 plugins.
+Native extension for UWP target not found
+Native extension for WindowsStandalone target not found
+Failed to load: C:/Program Files/Unity/Hub/Editor/6000.2.12f1/Editor/Data/PlaybackEngines/VisionOSPlayer\x64\UnityEditor.VisionOS.Native.dll
+Native extension for VisionOS target not found
+Native extension for WebGL target not found
+[Package Manager] Failed to launch server process. Reason: Unity was launched with the -noUpm command-line argument
+[Package Manager] Unable to send message (not connected to server process).
+[Package Manager] Cannot connect to Unity Package Manager local server
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  2.205 seconds
+Domain Reload Profiling: 3784ms
+	BeginReloadAssembly (464ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (40ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (121ms)
+	RebuildCommonClasses (77ms)
+	RebuildNativeTypeToScriptingClass (29ms)
+	initialDomainReloadingComplete (59ms)
+	LoadAllAssembliesAndSetupDomain (947ms)
+		LoadAssemblies (784ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (351ms)
+			TypeCache.Refresh (11ms)
+				TypeCache.ScanAssembly (0ms)
+			BuildScriptInfoCaches (315ms)
+			ResolveRequiredComponents (19ms)
+	FinalizeReload (2207ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (1837ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (50ms)
+			SetLoadedEditorAssemblies (9ms)
+			BeforeProcessingInitializeOnLoad (417ms)
+			ProcessInitializeOnLoadAttributes (1128ms)
+			ProcessInitializeOnLoadMethodAttributes (210ms)
+			AfterProcessingInitializeOnLoad (23ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (53ms)
+Refreshing native plugins compatible for Editor in 3.80 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 6194 unused Assets / (3.9 MB). Loaded Objects now: 7026.
+Memory consumption went from 139.5 MB to 135.6 MB.
+Total: 36.426900 ms (FindLiveObjects: 3.418300 ms CreateObjectMapping: 5.952300 ms MarkObjects: 18.693200 ms  DeleteObjects: 8.361400 ms)
+
+Prepare: number of updated asset objects reloaded= 0
+========================================================================
+Received Import Request.
+  Time since last request: 256.058218 seconds.
+  path: Assets/Materials/Materials
+  artifactKey: Guid(79838e0551874924b8dbe60125923484) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Materials using Guid(79838e0551874924b8dbe60125923484) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'bd53fba692cc43f18d2e79de6a8d09bb') in 0.0064789 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 149.175962 seconds.
+  path: Assets/Materials/Materials/bricks.mat
+  artifactKey: Guid(d385f81de7ba7e14c8a314bb99f6b328) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Materials/bricks.mat using Guid(d385f81de7ba7e14c8a314bb99f6b328) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'a77b8db963159966a34aa65108d06000') in 0.4105235 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 4
+
+========================================================================
+Received Import Request.
+  Time since last request: 5.144155 seconds.
+  path: Assets/Materials/Materials/cabin_floor.mat
+  artifactKey: Guid(9326002c363edf7409890f499fa94094) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Materials/cabin_floor.mat using Guid(9326002c363edf7409890f499fa94094) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '8122649cdd1d9d7437f79757c8dd4327') in 0.0467767 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 4
+
+========================================================================
+Received Import Request.
+  Time since last request: 1.418199 seconds.
+  path: Assets/Materials/Materials/cabin_floor 1.mat
+  artifactKey: Guid(f2b361308e38cfb489086f1064025902) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Materials/cabin_floor 1.mat using Guid(f2b361308e38cfb489086f1064025902) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'dbb1ff34eeb7f381c7fc3111b04b9509') in 0.0291317 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 4
+
+========================================================================
+Received Import Request.
+  Time since last request: 1.394321 seconds.
+  path: Assets/Materials/Materials/cabin_walls.mat
+  artifactKey: Guid(c19f3ebd4742bb34aac2968e54b5239a) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Materials/cabin_walls.mat using Guid(c19f3ebd4742bb34aac2968e54b5239a) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'e00afd9c041ea5dc9929b6e96710b1c5') in 0.0412604 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 4
+
+========================================================================
+Received Import Request.
+  Time since last request: 87.524596 seconds.
+  path: Assets/Materials/Textures/PotionLiquid.mat
+  artifactKey: Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionLiquid.mat using Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'f1656a89ae0550c4494dfb6d541beec9') in 1.3891848 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000059 seconds.
+  path: Assets/PBS Materials Variety Pack/Paint/Paint 3.mat
+  artifactKey: Guid(850e0c9b4e7200345ad6e29da24b99f3) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/PBS Materials Variety Pack/Paint/Paint 3.mat using Guid(850e0c9b4e7200345ad6e29da24b99f3) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'b743a8b933bf16a2a21d4ffac94dd072') in 0.0324754 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 5
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000048 seconds.
+  path: Assets/Materials/Textures/PotionLiquid.mat
+  artifactKey: Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/PotionLiquid.mat using Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '11c9481f4a7fda1916cb272e2f5352b4') in 0.0402152 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 34.853809 seconds.
+  path: Assets/Materials/Textures/Potion1.png
+  artifactKey: Guid(1cb3891dc971a764484c9076483a0908) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/Potion1.png using Guid(1cb3891dc971a764484c9076483a0908) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'e972bf256a73d61521be33b8bb9b3f99') in 0.0605797 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.794083 seconds.
+  path: Assets/Materials/Textures/Potion1.png
+  artifactKey: Guid(1cb3891dc971a764484c9076483a0908) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/Potion1.png using Guid(1cb3891dc971a764484c9076483a0908) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '1798cecc3f80a26ac3ef72bd13bd2c27') in 0.1856933 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 12.700951 seconds.
+  path: Assets/Materials/Textures/Potion1.png
+  artifactKey: Guid(1cb3891dc971a764484c9076483a0908) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/Potion1.png using Guid(1cb3891dc971a764484c9076483a0908) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '224e216a7eaa01b3a5094318c98ededa') in 0.0418659 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 169.554500 seconds.
+  path: Assets/Materials/Textures/PotionLiquid.mat
+  artifactKey: Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionLiquid.mat using Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '614beb5298df63fa09ea6b6b3167a16a') in 0.061276 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.457447 seconds.
+  path: Assets/Materials/Textures/PotionLiquid.mat
+  artifactKey: Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/PotionLiquid.mat using Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '1e95bf35a0cf393e44eab35711dc97f5') in 0.0369658 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000048 seconds.
+  path: Assets/Scenes/TestingScene.unity
+  artifactKey: Guid(4444b3f600b7f3748aeefc648e6381fa) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Scenes/TestingScene.unity using Guid(4444b3f600b7f3748aeefc648e6381fa) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '0c0697a2580a4d7255a33b5fdb6be5d1') in 0.0561752 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 55.056595 seconds.
+  path: Assets/Materials/Textures/Potion2.png
+  artifactKey: Guid(8e26c1802396b5f47aea0ecb8d370a19) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/Potion2.png using Guid(8e26c1802396b5f47aea0ecb8d370a19) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'd0784ac5a412cc7d540afc0d1110a717') in 0.0392588 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.807185 seconds.
+  path: Assets/Materials/Textures/Potion2.png
+  artifactKey: Guid(8e26c1802396b5f47aea0ecb8d370a19) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/Potion2.png using Guid(8e26c1802396b5f47aea0ecb8d370a19) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'f571d0688d08868c0386e328b2a08182') in 0.0344158 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 176.711005 seconds.
+  path: Assets/Materials/Textures/PotionGlass.mat
+  artifactKey: Guid(50059ac3e2ab9244aa81173f01962f52) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionGlass.mat using Guid(50059ac3e2ab9244aa81173f01962f52) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '27f987456f9993fcdef6e802baf93c69') in 0.0419069 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000056 seconds.
+  path: Assets/Materials/Textures/PotionLiquid.mat
+  artifactKey: Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionLiquid.mat using Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '34973a0306c998cc944fe527d796631f') in 9.6359197 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000103 seconds.
+  path: Assets/Materials/Textures/PotionLiquid.mat
+  artifactKey: Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionLiquid.mat using Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '190406a9d5667c90e9a090c81a6dc52d') in 0.0539784 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000056 seconds.
+  path: Assets/Materials/Textures/Potion2.png
+  artifactKey: Guid(8e26c1802396b5f47aea0ecb8d370a19) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/Potion2.png using Guid(8e26c1802396b5f47aea0ecb8d370a19) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '364d41672a03411007f53b85464a366e') in 0.0699629 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.822271 seconds.
+  path: Assets/Materials/Textures/PotionGlass.mat
+  artifactKey: Guid(50059ac3e2ab9244aa81173f01962f52) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/PotionGlass.mat using Guid(50059ac3e2ab9244aa81173f01962f52) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '8c56b6e342ea17fed4cd5e865f246035') in 0.0293338 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000031 seconds.
+  path: Assets/Materials/Textures/PotionLiquid.mat
+  artifactKey: Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/PotionLiquid.mat using Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'ebbd0c218c3c1daf38b81772ca3efe9e') in 0.0297275 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 73.755185 seconds.
+  path: Assets/Materials/Textures/Potion2.png
+  artifactKey: Guid(8e26c1802396b5f47aea0ecb8d370a19) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/Potion2.png using Guid(8e26c1802396b5f47aea0ecb8d370a19) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '38c0f93c22df366b5a7293712aecb13b') in 0.0401414 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 226.632440 seconds.
+  path: Assets/Materials/Textures/PotionGlass.mat
+  artifactKey: Guid(50059ac3e2ab9244aa81173f01962f52) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionGlass.mat using Guid(50059ac3e2ab9244aa81173f01962f52) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '2ecab9fbae3e0a76163fd1867ef8b48f') in 0.0528518 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000042 seconds.
+  path: Assets/Materials/Textures/PotionLiquid.mat
+  artifactKey: Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionLiquid.mat using Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '9b100e390bb355e34a1696cce26ac92f') in 0.0565186 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.541715 seconds.
+  path: Assets/Materials/Textures/PotionGlass.mat
+  artifactKey: Guid(50059ac3e2ab9244aa81173f01962f52) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/PotionGlass.mat using Guid(50059ac3e2ab9244aa81173f01962f52) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '7cc55d2d663b292111af4ce520779975') in 0.0263342 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000042 seconds.
+  path: Assets/Materials/Textures/PotionLiquid.mat
+  artifactKey: Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/PotionLiquid.mat using Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'd272b849aedfae6b7d6b969f796ed88f') in 0.0285954 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000053 seconds.
+  path: Assets/Scenes/TestingScene.unity
+  artifactKey: Guid(4444b3f600b7f3748aeefc648e6381fa) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Scenes/TestingScene.unity using Guid(4444b3f600b7f3748aeefc648e6381fa) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '9641937a896a325ca8573822faba2064') in 0.0363337 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 165.241168 seconds.
+  path: Assets/Materials/Textures/Potion3.png
+  artifactKey: Guid(23be665188fe5e548988de0542cdf36c) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/Potion3.png using Guid(23be665188fe5e548988de0542cdf36c) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '0558ee2595c36cd47b22aafa6e4db622') in 0.0419163 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.888834 seconds.
+  path: Assets/Materials/Textures/Potion3.png
+  artifactKey: Guid(23be665188fe5e548988de0542cdf36c) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/Potion3.png using Guid(23be665188fe5e548988de0542cdf36c) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '1eb9d9e5a2081c2928f70dbb80d9d4f7') in 0.0350075 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 252.416482 seconds.
+  path: Assets/Materials/Textures/Potion3.png
+  artifactKey: Guid(23be665188fe5e548988de0542cdf36c) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/Potion3.png using Guid(23be665188fe5e548988de0542cdf36c) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '516be9d6a365d71f12da315c2311fdf2') in 0.0547278 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 450.549296 seconds.
+  path: Assets/Materials/Textures/PotionHeightMap.png
+  artifactKey: Guid(ab2f01946fd4b2045bfe6fdea60f628f) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionHeightMap.png using Guid(ab2f01946fd4b2045bfe6fdea60f628f) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '4a6b0305057b97cf9411726f6efaadeb') in 0.065377 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.730961 seconds.
+  path: Assets/Materials/Textures/PotionHeightMap.png
+  artifactKey: Guid(ab2f01946fd4b2045bfe6fdea60f628f) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/PotionHeightMap.png using Guid(ab2f01946fd4b2045bfe6fdea60f628f) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '4cf2716039551703986b8df6bb5d60b5') in 0.0529121 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 32.152912 seconds.
+  path: Assets/Materials/Textures/PotionHeightMap.png
+  artifactKey: Guid(ab2f01946fd4b2045bfe6fdea60f628f) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionHeightMap.png using Guid(ab2f01946fd4b2045bfe6fdea60f628f) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '4e163b9d9285f76c031f8df133d74aba') in 0.052277 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 29.095441 seconds.
+  path: Assets/Materials/Textures/PotionBaseMap.png
+  artifactKey: Guid(1cb3891dc971a764484c9076483a0908) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionBaseMap.png using Guid(1cb3891dc971a764484c9076483a0908) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '9196394cb507364f13e596f61a574ca0') in 0.0433486 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.837755 seconds.
+  path: Assets/Materials/Textures/PotionBaseMap.png
+  artifactKey: Guid(1cb3891dc971a764484c9076483a0908) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/PotionBaseMap.png using Guid(1cb3891dc971a764484c9076483a0908) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '38e378c12e36b020c5d361cb1f12079c') in 0.049823 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 86.525590 seconds.
+  path: Assets/Materials/Textures/PotionMask.png
+  artifactKey: Guid(23be665188fe5e548988de0542cdf36c) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionMask.png using Guid(23be665188fe5e548988de0542cdf36c) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '0cad72eef1541e9cad28c1279171ef38') in 0.0429825 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.800251 seconds.
+  path: Assets/Materials/Textures/PotionMask.png
+  artifactKey: Guid(23be665188fe5e548988de0542cdf36c) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/PotionMask.png using Guid(23be665188fe5e548988de0542cdf36c) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '08989acab9d92ef3c81b1ce7cebd7dfc') in 0.0404287 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 4.552194 seconds.
+  path: Assets/Materials/Textures/PotionNormalMap.png
+  artifactKey: Guid(8e26c1802396b5f47aea0ecb8d370a19) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionNormalMap.png using Guid(8e26c1802396b5f47aea0ecb8d370a19) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'b536688aa5cc41674544114f9b0ec74e') in 0.0572874 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.766085 seconds.
+  path: Assets/Materials/Textures/PotionNormalMap.png
+  artifactKey: Guid(8e26c1802396b5f47aea0ecb8d370a19) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/PotionNormalMap.png using Guid(8e26c1802396b5f47aea0ecb8d370a19) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '390cf0752da06deba4e33bd69f2dfd37') in 0.0450229 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 7.311219 seconds.
+  path: Assets/Materials/Textures/PotionRoughnessMap.png
+  artifactKey: Guid(c16a2d8bf215b0847abf6b3809651fa3) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionRoughnessMap.png using Guid(c16a2d8bf215b0847abf6b3809651fa3) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '2009110840a06b103f1b88f87bd7c030') in 0.0414465 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.870937 seconds.
+  path: Assets/Materials/Textures/PotionRoughnessMap.png
+  artifactKey: Guid(c16a2d8bf215b0847abf6b3809651fa3) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/PotionRoughnessMap.png using Guid(c16a2d8bf215b0847abf6b3809651fa3) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '827aaf98a71db22bbc4cf423c8f80f5c') in 0.0437527 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 32.650379 seconds.
+  path: Assets/Materials/Textures/PotionMetallicMap.png
+  artifactKey: Guid(6731ff5100cca1346b969873f4ca9b74) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionMetallicMap.png using Guid(6731ff5100cca1346b969873f4ca9b74) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '103f787d6d1d7c2e4de06caeaae273f0') in 0.0933537 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.793053 seconds.
+  path: Assets/Materials/Textures/PotionMetallicMap.png
+  artifactKey: Guid(6731ff5100cca1346b969873f4ca9b74) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/PotionMetallicMap.png using Guid(6731ff5100cca1346b969873f4ca9b74) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '7e7876f760055fe7db898b47257860fd') in 0.0702153 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 18.482614 seconds.
+  path: Assets/Materials/Textures/PotionMetallicMap.png
+  artifactKey: Guid(6731ff5100cca1346b969873f4ca9b74) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionMetallicMap.png using Guid(6731ff5100cca1346b969873f4ca9b74) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'ab54377bcae252fab3d31af2ebe96b83') in 0.0648599 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000073 seconds.
+  path: Assets/Materials/Textures/PotionRoughnessMap.png
+  artifactKey: Guid(c16a2d8bf215b0847abf6b3809651fa3) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionRoughnessMap.png using Guid(c16a2d8bf215b0847abf6b3809651fa3) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '5f4276f368918fc9f4a95efc9dc3ed09') in 0.047908 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 150.061638 seconds.
+  path: Assets/Materials/Textures/PotionOcclusionMap.png
+  artifactKey: Guid(6e749e75c1ac74c4cae31627d5970750) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionOcclusionMap.png using Guid(6e749e75c1ac74c4cae31627d5970750) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'b834768bffc8584fbd2baa27ebb53b8d') in 0.0866136 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.762510 seconds.
+  path: Assets/Materials/Textures/PotionOcclusionMap.png
+  artifactKey: Guid(6e749e75c1ac74c4cae31627d5970750) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/PotionOcclusionMap.png using Guid(6e749e75c1ac74c4cae31627d5970750) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '5a3cbbeea072c5a8ba83710432be95be') in 0.0463003 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 25.740841 seconds.
+  path: Assets/Materials/Textures/PotionGlass.mat
+  artifactKey: Guid(50059ac3e2ab9244aa81173f01962f52) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionGlass.mat using Guid(50059ac3e2ab9244aa81173f01962f52) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'eaed49aa34fdda2304acaa9d22778772') in 23.1099043 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000066 seconds.
+  path: Assets/Materials/Textures/PotionLiquid.mat
+  artifactKey: Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Materials/Textures/PotionLiquid.mat using Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '2b59e7f387e7726bf0d6cbf7a3289c3d') in 31.3799614 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 7
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000728 seconds.
+  path: Assets/Materials/Textures/PotionLiquid.mat
+  artifactKey: Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/PotionLiquid.mat using Guid(3f6dae1eae2d70e4eb70b57bb0094cb2) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: '03e25c3b6e0ea360f2ddef31604e68ca') in 0.0805275 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 7
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000063 seconds.
+  path: Assets/Materials/Textures/PotionGlass.mat
+  artifactKey: Guid(50059ac3e2ab9244aa81173f01962f52) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Materials/Textures/PotionGlass.mat using Guid(50059ac3e2ab9244aa81173f01962f52) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'ef4f4acbb86405e16f9fd1a4b2a81bd2') in 0.0480685 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000095 seconds.
+  path: Assets/Scenes/TestingScene.unity
+  artifactKey: Guid(4444b3f600b7f3748aeefc648e6381fa) Importer(2089858483,192608db42251d675da83286b1cce702)
+Start importing Assets/Scenes/TestingScene.unity using Guid(4444b3f600b7f3748aeefc648e6381fa) Importer(2089858483,192608db42251d675da83286b1cce702) (ScriptedImporter) -> (artifact id: 'd8e384e1c3f4b9d6962d23e632807743') in 0.0733441 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 1
+

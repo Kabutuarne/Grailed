@@ -11,8 +11,6 @@ public class PlayerUI : MonoBehaviour
     public PlayerInventory inventory;
 
     [Header("HUD Root (Always-on HUD)")]
-    // Assign a parent GameObject that contains the always-on HUD:
-    // healthBarHUD, manaBarHUD, sprintBarHUD, etc.
     public GameObject hudRoot;
 
     [Header("HUD Bars (always-on HUD)")]
@@ -23,35 +21,40 @@ public class PlayerUI : MonoBehaviour
     [Header("Backpack Bars")]
     public Slider healthBarBackpack;
     public Slider manaBarBackpack;
-    // No stamina slider in backpack
 
     [Header("Status Effects UI (Backpack)")]
-    public Transform statusEffectsRoot;     // parent transform inside backpack
-    public GameObject statusEffectPrefab;   // prefab with a Text component
+    public Transform statusEffectsRoot;
+    public GameObject statusEffectPrefab;
 
     [Header("Hand Slots UI (Backpack)")]
     public InventorySlotUI rightHandSlot;
-    public InventorySlotUI leftHandSlot;
 
     [Header("Accessory Slots UI (Backpack)")]
     public InventorySlotUI[] accessorySlots = new InventorySlotUI[4];
 
     [Header("Backpack Inventory Slots (3x3)")]
-    public InventorySlotUI[] backpackSlots;  // 9 slots, assign in Inspector
+    public InventorySlotUI[] backpackSlots;
 
     [Header("Character Sheet Texts (Backpack)")]
-    public Text healthText;       // shows: "current / max"
-    public Text manaText;         // shows: "current / max"
-    public Text staminaText;      // "Stamina: x / y" (resource)
-    public Text intelligenceText; // "Intelligence: x" (attribute)
-    public Text strengthText;     // "Strength: x" (attribute)
-    public Text staminaAttrText;  // "Stamina: x" (attribute) - attribute vs resource name distinction
-    public Text agilityText;      // "Agility: x" (attribute)
+    public Text healthText;
+    public Text manaText;
+    public Text staminaText;
+    public Text intelligenceText;
+    public Text strengthText;
+    public Text staminaAttrText;
+    public Text agilityText;
 
     [Header("Backpack Root Panel")]
-    public GameObject backpackRoot;      // panel you show/hide with Tab
+    public GameObject backpackRoot;
 
     public bool IsBackpackOpen => backpackRoot != null && backpackRoot.activeSelf;
+
+    private Canvas uiCanvas;
+    private GameObject dragIconGO;
+    private Image dragIconImage;
+    private GameObject currentlyDraggedItem;
+    private InventorySlotUI dragSourceSlot;
+    private int dragSourceIndex = -1;
 
     void Start()
     {
@@ -60,12 +63,19 @@ public class PlayerUI : MonoBehaviour
 
         if (inventory != null)
             inventory.OnInventoryChanged += HandleInventoryChanged;
+
+        uiCanvas = GetComponentInParent<Canvas>();
+        if (uiCanvas == null)
+            uiCanvas = FindFirstObjectByType<Canvas>();
     }
 
     void OnDestroy()
     {
         if (inventory != null)
             inventory.OnInventoryChanged -= HandleInventoryChanged;
+
+        if (dragIconGO != null)
+            Destroy(dragIconGO);
     }
 
     void Update()
@@ -76,6 +86,15 @@ public class PlayerUI : MonoBehaviour
         UpdateBackpackSlots();
         UpdateAccessories();
         UpdateCharacterSheet();
+
+        if (IsBackpackOpen && dragIconGO != null)
+        {
+            Vector2 pos = UnityEngine.InputSystem.Mouse.current != null
+                ? (Vector2)UnityEngine.InputSystem.Mouse.current.position.ReadValue()
+                : (Vector2)Input.mousePosition;
+
+            UpdateDrag(pos);
+        }
     }
 
     void UpdateBars()
@@ -87,7 +106,6 @@ public class PlayerUI : MonoBehaviour
         float m = stats.Mana01;
         float s = stats.Stamina01;
 
-        // HUD bars
         if (healthBarHUD != null)
             healthBarHUD.value = h;
         if (manaBarHUD != null)
@@ -95,7 +113,6 @@ public class PlayerUI : MonoBehaviour
         if (sprintBarHUD != null)
             sprintBarHUD.value = s;
 
-        // Backpack bars (no stamina slider here)
         if (healthBarBackpack != null)
             healthBarBackpack.value = h;
         if (manaBarBackpack != null)
@@ -107,22 +124,18 @@ public class PlayerUI : MonoBehaviour
         if (statusEffectsRoot == null || statusEffectPrefab == null || statusEffects == null)
             return;
 
-        // Rebuild every frame, simple and dirty
         foreach (Transform child in statusEffectsRoot)
             Destroy(child.gameObject);
 
-        // Group by carrier (EffectCarrier) where possible, show one entry per carrier using the longest remaining timer
-        var entries = new Dictionary<object, float>(); // key: EffectCarrier or effect id string (for null carrier)
+        var entries = new Dictionary<object, float>();
 
         foreach (var e in statusEffects.activeEffects)
         {
             if (e.carrier != null)
             {
-                // Carrier key
                 float current = entries.ContainsKey(e.carrier) ? entries[e.carrier] : 0f;
                 if (e.duration < 0f)
                 {
-                    // toggle -> mark as -1 (ON)
                     entries[e.carrier] = -1f;
                 }
                 else
@@ -133,18 +146,14 @@ public class PlayerUI : MonoBehaviour
             }
             else
             {
-                // no carrier - use id string as key and show each separately
-                string key = e.id + "_" + System.Guid.NewGuid().ToString();
+                string key = e.id + "_" + Guid.NewGuid().ToString();
                 entries[key] = e.duration < 0f ? -1f : e.timer;
             }
         }
 
-        // Instantiate UI entries
         foreach (var kv in entries)
         {
             GameObject go = Instantiate(statusEffectPrefab, statusEffectsRoot);
-
-            // set text (title and time-left)
             Text t = go.GetComponentInChildren<Text>();
             string titleText = "";
             float timeVal = kv.Value;
@@ -157,14 +166,12 @@ public class PlayerUI : MonoBehaviour
                 else
                     titleText = $"{titleText} ({Mathf.CeilToInt(timeVal)}s)";
 
-                // try set an Image if present
-                var img = go.GetComponentInChildren<UnityEngine.UI.Image>();
+                var img = go.GetComponentInChildren<Image>();
                 if (img != null && carrierKey.icon != null)
                     img.sprite = carrierKey.icon;
             }
             else
             {
-                // key is a string id mapping
                 if (timeVal < 0f)
                     titleText = $"{kv.Key} (ON)";
                 else
@@ -182,10 +189,7 @@ public class PlayerUI : MonoBehaviour
             return;
 
         if (rightHandSlot != null)
-            rightHandSlot.SetItem(inventory.rightHandItem);
-
-        if (leftHandSlot != null)
-            leftHandSlot.SetItem(inventory.leftHandItem);
+            rightHandSlot.SetItem(inventory.rightHandItem, -1, inventory);
     }
 
     void UpdateBackpackSlots()
@@ -203,7 +207,7 @@ public class PlayerUI : MonoBehaviour
             if (inventory.backpack != null && i < inventory.backpack.Length)
                 item = inventory.backpack[i];
 
-            slot.SetItem(item);
+            slot.SetItem(item, i, inventory);
         }
     }
 
@@ -221,7 +225,7 @@ public class PlayerUI : MonoBehaviour
                 continue;
 
             GameObject item = inventory.accessories[i];
-            slot.SetItem(item);
+            slot.SetItem(item, i, inventory);
         }
     }
 
@@ -230,18 +234,15 @@ public class PlayerUI : MonoBehaviour
         if (stats == null)
             return;
 
-        // Health & mana: plain "number / number"
         if (healthText != null)
             healthText.text = $"{Mathf.RoundToInt(stats.health)} / {Mathf.RoundToInt(stats.maxHealth)}";
 
         if (manaText != null)
             manaText.text = $"{Mathf.RoundToInt(stats.mana)} / {Mathf.RoundToInt(stats.maxMana)}";
 
-        // Resource labels
         if (staminaText != null)
             staminaText.text = $"Stamina: {Mathf.RoundToInt(stats.stamina)} / {Mathf.RoundToInt(stats.maxStamina)}";
 
-        // Attribute labels
         if (intelligenceText != null)
             intelligenceText.text = $"Intelligence: {Mathf.RoundToInt(stats.effectiveIntelligence)}";
 
@@ -249,7 +250,7 @@ public class PlayerUI : MonoBehaviour
             strengthText.text = $"Strength: {Mathf.RoundToInt(stats.effectiveStrength)}";
 
         if (staminaAttrText != null)
-            staminaAttrText.text = $"Stamina (attr): {Mathf.RoundToInt(stats.effectiveStaminaAttr)}";
+            staminaAttrText.text = $"Stamina: {Mathf.RoundToInt(stats.effectiveStaminaAttr)}";
 
         if (agilityText != null)
             agilityText.text = $"Agility: {Mathf.RoundToInt(stats.effectiveAgility)}";
@@ -262,6 +263,189 @@ public class PlayerUI : MonoBehaviour
         UpdateAccessories();
     }
 
+    // ----- Drag handling (unchanged in behavior) -----
+
+    public void StartDrag(GameObject item, Sprite icon, InventorySlotUI source, int sourceIndex = -1)
+    {
+        if (!IsBackpackOpen)
+            return;
+
+        if (item == null)
+            return;
+
+        currentlyDraggedItem = item;
+        dragSourceSlot = source;
+        dragSourceIndex = sourceIndex;
+
+        Sprite s = icon ?? GetIconFromItem(item);
+        CreateDragIcon(s);
+
+        Vector2 pos = UnityEngine.InputSystem.Mouse.current != null
+            ? (Vector2)UnityEngine.InputSystem.Mouse.current.position.ReadValue()
+            : (Vector2)Input.mousePosition;
+
+        UpdateDrag(pos);
+    }
+
+    public void UpdateDrag(Vector2 screenPosition)
+    {
+        if (dragIconGO == null || uiCanvas == null)
+            return;
+
+        RectTransform canvasRect = uiCanvas.transform as RectTransform;
+        Vector2 localPos;
+        Camera cam = uiCanvas.renderMode == RenderMode.ScreenSpaceCamera ? uiCanvas.worldCamera : null;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            canvasRect,
+            screenPosition,
+            cam,
+            out localPos
+        );
+
+        (dragIconGO.transform as RectTransform).localPosition = localPos;
+    }
+
+    public void EndDrag()
+    {
+        currentlyDraggedItem = null;
+        dragSourceSlot = null;
+        dragSourceIndex = -1;
+
+        if (dragIconGO != null)
+        {
+            Destroy(dragIconGO);
+            dragIconGO = null;
+            dragIconImage = null;
+        }
+    }
+
+    private void CreateDragIcon(Sprite sprite)
+    {
+        if (uiCanvas == null)
+            return;
+
+        if (dragIconGO != null)
+            Destroy(dragIconGO);
+
+        dragIconGO = new GameObject("DragIcon");
+        dragIconGO.transform.SetParent(uiCanvas.transform, false);
+        dragIconImage = dragIconGO.AddComponent<Image>();
+        dragIconImage.raycastTarget = false;
+        dragIconImage.sprite = sprite;
+
+        RectTransform rt = dragIconGO.GetComponent<RectTransform>();
+        if (sprite != null)
+            rt.sizeDelta = new Vector2(sprite.rect.width, sprite.rect.height);
+        else
+            rt.sizeDelta = new Vector2(40, 40);
+    }
+
+    private Sprite GetIconFromItem(GameObject item)
+    {
+        if (item == null)
+            return null;
+
+        var sr = item.GetComponentInChildren<SpriteRenderer>();
+        if (sr != null && sr.sprite != null)
+            return sr.sprite;
+
+        var uiImg = item.GetComponentInChildren<Image>();
+        if (uiImg != null && uiImg.sprite != null)
+            return uiImg.sprite;
+
+        return null;
+    }
+
+    private bool IsSlotInBackpack(InventorySlotUI slot)
+    {
+        if (slot == null || backpackSlots == null)
+            return false;
+
+        for (int i = 0; i < backpackSlots.Length; i++)
+            if (backpackSlots[i] == slot)
+                return true;
+
+        return false;
+    }
+
+    public void HandleDrop(InventorySlotUI targetSlot)
+    {
+        if (!IsBackpackOpen)
+        {
+            EndDrag();
+            return;
+        }
+
+        if (inventory == null || currentlyDraggedItem == null || dragSourceSlot == null)
+        {
+            EndDrag();
+            return;
+        }
+
+        if (targetSlot == dragSourceSlot)
+        {
+            EndDrag();
+            return;
+        }
+
+        var srcType = dragSourceSlot.slotType;
+        var dstType = targetSlot.slotType;
+        int srcIndex = dragSourceIndex;
+        int dstIndex = targetSlot.slotIndex;
+
+        if (srcType == InventorySlotUI.SlotType.Backpack && dstType == InventorySlotUI.SlotType.Backpack)
+        {
+            inventory.SwapBackpackSlots(srcIndex, dstIndex);
+        }
+        else if (srcType == InventorySlotUI.SlotType.Backpack && dstType == InventorySlotUI.SlotType.RightHand)
+        {
+            inventory.SwapRightHandWithBackpack(srcIndex);
+        }
+        else if (srcType == InventorySlotUI.SlotType.RightHand && dstType == InventorySlotUI.SlotType.Backpack)
+        {
+            inventory.SwapRightHandWithBackpack(dstIndex);
+        }
+        else
+        {
+            Debug.Log("PlayerUI: Drop combination not handled.");
+        }
+
+        EndDrag();
+    }
+
+    // ----- NEW: helpers for PlayerController -----
+
+    public bool TryConsumeHoveredBackpackItem(GameObject user)
+    {
+        if (!IsBackpackOpen || inventory == null)
+            return false;
+
+        var slot = InventorySlotUI.HoveredSlot;
+        if (slot == null || slot.slotType != InventorySlotUI.SlotType.Backpack)
+            return false;
+
+        if (slot.slotIndex < 0)
+            return false;
+
+        return inventory.ConsumeFromBackpack(slot.slotIndex, user);
+    }
+
+    public bool TryDropHoveredBackpackItem(Transform dropOrigin)
+    {
+        if (!IsBackpackOpen || inventory == null)
+            return false;
+
+        var slot = InventorySlotUI.HoveredSlot;
+        if (slot == null || slot.slotType != InventorySlotUI.SlotType.Backpack)
+            return false;
+
+        if (slot.slotIndex < 0)
+            return false;
+
+        return inventory.DropFromBackpack(slot.slotIndex, dropOrigin);
+    }
+
     public void ToggleBackpack()
     {
         if (backpackRoot == null)
@@ -270,8 +454,10 @@ public class PlayerUI : MonoBehaviour
         bool newState = !backpackRoot.activeSelf;
         backpackRoot.SetActive(newState);
 
-        // Hide HUD when backpack is open, show HUD when backpack is closed
         if (hudRoot != null)
             hudRoot.SetActive(!newState);
+
+        if (!newState)
+            EndDrag();
     }
 }

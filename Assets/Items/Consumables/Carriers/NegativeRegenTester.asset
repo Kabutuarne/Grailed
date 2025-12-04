@@ -12,24 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 80d0413882f3e20409df383b7614c193, type: 3}
   m_Name: NegativeRegenTester
   m_EditorClassIdentifier: Assembly-CSharp::EffectCarrier
-  healAmount: 0
-  manaAmount: 0
-  healthRegenMultiplier: 1
-  healthRegenDuration: 0
-  manaRegenMultiplier: 1
-  manaRegenDuration: 0
-  sprintMultiplier: 1
-  sprintDuration: 0
-  addStrength: 0
-  strengthDuration: 0
-  addIntelligence: 0
-  intelligenceDuration: 0
-  addStaminaAttr: 0
-  staminaAttrDuration: 0
-  addAgility: 0
-  agilityDuration: 0
-  displayName: Consumable
-  id: consumable
-  effects: []
+  effects:
+  - {fileID: 11400000, guid: 1bce4687cc8286d44bb9c4a342dcd273, type: 2}
+  - {fileID: 11400000, guid: abb0d79e2212bbb4cadabaef2c069b10, type: 2}
   title: Effect
   icon: {fileID: 0}

@@ -1,14 +1,14 @@
 using UnityEngine;
 
 // Attach to pickup/consumable world object. Holds presentation info and an EffectCarrier reference.
-public class ConsumableItem : MonoBehaviour
+public class ConsumableItem : ItemPickup
 {
     [Header("Data")]
     public EffectCarrier carrier;
 
     [Header("Presentation")]
     public GameObject renderModel;       // 3D model to show in the world
-    public Rigidbody rb;                 // optional rigidbody for physics
+    public Rigidbody rb;                 // rigidbody for physics
 
     [Header("Inventory UI")]
     public Sprite inventoryIcon;
