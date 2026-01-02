@@ -52,38 +52,37 @@
     <Compile Include="Assets\Scripts\PlayerScripts\ItemTooltip.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\ConsumableItem.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerInteractor.cs" />
+    <Compile Include="Assets\Scripts\PlayerScripts\Spells\AOESpell.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerConsume.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\CastUI.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Effects\DurationEffect.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerDecorationPlacer.cs" />
-    <Compile Include="Assets\Scripts\PlayerScripts\FireballSpellEffect.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Effects\PlayerEffect.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Effects\InstantEffect.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Effects\PassiveEffect.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\TestConsumableUser.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerStatusEffects.cs" />
-    <Compile Include="Assets\Scripts\PlayerScripts\SpellEffect.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\InventorySlotUI.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\DecorationItem.cs" />
-    <Compile Include="Assets\Scripts\PlayerScripts\FireballBehaviour.cs" />
-    <Compile Include="Assets\Scripts\PlayerScripts\AOEHealBehaviour.cs" />
+    <Compile Include="Assets\Scripts\PlayerScripts\Spells\KnockbackImpactBehaviour.cs" />
+    <Compile Include="Assets\Scripts\PlayerScripts\Spells\ScrollItem.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerCast.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\ItemPickup.cs" />
     <Compile Include="Assets\PlayerInputActions.cs" />
-    <Compile Include="Assets\Scripts\PlayerScripts\ScrollItem.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerStats.cs" />
-    <Compile Include="Assets\Scripts\PlayerScripts\AOEHealSpellEffect.cs" />
+    <Compile Include="Assets\Scripts\PlayerScripts\Spells\ProjectileSpell.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerController.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerUI.cs" />
+    <Compile Include="Assets\Scripts\PlayerScripts\Spells\ProjectileImpactBehaviour.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\ConsumableEntity.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\JMO Assets\Cartoon FX Remaster\CFXR Assets\Shaders\CFXR_SETTINGS.cginc" />
-    <None Include="Assets\JMO Assets\Cartoon FX Remaster\CFXR Assets\Shaders\CFXR.cginc" />
+    <None Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Assets\Shaders\CFXR_SETTINGS.cginc" />
+    <None Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Assets\Shaders\CFXR.cginc" />
     <None Include="Assets\PBS Materials Variety Pack\readme.txt" />
-    <None Include="Assets\JMO Assets\Cartoon FX Remaster\CFXR Prefabs\Texts\_Make your own text effect.txt" />
-    <None Include="Assets\JMO Assets\Cartoon FX Remaster\CFXR Assets\Shaders\CFXR_PASSES.cginc" />
-    <None Include="Assets\JMO Assets\Cartoon FX Remaster\CFXR Assets\Shaders\CFXR_URP.cginc" />
+    <None Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Prefabs\Texts\_Make your own text effect.txt" />
+    <None Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Assets\Shaders\CFXR_PASSES.cginc" />
+    <None Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Assets\Shaders\CFXR_URP.cginc" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
@@ -1301,10 +1300,10 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="ToonyColorsPro.Demo.Editor.csproj" />
-    <ProjectReference Include="KinoBloom.Runtime.csproj" />
+    <ProjectReference Include="CFXREditor.csproj" />
     <ProjectReference Include="CFXRRuntime.csproj" />
     <ProjectReference Include="CFXRDemo.csproj" />
-    <ProjectReference Include="CFXREditor.csproj" />
+    <ProjectReference Include="KinoBloom.Runtime.csproj" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <ItemGroup>

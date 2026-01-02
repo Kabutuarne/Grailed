@@ -16,3 +16,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: dd7f5dae12b9f964ca485b7e26116436, type: 2}
   title: Black plague
   icon: {fileID: 0}
+  description: Infected with plague

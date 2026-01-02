@@ -32,6 +32,18 @@ public class CastUI : MonoBehaviour
         }
     }
 
+    // Shows a simple "Casting" state with no progress bar (for AOE)
+    public void ShowCasting()
+    {
+        if (castSlider != null)
+            castSlider.gameObject.SetActive(false);
+        if (secondsText != null)
+        {
+            secondsText.text = "Casting";
+            secondsText.gameObject.SetActive(true);
+        }
+    }
+
     public void UpdateRemaining(float totalCastTime, float remaining)
     {
         if (castSlider != null)

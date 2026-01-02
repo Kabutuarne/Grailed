@@ -15,6 +15,8 @@ public class EffectCarrier : ScriptableObject
     [Header("Display / metadata")]
     public string title = "Effect";
     public Sprite icon;
+    [TextArea]
+    public string description;
 
     // The time left to display for the carrier when active (the longest duration among contained DurationEffects)
     // Note: at author-time this is calculated from configured DurationEffects; runtime UI will read the active effect timer from PlayerStatusEffects

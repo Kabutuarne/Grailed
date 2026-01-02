@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EffectCarrier
   effects:
   - {fileID: 11400000, guid: 1b0b395975cf71e4ba056781f1b991a6, type: 2}
-  title: Anabolic steroids
+  title: 
   icon: {fileID: 21300000, guid: 506f2e588d8968448965802a0b3fbcc2, type: 3}
+  description: Anabolic steroids

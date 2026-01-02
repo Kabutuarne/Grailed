@@ -255,40 +255,41 @@ public class PlayerUI : MonoBehaviour
         foreach (var kv in entries)
         {
             GameObject go = Instantiate(statusEffectPrefab, statusEffectsRoot);
-            Text t = go.GetComponentInChildren<Text>();
-            string titleText = "";
             float timeVal = kv.Value;
 
             if (kv.Key is EffectCarrier carrierKey)
             {
-                titleText = carrierKey.title;
-                if (timeVal < 0f)
-                    titleText = $"{titleText} (ON)";
-                else
-                    titleText = $"{titleText} ({Mathf.CeilToInt(timeVal)}s)";
-
-                // Find a child named "Icon" and replace its Image.sprite. Fall back to first Image if not found.
+                // Only Icon + Description for carrier-based entries
                 Image iconImage = null;
                 var iconTransform = go.transform.Find("Icon");
                 if (iconTransform != null)
                     iconImage = iconTransform.GetComponent<Image>();
-
                 if (iconImage == null)
                     iconImage = go.GetComponentInChildren<Image>();
-
                 if (iconImage != null && carrierKey.icon != null)
                     iconImage.sprite = carrierKey.icon;
+
+                // Set description to provided text
+                var descTransform = go.transform.Find("Description");
+                if (descTransform != null)
+                {
+                    var descText = descTransform.GetComponent<Text>();
+                    if (descText != null)
+                        descText.text = carrierKey.description;
+                }
             }
             else
             {
+                // Non-carrier entries: keep legacy title/time in first Text
+                Text t = go.GetComponentInChildren<Text>();
+                string titleText;
                 if (timeVal < 0f)
                     titleText = $"{kv.Key} (ON)";
                 else
                     titleText = $"{kv.Key} ({Mathf.CeilToInt(timeVal)}s)";
+                if (t != null)
+                    t.text = titleText;
             }
-
-            if (t != null)
-                t.text = titleText;
         }
     }
 
@@ -372,7 +373,7 @@ public class PlayerUI : MonoBehaviour
         UpdateAccessories();
     }
 
-    // ----- Drag handling (unchanged in behavior) -----
+    // ----- Drag handling -----
 
     public void StartDrag(GameObject item, Sprite icon, InventorySlotUI source, int sourceIndex = -1)
     {

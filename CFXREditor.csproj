@@ -48,14 +48,14 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.2.12f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\JMO Assets\Cartoon FX Remaster\CFXR Assets\Editor\CFXR_ShaderImporter.cs" />
-    <Compile Include="Assets\JMO Assets\Cartoon FX Remaster\CFXR Assets\Editor\CFXR_ExpressionParser.cs" />
-    <Compile Include="Assets\JMO Assets\Cartoon FX Remaster\CFXR Assets\Editor\CFXR_ShaderPostProcessor.cs" />
-    <Compile Include="Assets\JMO Assets\Cartoon FX Remaster\CFXR Assets\Editor\CFXR_Styles.cs" />
-    <Compile Include="Assets\JMO Assets\Cartoon FX Remaster\CFXR Assets\Editor\CFXR_MaterialInspector.cs" />
+    <Compile Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Assets\Editor\CFXR_Styles.cs" />
+    <Compile Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Assets\Editor\CFXR_ShaderPostProcessor.cs" />
+    <Compile Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Assets\Editor\CFXR_ExpressionParser.cs" />
+    <Compile Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Assets\Editor\CFXR_MaterialInspector.cs" />
+    <Compile Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Assets\Editor\CFXR_ShaderImporter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\JMO Assets\Cartoon FX Remaster\CFXR Assets\Editor\CFXR Editor.asmdef" />
+    <None Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Assets\Editor\CFXR Editor.asmdef" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

@@ -7,13 +7,17 @@ public class PlayerCast : MonoBehaviour
     private PlayerInputActions input;
     private PlayerInventory inventory;
     private PlayerStats stats;
+    private CharacterController controller;
 
     [Header("UI")]
     public CastUI castUI;
+    public PlayerUI playerUI; // used to gate casting when backpack is open
 
     bool isCasting = false;
     ScrollItem currentScroll = null;
-    SpellEffect currentEffect = null;
+    AOESpell currentAOE = null;
+    ProjectileSpell currentProjectile = null;
+    GameObject currentAOEVisual = null;
     float elapsed = 0f;
     float castTimeActual = 0f;
 
@@ -22,6 +26,10 @@ public class PlayerCast : MonoBehaviour
         input = new PlayerInputActions();
         inventory = GetComponent<PlayerInventory>();
         stats = GetComponent<PlayerStats>();
+        controller = GetComponent<CharacterController>();
+
+        if (playerUI == null)
+            playerUI = Object.FindFirstObjectByType<PlayerUI>();
     }
 
     void OnEnable()
@@ -43,7 +51,15 @@ public class PlayerCast : MonoBehaviour
             try { hold = input.Player.Cast.ReadValue<float>() > 0f; } catch { hold = false; }
         }
 
-        if (hold)
+        // Disallow casting when backpack is open
+        bool backpackOpen = (playerUI != null && playerUI.IsBackpackOpen);
+
+        // Consider moving if move input has magnitude; fall back to controller velocity if available
+        Vector2 moveVec = Vector2.zero;
+        try { moveVec = input.Player.Move.ReadValue<Vector2>(); } catch { moveVec = Vector2.zero; }
+        bool moving = moveVec.sqrMagnitude > 0.0001f;
+
+        if (hold && !backpackOpen && !moving)
         {
             if (!isCasting)
             {
@@ -56,6 +72,7 @@ public class PlayerCast : MonoBehaviour
         }
         else
         {
+            // Cancel if releasing, backpack opened, or movement started mid-cast
             if (isCasting)
                 CancelCast();
         }
@@ -68,60 +85,117 @@ public class PlayerCast : MonoBehaviour
         var scroll = inventory.rightHandItem.GetComponent<ScrollItem>();
         if (scroll == null || !scroll.CanCast()) return;
 
+        // Double-check gating (backpack or movement) at start
+        if (playerUI != null && playerUI.IsBackpackOpen) return;
+        Vector2 mv = Vector2.zero; try { mv = input.Player.Move.ReadValue<Vector2>(); } catch { }
+        if (mv.sqrMagnitude > 0.0001f) return;
+
         currentScroll = scroll;
-        currentEffect = scroll.spellEffect;
+        currentAOE = scroll.aoeSpell;
+        currentProjectile = scroll.projectileSpell;
 
         float mult = stats != null ? stats.castTimeMultiplier : 1f;
-        castTimeActual = Mathf.Max(0.01f, currentEffect.castTime * mult);
+        if (currentAOE != null)
+        {
+            // For AOE: use castTime as tick interval, show "Casting", and trigger immediately
+            castTimeActual = Mathf.Max(0.01f, currentAOE.castTime * mult);
+        }
+        else if (currentProjectile != null)
+        {
+            castTimeActual = Mathf.Max(0.01f, currentProjectile.castTime * mult);
+        }
         elapsed = 0f;
         isCasting = true;
 
         if (castUI != null)
-            castUI.Show(castTimeActual, castTimeActual - elapsed);
+        {
+            if (currentAOE != null)
+                castUI.ShowCasting();
+            else
+                castUI.Show(castTimeActual, castTimeActual - elapsed);
+        }
+
+        // Create persistent AOE visual (world-space, not parented)
+        if (currentAOE != null && currentAOE.castingParticlePrefab != null)
+        {
+            currentAOEVisual = Instantiate(
+                currentAOE.castingParticlePrefab,
+                transform.position + currentAOE.effectOffset,
+                Quaternion.identity
+            );
+        }
+
+        // Mark AOE status active in UI for the player while casting
+        if (currentAOE != null)
+        {
+            currentAOE.BeginCasting(gameObject);
+        }
+
+        // Immediate tick for AOE
+        if (currentAOE != null)
+        {
+            bool pulsed = currentAOE.TriggerTick(gameObject);
+            if (!pulsed)
+            {
+                CancelCast();
+                return;
+            }
+            elapsed = 0f; // start interval for next pulse
+        }
     }
 
     void ContinueCasting()
     {
-        if (currentEffect == null || currentScroll == null)
+        // Cancel if backpack opened or player started moving
+        bool backpackOpen = (playerUI != null && playerUI.IsBackpackOpen);
+        Vector2 mv = Vector2.zero; try { mv = input.Player.Move.ReadValue<Vector2>(); } catch { }
+        bool moving = mv.sqrMagnitude > 0.0001f;
+
+        if ((currentAOE == null && currentProjectile == null) || currentScroll == null || backpackOpen || moving)
         {
             CancelCast();
             return;
         }
 
+        // Keep AOE visual following player while stationary (world-space, not parented)
+        if (currentAOE != null && currentAOEVisual != null)
+        {
+            currentAOEVisual.transform.position = transform.position + currentAOE.effectOffset;
+        }
+
         elapsed += Time.deltaTime;
         float remaining = castTimeActual - elapsed;
-        if (castUI != null)
+        if (castUI != null && currentProjectile != null)
             castUI.UpdateRemaining(castTimeActual, remaining);
 
         if (remaining <= 0f)
         {
-            // Attempt to spend mana; if insufficient cancel cast
-            bool spent = true;
-            if (stats != null && currentEffect.manaCost > 0f)
+            if (currentProjectile != null)
             {
-                spent = stats.TrySpendMana(currentEffect.manaCost);
-            }
-
-            if (!spent)
-            {
-                Debug.Log("Not enough mana to cast " + currentEffect.title);
-                CancelCast();
-                return;
-            }
-
-            // trigger based on mode
-            if (currentEffect.triggerMode == SpellEffect.TriggerMode.AfterCast)
-            {
-                currentEffect.Trigger(gameObject);
+                // One-shot on cast completion
+                bool fired = currentProjectile.TriggerOnce(gameObject);
+                if (!fired)
+                {
+                    Debug.Log("Not enough mana to cast projectile spell.");
+                    CancelCast();
+                    return;
+                }
                 EndCast();
             }
-            else if (currentEffect.triggerMode == SpellEffect.TriggerMode.WhileHolding)
+            else if (currentAOE != null)
             {
-                currentEffect.Trigger(gameObject);
-                // reset timer for the next pulse while still holding
+                // Repeated pulses while holding
+                bool pulsed = currentAOE.TriggerTick(gameObject);
+                if (!pulsed)
+                {
+                    Debug.Log("Not enough mana to continue AOE spell.");
+                    CancelCast();
+                    return;
+                }
+                // reset timer for next pulse
                 elapsed = 0f;
                 if (castUI != null)
-                    castUI.UpdateRemaining(castTimeActual, castTimeActual - elapsed);
+                    castUI.ShowCasting();
             }
         }
     }
@@ -129,10 +203,23 @@ public class PlayerCast : MonoBehaviour
     void CancelCast()
     {
         isCasting = false;
-        currentEffect = null;
+        currentAOE = null;
+        currentProjectile = null;
         currentScroll = null;
         elapsed = 0f;
         castTimeActual = 0f;
+        if (currentAOEVisual != null)
+        {
+            Destroy(currentAOEVisual);
+            currentAOEVisual = null;
+        }
+        // Clear AOE status entry
+        // Use scroll.aoeSpell where possible (currentAOE is already nulled), but we can find via rightHandItem
+        var scroll = inventory != null && inventory.rightHandItem != null ? inventory.rightHandItem.GetComponent<ScrollItem>() : null;
+        if (scroll != null && scroll.aoeSpell != null)
+        {
+            scroll.aoeSpell.EndCasting(gameObject);
+        }
         if (castUI != null)
             castUI.Hide();
     }
@@ -142,9 +229,21 @@ public class PlayerCast : MonoBehaviour
         // For AfterCast we complete and stop casting
         isCasting = false;
         currentScroll = null;
-        currentEffect = null;
+        currentAOE = null;
+        currentProjectile = null;
         elapsed = 0f;
         castTimeActual = 0f;
+        if (currentAOEVisual != null)
+        {
+            Destroy(currentAOEVisual);
+            currentAOEVisual = null;
+        }
+        // Clear AOE status entry
+        var scroll = inventory != null && inventory.rightHandItem != null ? inventory.rightHandItem.GetComponent<ScrollItem>() : null;
+        if (scroll != null && scroll.aoeSpell != null)
+        {
+            scroll.aoeSpell.EndCasting(gameObject);
+        }
         if (castUI != null)
             castUI.Hide();
     }
