@@ -54,9 +54,39 @@ public class InventorySlotUI : MonoBehaviour,
 
             if (item != null)
             {
-                var pickup = item.GetComponent<ConsumableItem>();
-                if (pickup != null && pickup.inventoryIcon != null)
-                    s = pickup.inventoryIcon;
+                // Check common item types for explicit inventory icons
+                var consumable = item.GetComponent<ConsumableItem>();
+                if (consumable != null && consumable.inventoryIcon != null)
+                {
+                    s = consumable.inventoryIcon;
+                }
+                else
+                {
+                    var scroll = item.GetComponent<ScrollItem>();
+                    if (scroll != null && scroll.inventoryIcon != null)
+                        s = scroll.inventoryIcon;
+                    else
+                    {
+                        // DecorationItem support: use its inventoryIcon if present
+                        var decor = item.GetComponent<DecorationItem>();
+                        if (decor != null && decor.inventoryIcon != null)
+                        {
+                            s = decor.inventoryIcon;
+                        }
+                        else
+                        {
+                            var sr = item.GetComponentInChildren<SpriteRenderer>();
+                            if (sr != null && sr.sprite != null)
+                                s = sr.sprite;
+                            else
+                            {
+                                var uiImg = item.GetComponentInChildren<Image>();
+                                if (uiImg != null && uiImg.sprite != null)
+                                    s = uiImg.sprite;
+                            }
+                        }
+                    }
+                }
             }
 
             icon.sprite = s;

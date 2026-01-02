@@ -29,17 +29,14 @@ public class ConsumableItem : ItemPickup
             return;
         }
 
-        // Apply the carrier effects to the user. PlayerEffects will record the carrier reference for UI.
-        foreach (var e in carrier.effects)
-        {
-            if (e == null) continue;
-            e.Apply(user, carrier);
-            Debug.Log($"[ConsumableEntity] Applied effect '{e.displayName}' from carrier '{carrier.title}' to {user.name}");
-        }
+        carrier.Apply(user);
+
+        Debug.Log($"[ConsumableItem] Consumed carrier '{carrier.title}' on {user.name}");
 
         if (destroyOnConsume)
             Destroy(gameObject);
         else
             gameObject.SetActive(false);
     }
+
 }

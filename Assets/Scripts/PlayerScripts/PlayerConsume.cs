@@ -1,13 +1,31 @@
 using UnityEngine;
 
-// Attach this to your Player. Set 'holdPoint' to the transform where held items are parented (e.g., the hand).
 public class PlayerConsume : MonoBehaviour
 {
     public Transform holdPoint;
     private PlayerInputActions input;
+
+    private void Awake()
+    {
+        input = new PlayerInputActions();
+    }
+
+    private void OnEnable()
+    {
+        if (input == null)
+            input = new PlayerInputActions();
+
+        input.Enable();
+    }
+
+    private void OnDisable()
+    {
+        if (input != null)
+            input.Disable();
+    }
+
     void Update()
     {
-        // Uses the project's input flag: Input.Consume
         if (input != null && input.Player.Consume.triggered)
         {
             TryConsumeHeldItem();

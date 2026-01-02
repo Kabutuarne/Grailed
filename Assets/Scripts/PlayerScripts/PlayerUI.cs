@@ -46,6 +46,8 @@ public class PlayerUI : MonoBehaviour
 
     [Header("Backpack Root Panel")]
     public GameObject backpackRoot;
+    [Header("Item Tooltip")]
+    public GameObject itemTooltipPrefab; // prefab with ItemTooltip component
 
     public bool IsBackpackOpen => backpackRoot != null && backpackRoot.activeSelf;
 
@@ -55,6 +57,8 @@ public class PlayerUI : MonoBehaviour
     private GameObject currentlyDraggedItem;
     private InventorySlotUI dragSourceSlot;
     private int dragSourceIndex = -1;
+    private GameObject tooltipGO;
+    private ItemTooltip tooltipController;
 
     void Start()
     {
@@ -67,6 +71,15 @@ public class PlayerUI : MonoBehaviour
         uiCanvas = GetComponentInParent<Canvas>();
         if (uiCanvas == null)
             uiCanvas = FindFirstObjectByType<Canvas>();
+
+        // instantiate tooltip (hidden) if prefab provided
+        if (itemTooltipPrefab != null && uiCanvas != null)
+        {
+            tooltipGO = Instantiate(itemTooltipPrefab, uiCanvas.transform, false);
+            tooltipController = tooltipGO.GetComponent<ItemTooltip>();
+            if (tooltipGO != null)
+                tooltipGO.SetActive(false);
+        }
     }
 
     void OnDestroy()
@@ -95,6 +108,94 @@ public class PlayerUI : MonoBehaviour
 
             UpdateDrag(pos);
         }
+        UpdateTooltip();
+    }
+
+    void UpdateTooltip()
+    {
+        if (tooltipGO == null || tooltipController == null || uiCanvas == null)
+            return;
+
+        var hovered = InventorySlotUI.HoveredSlot;
+        if (hovered != null && hovered.inventory != null && IsBackpackOpen)
+        {
+            GameObject item = null;
+            switch (hovered.slotType)
+            {
+                case InventorySlotUI.SlotType.Backpack:
+                    if (hovered.slotIndex >= 0 && hovered.slotIndex < hovered.inventory.backpack.Length)
+                        item = hovered.inventory.backpack[hovered.slotIndex];
+                    break;
+                case InventorySlotUI.SlotType.RightHand:
+                    item = hovered.inventory.rightHandItem;
+                    break;
+                case InventorySlotUI.SlotType.Accessory:
+                    if (hovered.slotIndex >= 0 && hovered.slotIndex < hovered.inventory.accessories.Length)
+                        item = hovered.inventory.accessories[hovered.slotIndex];
+                    break;
+            }
+
+            if (item != null)
+            {
+                // gather display info from ScrollItem or ConsumableItem
+                string title = item.name;
+                Color titleColor = Color.white;
+                string desc = "";
+                Color descColor = Color.white;
+
+                var scroll = item.GetComponent<ScrollItem>();
+                if (scroll != null)
+                {
+                    title = !string.IsNullOrEmpty(scroll.title) ? scroll.title : item.name;
+                    titleColor = scroll.titleColor;
+                    desc = scroll.description;
+                    descColor = scroll.descriptionColor;
+                }
+                else
+                {
+                    var cons = item.GetComponent<ConsumableItem>();
+                    if (cons != null)
+                    {
+                        title = !string.IsNullOrEmpty(cons.title) ? cons.title : item.name;
+                        titleColor = cons.titleColor;
+                        desc = cons.description;
+                        descColor = cons.descriptionColor;
+                    }
+                    else
+                    {
+                        // DecorationItem support for tooltip
+                        var decor = item.GetComponent<DecorationItem>();
+                        if (decor != null)
+                        {
+                            title = !string.IsNullOrEmpty(decor.title) ? decor.title : item.name;
+                            titleColor = decor.titleColor;
+                            desc = decor.description;
+                            descColor = decor.descriptionColor;
+                        }
+                    }
+                }
+
+                tooltipController.SetData(title, titleColor, desc, descColor);
+
+                // Position tooltip near mouse
+                Vector2 screenPos = UnityEngine.InputSystem.Mouse.current != null
+                    ? (Vector2)UnityEngine.InputSystem.Mouse.current.position.ReadValue()
+                    : (Vector2)Input.mousePosition;
+
+                RectTransform canvasRect = uiCanvas.transform as RectTransform;
+                RectTransform tooltipRect = tooltipGO.transform as RectTransform;
+                Camera cam = uiCanvas.renderMode == RenderMode.ScreenSpaceCamera ? uiCanvas.worldCamera : null;
+                Vector2 localPos;
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screenPos, cam, out localPos);
+                // Position tooltip with top-left at mouse cursor plus small offset.
+                tooltipRect.localPosition = localPos + new Vector2(10f, -10f);
+
+                tooltipGO.SetActive(true);
+                return;
+            }
+        }
+
+        tooltipGO.SetActive(false);
     }
 
     void UpdateBars()
@@ -166,9 +267,17 @@ public class PlayerUI : MonoBehaviour
                 else
                     titleText = $"{titleText} ({Mathf.CeilToInt(timeVal)}s)";
 
-                var img = go.GetComponentInChildren<Image>();
-                if (img != null && carrierKey.icon != null)
-                    img.sprite = carrierKey.icon;
+                // Find a child named "Icon" and replace its Image.sprite. Fall back to first Image if not found.
+                Image iconImage = null;
+                var iconTransform = go.transform.Find("Icon");
+                if (iconTransform != null)
+                    iconImage = iconTransform.GetComponent<Image>();
+
+                if (iconImage == null)
+                    iconImage = go.GetComponentInChildren<Image>();
+
+                if (iconImage != null && carrierKey.icon != null)
+                    iconImage.sprite = carrierKey.icon;
             }
             else
             {
