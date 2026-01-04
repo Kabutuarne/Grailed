@@ -120,6 +120,12 @@ public class PlayerController : MonoBehaviour
 
     void LateUpdate()
     {
+        // Apply camera pivot rotation after body rotation to avoid jitter
+        if (cameraPivot != null)
+        {
+            float headYaw = Mathf.DeltaAngle(bodyYaw, targetYaw);
+            cameraPivot.localRotation = Quaternion.Euler(cameraPitch, headYaw, 0f);
+        }
         UpdateHeadRotation();
     }
 
@@ -180,12 +186,8 @@ public class PlayerController : MonoBehaviour
         deltaFromBody = Mathf.Clamp(deltaFromBody, -maxHeadYaw, maxHeadYaw);
         targetYaw = bodyYaw + deltaFromBody;
 
-        float headYaw = Mathf.DeltaAngle(bodyYaw, targetYaw);
-
-        if (cameraPivot != null)
-        {
-            cameraPivot.localRotation = Quaternion.Euler(cameraPitch, headYaw, 0f);
-        }
+        // Defer camera pivot rotation to LateUpdate to align with final body rotation
+        // This avoids per-frame mismatch between view and body causing jitter.
     }
 
     void HandleMovement()

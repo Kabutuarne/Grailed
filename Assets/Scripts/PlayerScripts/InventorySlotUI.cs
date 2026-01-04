@@ -7,7 +7,8 @@ public class InventorySlotUI : MonoBehaviour,
     IPointerExitHandler,
     IBeginDragHandler,
     IDragHandler,
-    IEndDragHandler
+    IEndDragHandler,
+    IPointerClickHandler
 {
     public Text label;
     public Image icon;
@@ -18,7 +19,8 @@ public class InventorySlotUI : MonoBehaviour,
     {
         Backpack,
         RightHand,
-        Accessory
+        Accessory,
+        WandInternal
     }
 
     [Header("Slot Type")]
@@ -26,6 +28,8 @@ public class InventorySlotUI : MonoBehaviour,
 
     [HideInInspector] public int slotIndex = -1;
     [HideInInspector] public PlayerInventory inventory;
+    [HideInInspector] public WandItem wandOwner;
+    [HideInInspector] public int wandSlotIndex = -1;
 
     static InventorySlotUI hoveredSlot;
     static InventorySlotUI draggingSlot;
@@ -55,34 +59,42 @@ public class InventorySlotUI : MonoBehaviour,
             if (item != null)
             {
                 // Check common item types for explicit inventory icons
-                var consumable = item.GetComponent<ConsumableItem>();
-                if (consumable != null && consumable.inventoryIcon != null)
+                var wand = item.GetComponent<WandItem>();
+                if (wand != null && wand.inventoryIcon != null)
                 {
-                    s = consumable.inventoryIcon;
+                    s = wand.inventoryIcon;
                 }
                 else
                 {
-                    var scroll = item.GetComponent<ScrollItem>();
-                    if (scroll != null && scroll.inventoryIcon != null)
-                        s = scroll.inventoryIcon;
+                    var consumable = item.GetComponent<ConsumableItem>();
+                    if (consumable != null && consumable.inventoryIcon != null)
+                    {
+                        s = consumable.inventoryIcon;
+                    }
                     else
                     {
-                        // DecorationItem support: use its inventoryIcon if present
-                        var decor = item.GetComponent<DecorationItem>();
-                        if (decor != null && decor.inventoryIcon != null)
-                        {
-                            s = decor.inventoryIcon;
-                        }
+                        var scroll = item.GetComponent<ScrollItem>();
+                        if (scroll != null && scroll.inventoryIcon != null)
+                            s = scroll.inventoryIcon;
                         else
                         {
-                            var sr = item.GetComponentInChildren<SpriteRenderer>();
-                            if (sr != null && sr.sprite != null)
-                                s = sr.sprite;
+                            // DecorationItem support: use its inventoryIcon if present
+                            var decor = item.GetComponent<DecorationItem>();
+                            if (decor != null && decor.inventoryIcon != null)
+                            {
+                                s = decor.inventoryIcon;
+                            }
                             else
                             {
-                                var uiImg = item.GetComponentInChildren<Image>();
-                                if (uiImg != null && uiImg.sprite != null)
-                                    s = uiImg.sprite;
+                                var sr = item.GetComponentInChildren<SpriteRenderer>();
+                                if (sr != null && sr.sprite != null)
+                                    s = sr.sprite;
+                                else
+                                {
+                                    var uiImg = item.GetComponentInChildren<Image>();
+                                    if (uiImg != null && uiImg.sprite != null)
+                                        s = uiImg.sprite;
+                                }
                             }
                         }
                     }
@@ -128,6 +140,11 @@ public class InventorySlotUI : MonoBehaviour,
             case SlotType.Accessory:
                 if (slotIndex >= 0 && slotIndex < inventory.accessories.Length)
                     item = inventory.accessories[slotIndex];
+                break;
+
+            case SlotType.WandInternal:
+                if (wandOwner != null && wandSlotIndex >= 0)
+                    item = wandOwner.GetSlotItem(wandSlotIndex);
                 break;
         }
 
@@ -175,5 +192,12 @@ public class InventorySlotUI : MonoBehaviour,
         {
             playerUI.EndDrag();
         }
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (playerUI == null)
+            return;
+        playerUI.NotifySlotClicked(this);
     }
 }

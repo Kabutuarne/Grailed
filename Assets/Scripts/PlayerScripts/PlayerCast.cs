@@ -82,7 +82,14 @@ public class PlayerCast : MonoBehaviour
     {
         if (inventory == null || inventory.rightHandItem == null) return;
 
-        var scroll = inventory.rightHandItem.GetComponent<ScrollItem>();
+        GameObject hand = inventory.rightHandItem;
+        ScrollItem scroll = hand.GetComponent<ScrollItem>();
+        if (scroll == null)
+        {
+            var wand = hand.GetComponent<WandItem>();
+            if (wand != null)
+                scroll = wand.GetSelectedScroll();
+        }
         if (scroll == null || !scroll.CanCast()) return;
 
         // Double-check gating (backpack or movement) at start
@@ -215,7 +222,18 @@ public class PlayerCast : MonoBehaviour
         }
         // Clear AOE status entry
         // Use scroll.aoeSpell where possible (currentAOE is already nulled), but we can find via rightHandItem
-        var scroll = inventory != null && inventory.rightHandItem != null ? inventory.rightHandItem.GetComponent<ScrollItem>() : null;
+        ScrollItem scroll = null;
+        if (inventory != null && inventory.rightHandItem != null)
+        {
+            var hand = inventory.rightHandItem;
+            scroll = hand.GetComponent<ScrollItem>();
+            if (scroll == null)
+            {
+                var wand = hand.GetComponent<WandItem>();
+                if (wand != null)
+                    scroll = wand.GetSelectedScroll();
+            }
+        }
         if (scroll != null && scroll.aoeSpell != null)
         {
             scroll.aoeSpell.EndCasting(gameObject);
@@ -239,7 +257,18 @@ public class PlayerCast : MonoBehaviour
             currentAOEVisual = null;
         }
         // Clear AOE status entry
-        var scroll = inventory != null && inventory.rightHandItem != null ? inventory.rightHandItem.GetComponent<ScrollItem>() : null;
+        ScrollItem scroll = null;
+        if (inventory != null && inventory.rightHandItem != null)
+        {
+            var hand = inventory.rightHandItem;
+            scroll = hand.GetComponent<ScrollItem>();
+            if (scroll == null)
+            {
+                var wand = hand.GetComponent<WandItem>();
+                if (wand != null)
+                    scroll = wand.GetSelectedScroll();
+            }
+        }
         if (scroll != null && scroll.aoeSpell != null)
         {
             scroll.aoeSpell.EndCasting(gameObject);

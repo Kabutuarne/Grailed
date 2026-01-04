@@ -58,6 +58,7 @@
     <Compile Include="Assets\Scripts\PlayerScripts\Effects\DurationEffect.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerDecorationPlacer.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Effects\PlayerEffect.cs" />
+    <Compile Include="Assets\Scripts\PlayerScripts\UI\EquippedItemTitleHUD.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Effects\InstantEffect.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Effects\PassiveEffect.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\TestConsumableUser.cs" />
@@ -67,6 +68,7 @@
     <Compile Include="Assets\Scripts\PlayerScripts\Spells\KnockbackImpactBehaviour.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Spells\ScrollItem.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerCast.cs" />
+    <Compile Include="Assets\Scripts\PlayerScripts\UI\WandSlotsPanel.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\ItemPickup.cs" />
     <Compile Include="Assets\PlayerInputActions.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerStats.cs" />
@@ -75,6 +77,7 @@
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerUI.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Spells\ProjectileImpactBehaviour.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\ConsumableEntity.cs" />
+    <Compile Include="Assets\Scripts\PlayerScripts\Items\WandItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Assets\Shaders\CFXR_SETTINGS.cginc" />

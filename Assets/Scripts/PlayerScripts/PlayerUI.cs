@@ -49,6 +49,11 @@ public class PlayerUI : MonoBehaviour
     [Header("Item Tooltip")]
     public GameObject itemTooltipPrefab; // prefab with ItemTooltip component
 
+    [Header("Wand Slots Panel")]
+    public WandSlotsPanel wandSlotsPanelPrefab; // assign a prefab with a slot template
+    private WandSlotsPanel wandPanelInstance;
+    private InventorySlotUI wandSourceSlot; // the InventorySlotUI representing the wand item
+
     public bool IsBackpackOpen => backpackRoot != null && backpackRoot.activeSelf;
 
     private Canvas uiCanvas;
@@ -109,6 +114,26 @@ public class PlayerUI : MonoBehaviour
             UpdateDrag(pos);
         }
         UpdateTooltip();
+
+        // If wand panel is visible, keep its layout synced and hide on click-away
+        if (IsBackpackOpen && wandPanelInstance != null && wandPanelInstance.IsShowing)
+        {
+            wandPanelInstance.UpdateLayout();
+
+            var mouse = UnityEngine.InputSystem.Mouse.current;
+            // Hide on release if not dragging; avoids hiding during drag start
+            bool clickReleased = mouse != null && mouse.leftButton.wasReleasedThisFrame;
+            var hovered = InventorySlotUI.HoveredSlot;
+            if (clickReleased && currentlyDraggedItem == null)
+            {
+                bool overWandSource = hovered == wandSourceSlot;
+                bool overWandInternal = hovered != null && hovered.slotType == InventorySlotUI.SlotType.WandInternal;
+                if (!overWandSource && !overWandInternal)
+                {
+                    HideWandPanel();
+                }
+            }
+        }
     }
 
     void UpdateTooltip()
@@ -153,24 +178,35 @@ public class PlayerUI : MonoBehaviour
                 }
                 else
                 {
-                    var cons = item.GetComponent<ConsumableItem>();
-                    if (cons != null)
+                    var wand = item.GetComponent<WandItem>();
+                    if (wand != null)
                     {
-                        title = !string.IsNullOrEmpty(cons.title) ? cons.title : item.name;
-                        titleColor = cons.titleColor;
-                        desc = cons.description;
-                        descColor = cons.descriptionColor;
+                        title = !string.IsNullOrEmpty(wand.title) ? wand.title : item.name;
+                        titleColor = wand.titleColor;
+                        desc = wand.description;
+                        descColor = wand.descriptionColor;
                     }
                     else
                     {
-                        // DecorationItem support for tooltip
-                        var decor = item.GetComponent<DecorationItem>();
-                        if (decor != null)
+                        var cons = item.GetComponent<ConsumableItem>();
+                        if (cons != null)
                         {
-                            title = !string.IsNullOrEmpty(decor.title) ? decor.title : item.name;
-                            titleColor = decor.titleColor;
-                            desc = decor.description;
-                            descColor = decor.descriptionColor;
+                            title = !string.IsNullOrEmpty(cons.title) ? cons.title : item.name;
+                            titleColor = cons.titleColor;
+                            desc = cons.description;
+                            descColor = cons.descriptionColor;
+                        }
+                        else
+                        {
+                            // DecorationItem support for tooltip
+                            var decor = item.GetComponent<DecorationItem>();
+                            if (decor != null)
+                            {
+                                title = !string.IsNullOrEmpty(decor.title) ? decor.title : item.name;
+                                titleColor = decor.titleColor;
+                                desc = decor.description;
+                                descColor = decor.descriptionColor;
+                            }
                         }
                     }
                 }
@@ -456,6 +492,10 @@ public class PlayerUI : MonoBehaviour
         if (item == null)
             return null;
 
+        var wand = item.GetComponent<WandItem>();
+        if (wand != null && wand.inventoryIcon != null)
+            return wand.inventoryIcon;
+
         var sr = item.GetComponentInChildren<SpriteRenderer>();
         if (sr != null && sr.sprite != null)
             return sr.sprite;
@@ -516,6 +556,116 @@ public class PlayerUI : MonoBehaviour
         {
             inventory.SwapRightHandWithBackpack(dstIndex);
         }
+        else if (dstType == InventorySlotUI.SlotType.WandInternal)
+        {
+            // Only accept ScrollItem into wand slots
+            var scroll = currentlyDraggedItem.GetComponent<ScrollItem>();
+            if (scroll == null)
+            {
+                Debug.Log("Only spell ScrollItems can be placed into wand slots.");
+                EndDrag();
+                return;
+            }
+
+            var wandOwner = targetSlot.wandOwner;
+            int wandIndex = targetSlot.wandSlotIndex;
+            if (wandOwner == null || wandIndex < 0)
+            {
+                EndDrag();
+                return;
+            }
+
+            if (srcType == InventorySlotUI.SlotType.Backpack)
+            {
+                if (srcIndex >= 0 && srcIndex < inventory.backpack.Length)
+                {
+                    // If wand slot already contains a scroll, swap it back into the source backpack slot.
+                    GameObject prev = wandOwner.GetSlotItem(wandIndex);
+                    if (prev != null)
+                    {
+                        prev = wandOwner.RemoveSlotItem(wandIndex);
+                    }
+
+                    // Place dragged scroll into wand slot
+                    bool ok = wandOwner.SetSlotItem(wandIndex, currentlyDraggedItem);
+                    if (!ok)
+                    {
+                        // restore previous occupant if any
+                        if (prev != null)
+                            wandOwner.SetSlotItem(wandIndex, prev);
+                        // keep backpack unchanged
+                    }
+                    else
+                    {
+                        // Put previous occupant (if any) into source backpack slot
+                        inventory.backpack[srcIndex] = prev;
+                        if (prev != null)
+                            prev.SetActive(false);
+
+                        // refresh UI for wand slot and source backpack slot
+                        targetSlot.SetItem(wandOwner.GetSlotItem(wandIndex), wandIndex, inventory);
+                        if (srcIndex >= 0 && srcIndex < backpackSlots.Length && backpackSlots[srcIndex] != null)
+                            backpackSlots[srcIndex].SetItem(inventory.backpack[srcIndex], srcIndex, inventory);
+                    }
+                }
+            }
+            else if (srcType == InventorySlotUI.SlotType.RightHand)
+            {
+                // remove from hand and place into wand
+                inventory.rightHandItem = null;
+                wandOwner.SetSlotItem(wandIndex, currentlyDraggedItem);
+                targetSlot.SetItem(wandOwner.GetSlotItem(wandIndex), wandIndex, inventory);
+                if (rightHandSlot != null)
+                    rightHandSlot.SetItem(inventory.rightHandItem, -1, inventory);
+            }
+            else if (srcType == InventorySlotUI.SlotType.WandInternal)
+            {
+                // swap between wand slots
+                var srcWand = dragSourceSlot.wandOwner;
+                int srcWandIndex = dragSourceSlot.wandSlotIndex;
+                if (srcWand != null && srcWand == wandOwner)
+                {
+                    srcWand.SwapInternal(srcWandIndex, wandIndex);
+                    // refresh both UI slots
+                    targetSlot.SetItem(wandOwner.GetSlotItem(wandIndex), wandIndex, inventory);
+                    dragSourceSlot.SetItem(srcWand.GetSlotItem(srcWandIndex), srcWandIndex, inventory);
+                }
+            }
+        }
+        else if (srcType == InventorySlotUI.SlotType.WandInternal)
+        {
+            // Drag from wand to backpack/right hand
+            var srcWand = dragSourceSlot.wandOwner;
+            int srcWandIndex = dragSourceSlot.wandSlotIndex;
+            if (srcWand != null && srcWandIndex >= 0)
+            {
+                var item = srcWand.RemoveSlotItem(srcWandIndex);
+                if (item != null)
+                {
+                    if (dstType == InventorySlotUI.SlotType.Backpack)
+                    {
+                        // place into specified backpack index
+                        if (dstIndex >= 0 && dstIndex < inventory.backpack.Length)
+                        {
+                            inventory.backpack[dstIndex] = item;
+                            item.SetActive(false);
+                            // refresh UI: backpack target and emptied wand source
+                            if (dstIndex >= 0 && dstIndex < backpackSlots.Length && backpackSlots[dstIndex] != null)
+                                backpackSlots[dstIndex].SetItem(inventory.backpack[dstIndex], dstIndex, inventory);
+                            dragSourceSlot.SetItem(srcWand.GetSlotItem(srcWandIndex), srcWandIndex, inventory);
+                        }
+                    }
+                    else if (dstType == InventorySlotUI.SlotType.RightHand)
+                    {
+                        inventory.EquipRight(item);
+                        // refresh UI: right hand and emptied wand source
+                        if (rightHandSlot != null)
+                            rightHandSlot.SetItem(inventory.rightHandItem, -1, inventory);
+                        dragSourceSlot.SetItem(srcWand.GetSlotItem(srcWandIndex), srcWandIndex, inventory);
+                    }
+                }
+            }
+        }
         else
         {
             Debug.Log("PlayerUI: Drop combination not handled.");
@@ -569,5 +719,74 @@ public class PlayerUI : MonoBehaviour
 
         if (!newState)
             EndDrag();
+
+        if (!newState)
+            HideWandPanel();
+    }
+
+    // ----- Wand panel toggle -----
+
+    public void NotifySlotClicked(InventorySlotUI slot)
+    {
+        if (!IsBackpackOpen)
+            return;
+
+        // Determine if clicked slot contains a wand
+        GameObject item = null;
+        switch (slot.slotType)
+        {
+            case InventorySlotUI.SlotType.Backpack:
+                if (slot.slotIndex >= 0 && slot.slotIndex < inventory.backpack.Length)
+                    item = inventory.backpack[slot.slotIndex];
+                break;
+            case InventorySlotUI.SlotType.RightHand:
+                item = inventory.rightHandItem;
+                break;
+            default:
+                // clicking outside wand carriers hides panel
+                HideWandPanel();
+                return;
+        }
+
+        var wand = item != null ? item.GetComponent<WandItem>() : null;
+        if (wand == null)
+        {
+            HideWandPanel();
+            return;
+        }
+
+        // Toggle: if already showing for this source, hide; otherwise show
+        if (wandPanelInstance != null && wandPanelInstance.IsForSource(slot))
+        {
+            HideWandPanel();
+        }
+        else
+        {
+            ShowWandPanel(wand, slot);
+        }
+    }
+
+    private void ShowWandPanel(WandItem wand, InventorySlotUI source)
+    {
+        HideWandPanel();
+        if (wandSlotsPanelPrefab == null)
+        {
+            Debug.LogWarning("Assign wandSlotsPanelPrefab in PlayerUI to show wand slots.");
+            return;
+        }
+        wandPanelInstance = Instantiate(wandSlotsPanelPrefab);
+        wandPanelInstance.Show(wand, source, this);
+        wandSourceSlot = source;
+    }
+
+    private void HideWandPanel()
+    {
+        if (wandPanelInstance != null)
+        {
+            wandPanelInstance.Hide();
+            Destroy(wandPanelInstance.gameObject);
+            wandPanelInstance = null;
+        }
+        wandSourceSlot = null;
     }
 }
