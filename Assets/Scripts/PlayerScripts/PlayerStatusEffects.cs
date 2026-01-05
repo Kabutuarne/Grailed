@@ -12,6 +12,9 @@ public class PlayerStatusEffects : MonoBehaviour
         // running timer (if timed)
         public float timer;
 
+        // If true, this effect should not be shown in the Status Effects UI
+        public bool hideInUI = false;
+
         // Multiplicative / additive effect fields (set only what you need)
         public float speedMultiplier = 1f;             // multiplies movementSpeed
         public float healthRegenMultiplier = 1f;       // multiplies passive health regen

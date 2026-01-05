@@ -73,27 +73,35 @@ public class InventorySlotUI : MonoBehaviour,
                     }
                     else
                     {
-                        var scroll = item.GetComponent<ScrollItem>();
-                        if (scroll != null && scroll.inventoryIcon != null)
-                            s = scroll.inventoryIcon;
+                        var accessory = item.GetComponent<Accessory>();
+                        if (accessory != null && accessory.inventoryIcon != null)
+                        {
+                            s = accessory.inventoryIcon;
+                        }
                         else
                         {
-                            // DecorationItem support: use its inventoryIcon if present
-                            var decor = item.GetComponent<DecorationItem>();
-                            if (decor != null && decor.inventoryIcon != null)
-                            {
-                                s = decor.inventoryIcon;
-                            }
+                            var scroll = item.GetComponent<ScrollItem>();
+                            if (scroll != null && scroll.inventoryIcon != null)
+                                s = scroll.inventoryIcon;
                             else
                             {
-                                var sr = item.GetComponentInChildren<SpriteRenderer>();
-                                if (sr != null && sr.sprite != null)
-                                    s = sr.sprite;
+                                // DecorationItem support: use its inventoryIcon if present
+                                var decor = item.GetComponent<DecorationItem>();
+                                if (decor != null && decor.inventoryIcon != null)
+                                {
+                                    s = decor.inventoryIcon;
+                                }
                                 else
                                 {
-                                    var uiImg = item.GetComponentInChildren<Image>();
-                                    if (uiImg != null && uiImg.sprite != null)
-                                        s = uiImg.sprite;
+                                    var sr = item.GetComponentInChildren<SpriteRenderer>();
+                                    if (sr != null && sr.sprite != null)
+                                        s = sr.sprite;
+                                    else
+                                    {
+                                        var uiImg = item.GetComponentInChildren<Image>();
+                                        if (uiImg != null && uiImg.sprite != null)
+                                            s = uiImg.sprite;
+                                    }
                                 }
                             }
                         }

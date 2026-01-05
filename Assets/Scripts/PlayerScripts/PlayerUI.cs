@@ -188,6 +188,42 @@ public class PlayerUI : MonoBehaviour
                     }
                     else
                     {
+                        var acc = item.GetComponent<Accessory>();
+                        if (acc != null)
+                        {
+                            title = !string.IsNullOrEmpty(acc.title) ? acc.title : item.name;
+                            titleColor = acc.titleColor;
+                            // Build tooltip rows
+                            if (acc.descriptionRows != null && acc.descriptionRows.Count > 0)
+                            {
+                                var rows = new List<ItemTooltip.TooltipLine>(acc.descriptionRows.Count);
+                                foreach (var r in acc.descriptionRows)
+                                {
+                                    if (r == null) continue;
+                                    rows.Add(new ItemTooltip.TooltipLine { text = r.text, color = r.color });
+                                }
+                                tooltipController.SetLines(title, titleColor, rows);
+                            }
+                            else
+                            {
+                                tooltipController.SetData(title, titleColor, "", Color.white);
+                            }
+
+                            // Position and show then return (use distinct variable names to avoid shadowing)
+                            Vector2 accScreenPos = UnityEngine.InputSystem.Mouse.current != null
+                                ? (Vector2)UnityEngine.InputSystem.Mouse.current.position.ReadValue()
+                                : (Vector2)Input.mousePosition;
+
+                            RectTransform accCanvasRect = uiCanvas.transform as RectTransform;
+                            RectTransform accTooltipRect = tooltipGO.transform as RectTransform;
+                            Camera accCam = uiCanvas.renderMode == RenderMode.ScreenSpaceCamera ? uiCanvas.worldCamera : null;
+                            Vector2 accLocalPos;
+                            RectTransformUtility.ScreenPointToLocalPointInRectangle(accCanvasRect, accScreenPos, accCam, out accLocalPos);
+                            accTooltipRect.localPosition = accLocalPos + new Vector2(10f, -10f);
+
+                            tooltipGO.SetActive(true);
+                            return;
+                        }
                         var cons = item.GetComponent<ConsumableItem>();
                         if (cons != null)
                         {
@@ -268,6 +304,9 @@ public class PlayerUI : MonoBehaviour
 
         foreach (var e in statusEffects.activeEffects)
         {
+            // Skip effects that request to be hidden (e.g., accessories)
+            if (e.hideInUI)
+                continue;
             if (e.carrier != null)
             {
                 float current = entries.ContainsKey(e.carrier) ? entries[e.carrier] : 0f;
@@ -484,7 +523,7 @@ public class PlayerUI : MonoBehaviour
         if (sprite != null)
             rt.sizeDelta = new Vector2(sprite.rect.width, sprite.rect.height);
         else
-            rt.sizeDelta = new Vector2(40, 40);
+            rt.sizeDelta = new Vector2(72, 72);
     }
 
     private Sprite GetIconFromItem(GameObject item)
@@ -495,6 +534,10 @@ public class PlayerUI : MonoBehaviour
         var wand = item.GetComponent<WandItem>();
         if (wand != null && wand.inventoryIcon != null)
             return wand.inventoryIcon;
+
+        var acc = item.GetComponent<Accessory>();
+        if (acc != null && acc.inventoryIcon != null)
+            return acc.inventoryIcon;
 
         var sr = item.GetComponentInChildren<SpriteRenderer>();
         if (sr != null && sr.sprite != null)
@@ -664,6 +707,151 @@ public class PlayerUI : MonoBehaviour
                         dragSourceSlot.SetItem(srcWand.GetSlotItem(srcWandIndex), srcWandIndex, inventory);
                     }
                 }
+            }
+        }
+        else if (dstType == InventorySlotUI.SlotType.Accessory)
+        {
+            // Only accept Accessory items into accessory slots
+            var accComp = currentlyDraggedItem.GetComponent<Accessory>();
+            if (accComp == null)
+            {
+                Debug.Log("Only Accessory items can be placed into accessory slots.");
+                EndDrag();
+                return;
+            }
+
+            if (srcType == InventorySlotUI.SlotType.Backpack)
+            {
+                // Swap backpack[srcIndex] with accessories[dstIndex]
+                if (srcIndex >= 0 && srcIndex < inventory.backpack.Length && dstIndex >= 0 && dstIndex < inventory.accessories.Length)
+                {
+                    GameObject prevAcc = inventory.accessories[dstIndex];
+
+                    // Place dragged accessory into accessory slot
+                    inventory.accessories[dstIndex] = currentlyDraggedItem;
+                    accComp.OnEquipped(inventory.gameObject);
+                    currentlyDraggedItem.SetActive(false);
+
+                    // Move previous accessory (if any) back into the source backpack slot
+                    inventory.backpack[srcIndex] = prevAcc;
+                    if (prevAcc != null)
+                    {
+                        var prevAccComp = prevAcc.GetComponent<Accessory>();
+                        if (prevAccComp != null)
+                            prevAccComp.OnUnequipped();
+                        prevAcc.SetActive(false);
+                    }
+
+                    // refresh UI
+                    if (dstIndex >= 0 && dstIndex < accessorySlots.Length && accessorySlots[dstIndex] != null)
+                        accessorySlots[dstIndex].SetItem(inventory.accessories[dstIndex], dstIndex, inventory);
+                    if (srcIndex >= 0 && srcIndex < backpackSlots.Length && backpackSlots[srcIndex] != null)
+                        backpackSlots[srcIndex].SetItem(inventory.backpack[srcIndex], srcIndex, inventory);
+                }
+            }
+            else if (srcType == InventorySlotUI.SlotType.Accessory)
+            {
+                // Move or swap between accessory slots
+                int srcAccIndex = dragSourceIndex;
+                if (srcAccIndex >= 0 && srcAccIndex < inventory.accessories.Length && dstIndex >= 0 && dstIndex < inventory.accessories.Length)
+                {
+                    GameObject from = inventory.accessories[srcAccIndex];
+                    GameObject to = inventory.accessories[dstIndex];
+
+                    var fromAcc = from != null ? from.GetComponent<Accessory>() : null;
+                    var toAcc = to != null ? to.GetComponent<Accessory>() : null;
+
+                    if (fromAcc != null)
+                        fromAcc.OnUnequipped();
+                    if (toAcc != null)
+                        toAcc.OnUnequipped();
+
+                    // swap
+                    inventory.accessories[srcAccIndex] = to;
+                    inventory.accessories[dstIndex] = from;
+
+                    if (inventory.accessories[srcAccIndex] != null)
+                    {
+                        var comp = inventory.accessories[srcAccIndex].GetComponent<Accessory>();
+                        if (comp != null) comp.OnEquipped(inventory.gameObject);
+                        inventory.accessories[srcAccIndex].SetActive(false);
+                    }
+                    if (inventory.accessories[dstIndex] != null)
+                    {
+                        var comp = inventory.accessories[dstIndex].GetComponent<Accessory>();
+                        if (comp != null) comp.OnEquipped(inventory.gameObject);
+                        inventory.accessories[dstIndex].SetActive(false);
+                    }
+
+                    // refresh UI for both slots
+                    if (dstIndex >= 0 && dstIndex < accessorySlots.Length && accessorySlots[dstIndex] != null)
+                        accessorySlots[dstIndex].SetItem(inventory.accessories[dstIndex], dstIndex, inventory);
+                    if (srcAccIndex >= 0 && srcAccIndex < accessorySlots.Length && accessorySlots[srcAccIndex] != null)
+                        accessorySlots[srcAccIndex].SetItem(inventory.accessories[srcAccIndex], srcAccIndex, inventory);
+                }
+            }
+            else if (srcType == InventorySlotUI.SlotType.RightHand)
+            {
+                // From hand to accessory slot
+                if (dstIndex >= 0 && dstIndex < inventory.accessories.Length)
+                {
+                    GameObject prevAcc = inventory.accessories[dstIndex];
+
+                    inventory.accessories[dstIndex] = currentlyDraggedItem;
+                    accComp.OnEquipped(inventory.gameObject);
+                    inventory.accessories[dstIndex].SetActive(false);
+
+                    // Clear hand
+                    inventory.rightHandItem = null;
+                    if (rightHandSlot != null)
+                        rightHandSlot.SetItem(inventory.rightHandItem, -1, inventory);
+
+                    // previous accessory goes nowhere (cannot auto-place); destroy or leave in null
+                    if (prevAcc != null)
+                    {
+                        var prevAccComp = prevAcc.GetComponent<Accessory>();
+                        if (prevAccComp != null) prevAccComp.OnUnequipped();
+                        prevAcc.SetActive(false);
+                    }
+
+                    if (dstIndex >= 0 && dstIndex < accessorySlots.Length && accessorySlots[dstIndex] != null)
+                        accessorySlots[dstIndex].SetItem(inventory.accessories[dstIndex], dstIndex, inventory);
+                }
+            }
+        }
+        else if (srcType == InventorySlotUI.SlotType.Accessory && dstType == InventorySlotUI.SlotType.Backpack)
+        {
+            // Move accessory into backpack slot
+            int srcAccIndex = dragSourceIndex;
+            if (srcAccIndex >= 0 && srcAccIndex < inventory.accessories.Length && dstIndex >= 0 && dstIndex < inventory.backpack.Length)
+            {
+                GameObject moving = inventory.accessories[srcAccIndex];
+                GameObject prevBackpack = inventory.backpack[dstIndex];
+
+                // Unequip moving accessory effects
+                var movingAcc = moving != null ? moving.GetComponent<Accessory>() : null;
+                if (movingAcc != null) movingAcc.OnUnequipped();
+
+                // swap
+                inventory.accessories[srcAccIndex] = prevBackpack;
+                inventory.backpack[dstIndex] = moving;
+
+                if (inventory.accessories[srcAccIndex] != null)
+                {
+                    var comp = inventory.accessories[srcAccIndex].GetComponent<Accessory>();
+                    if (comp != null) comp.OnEquipped(inventory.gameObject);
+                    inventory.accessories[srcAccIndex].SetActive(false);
+                }
+                if (inventory.backpack[dstIndex] != null)
+                {
+                    inventory.backpack[dstIndex].SetActive(false);
+                }
+
+                // refresh UI
+                if (dstIndex >= 0 && dstIndex < backpackSlots.Length && backpackSlots[dstIndex] != null)
+                    backpackSlots[dstIndex].SetItem(inventory.backpack[dstIndex], dstIndex, inventory);
+                if (srcAccIndex >= 0 && srcAccIndex < accessorySlots.Length && accessorySlots[srcAccIndex] != null)
+                    accessorySlots[srcAccIndex].SetItem(inventory.accessories[srcAccIndex], srcAccIndex, inventory);
             }
         }
         else

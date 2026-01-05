@@ -64,6 +64,7 @@
     <Compile Include="Assets\Scripts\PlayerScripts\TestConsumableUser.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerStatusEffects.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\InventorySlotUI.cs" />
+    <Compile Include="Assets\Scripts\PlayerScripts\Items\Accessory.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\DecorationItem.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Spells\KnockbackImpactBehaviour.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Spells\ScrollItem.cs" />

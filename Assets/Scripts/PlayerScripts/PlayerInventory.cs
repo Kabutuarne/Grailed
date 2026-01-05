@@ -204,9 +204,20 @@ public class PlayerInventory : MonoBehaviour
         }
 
         if (accessories[index] != null)
+        {
+            var prevAcc = accessories[index].GetComponent<Accessory>();
+            if (prevAcc != null)
+                prevAcc.OnUnequipped();
             Destroy(accessories[index]);
+        }
 
         accessories[index] = Instantiate(itemPrefab, transform);
+        var newAcc = accessories[index] != null ? accessories[index].GetComponent<Accessory>() : null;
+        if (newAcc != null)
+        {
+            newAcc.OnEquipped(gameObject);
+            accessories[index].SetActive(false);
+        }
         OnInventoryChanged?.Invoke();
     }
 
