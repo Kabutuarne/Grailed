@@ -7097,7 +7097,7 @@ MonoBehaviour:
   staminaUsePerSecond: 25
   staminaRegenPerSecond: 15
   cameraPivot: {fileID: 1198950440}
-  lookSensitivity: 0.6
+  lookSensitivity: 0.4
   maxHeadYaw: 100
   maxPitchUp: 80
   maxPitchDown: -80

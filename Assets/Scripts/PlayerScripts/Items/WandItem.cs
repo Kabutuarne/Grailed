@@ -25,13 +25,10 @@ public class WandItem : ItemPickup
     public GameObject[] initialSpells;
 
     private GameObject[] spellSlots;
-    private int selectedIndex = 0;
-
-    // Casting is handled by PlayerCast; wand only manages selection and title
-    // private InputAction castAction;       // fallback local action
-    // private InputAction assetCast;        // action from PlayerInputActions asset
-    // private UnityEngine.InputSystem.PlayerInput playerInput;
-
+    private int selectedIndex = -1; // -1 means no selection when not equipped
+    private bool wasEquipped = false;
+    private int filledCount = 0; // number of non-null spell slots
+    private PlayerInventory invCache;
     void Awake()
     {
         int count = Mathf.Max(1, slotCount);
@@ -53,10 +50,14 @@ public class WandItem : ItemPickup
             }
         }
 
+        // Compute filled count after initial setup
+        filledCount = 0;
         for (int i = 0; i < spellSlots.Length; i++)
         {
-            if (spellSlots[i] != null) { selectedIndex = i; break; }
+            if (spellSlots[i] != null) filledCount++;
         }
+
+        // Do not preselect a slot here. Selection happens on equip.
     }
 
     public int SlotCount => spellSlots != null ? spellSlots.Length : 0;
@@ -66,8 +67,8 @@ public class WandItem : ItemPickup
         get => selectedIndex;
         set
         {
-            if (spellSlots == null || spellSlots.Length == 0) { selectedIndex = 0; return; }
-            selectedIndex = Mathf.Clamp(value, 0, spellSlots.Length - 1);
+            if (spellSlots == null || spellSlots.Length == 0) { selectedIndex = -1; return; }
+            selectedIndex = Mathf.Clamp(value, -1, spellSlots.Length - 1);
         }
     }
 
@@ -82,11 +83,27 @@ public class WandItem : ItemPickup
     {
         if (spellSlots == null) return false;
         if (index < 0 || index >= spellSlots.Length) return false;
-        if (item == null) { spellSlots[index] = null; return true; }
+        if (item == null)
+        {
+            if (spellSlots[index] != null)
+            {
+                spellSlots[index] = null;
+                filledCount = Mathf.Max(0, filledCount - 1);
+            }
+            if (index == selectedIndex)
+            {
+                // Selected slot emptied; advance to next available or clear
+                selectedIndex = FindNextFilledSlotIndexStartingFrom(index);
+            }
+            return true;
+        }
 
         // Only allow ScrollItems
         var scroll = item.GetComponent<ScrollItem>();
         if (scroll == null) return false;
+
+        // Check if wand was empty before adding this item
+        bool wasEmpty = (filledCount == 0);
 
         // Parent to wand, disable in-world behaviours
         item.transform.SetParent(transform, false);
@@ -103,7 +120,21 @@ public class WandItem : ItemPickup
         foreach (var col in item.GetComponentsInChildren<Collider>())
             col.enabled = false;
 
+        bool wasNull = spellSlots[index] == null;
         spellSlots[index] = item;
+        if (wasNull) filledCount++;
+
+        // If wand just transitioned from empty->non-empty and is equipped, auto-select this slot
+        if (wasEmpty)
+        {
+            if (IsEquipped)
+            {
+                selectedIndex = index;
+                var sel = GetSelectedScroll();
+                Debug.Log($"[WandItem] Auto-selected slot {selectedIndex}: '{(sel != null ? sel.title : "empty")}' on wand '{title}' after adding first spell while equipped");
+                NotifyEquippedTitle();
+            }
+        }
         return true;
     }
 
@@ -118,6 +149,15 @@ public class WandItem : ItemPickup
 
         item.transform.SetParent(null, true);
         // Keep inactive until placed elsewhere by caller
+
+        if (index == selectedIndex)
+        {
+            // Selected slot removed; advance selection
+            selectedIndex = FindNextFilledSlotIndexStartingFrom(index);
+        }
+
+        filledCount = Mathf.Max(0, filledCount - 1);
+
         return item;
     }
 
@@ -128,6 +168,12 @@ public class WandItem : ItemPickup
         var tmp = spellSlots[a];
         spellSlots[a] = spellSlots[b];
         spellSlots[b] = tmp;
+
+        // If the currently selected slot became empty after the swap, advance selection
+        if (selectedIndex >= 0 && selectedIndex < spellSlots.Length && spellSlots[selectedIndex] == null)
+        {
+            selectedIndex = FindNextFilledSlotIndexStartingFrom(selectedIndex);
+        }
     }
 
     // Wand does not subscribe to cast input; PlayerCast handles casting
@@ -136,8 +182,30 @@ public class WandItem : ItemPickup
 
     void Update()
     {
-        var inv = GetComponentInParent<PlayerInventory>();
-        bool equipped = inv != null && inv.rightHandItem == gameObject;
+        bool equipped = IsEquipped;
+
+        // Handle equip/unequip transitions
+        if (equipped && !wasEquipped)
+        {
+            // Auto-select first available spell when the wand becomes equipped
+            if (selectedIndex == -1)
+            {
+                int first = FindFirstFilledSlotIndex();
+                if (first != -1)
+                {
+                    selectedIndex = first;
+                    var sel = GetSelectedScroll();
+                    Debug.Log($"[WandItem] Equipped: auto-select slot {selectedIndex}: '{(sel != null ? sel.title : "empty")}' on wand '{title}'");
+                    NotifyEquippedTitle();
+                }
+            }
+        }
+        else if (!equipped && wasEquipped)
+        {
+            // Clear selection when wand is no longer equipped
+            selectedIndex = -1;
+        }
+        wasEquipped = equipped;
 
         if (equipped)
         {
@@ -158,12 +226,8 @@ public class WandItem : ItemPickup
     public void SelectNext()
     {
         if (spellSlots == null || spellSlots.Length == 0) return;
-        int start = selectedIndex;
-        for (int i = 1; i <= spellSlots.Length; i++)
-        {
-            int idx = (start + i) % spellSlots.Length;
-            if (spellSlots[idx] != null) { selectedIndex = idx; break; }
-        }
+        int next = FindNextFilledSlotIndexStartingFrom(selectedIndex);
+        if (next != -1) selectedIndex = next;
         var sel = GetSelectedScroll();
         Debug.Log($"[WandItem] Switched to slot {selectedIndex}: '{(sel != null ? sel.title : "empty")}' on wand '{title}'");
         NotifyEquippedTitle();
@@ -172,12 +236,8 @@ public class WandItem : ItemPickup
     public void SelectPrevious()
     {
         if (spellSlots == null || spellSlots.Length == 0) return;
-        int start = selectedIndex;
-        for (int i = 1; i <= spellSlots.Length; i++)
-        {
-            int idx = (start - i + spellSlots.Length) % spellSlots.Length;
-            if (spellSlots[idx] != null) { selectedIndex = idx; break; }
-        }
+        int prev = FindPrevFilledSlotIndexStartingFrom(selectedIndex);
+        if (prev != -1) selectedIndex = prev;
         var sel = GetSelectedScroll();
         Debug.Log($"[WandItem] Switched to slot {selectedIndex}: '{(sel != null ? sel.title : "empty")}' on wand '{title}'");
         NotifyEquippedTitle();
@@ -201,6 +261,49 @@ public class WandItem : ItemPickup
             RemoveSlotItem(selectedIndex);
         }
     }
+
+    private int FindFirstFilledSlotIndex()
+    {
+        if (spellSlots == null || spellSlots.Length == 0) return -1;
+        for (int i = 0; i < spellSlots.Length; i++)
+        {
+            if (spellSlots[i] != null) return i;
+        }
+        return -1;
+    }
+
+    private int FindNextFilledSlotIndexStartingFrom(int startIndex)
+    {
+        if (spellSlots == null || spellSlots.Length == 0) return -1;
+        int n = spellSlots.Length;
+        for (int step = 1; step <= n; step++)
+        {
+            int idx = (startIndex + step) % n;
+            if (spellSlots[idx] != null) return idx;
+        }
+        return -1; // none available
+    }
+
+    private int FindPrevFilledSlotIndexStartingFrom(int startIndex)
+    {
+        if (spellSlots == null || spellSlots.Length == 0) return -1;
+        int n = spellSlots.Length;
+        for (int step = 1; step <= n; step++)
+        {
+            int idx = (startIndex - step + n) % n;
+            if (spellSlots[idx] != null) return idx;
+        }
+        return -1;
+    }
+
+    private PlayerInventory GetInventory()
+    {
+        if (invCache != null) return invCache;
+        invCache = GetComponentInParent<PlayerInventory>();
+        return invCache;
+    }
+
+    private bool IsEquipped => (GetInventory() != null && invCache.rightHandItem == gameObject);
 
     private void NotifyEquippedTitle()
     {

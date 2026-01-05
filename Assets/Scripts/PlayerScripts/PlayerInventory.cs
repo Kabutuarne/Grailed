@@ -96,6 +96,11 @@ public class PlayerInventory : MonoBehaviour
     {
         if (rightHandItem != null)
         {
+            // Clear selection if unequipping a wand from the hand
+            var wandPrev = rightHandItem.GetComponent<WandItem>();
+            if (wandPrev != null)
+                wandPrev.SelectedIndex = -1;
+
             bool stored = false;
             for (int i = 0; i < backpack.Length; i++)
             {
@@ -153,6 +158,11 @@ public class PlayerInventory : MonoBehaviour
 
         if (handItem != null)
         {
+            // Clear selection when moving wand from hand to backpack
+            var wandPrev = handItem.GetComponent<WandItem>();
+            if (wandPrev != null)
+                wandPrev.SelectedIndex = -1;
+
             handItem.transform.SetParent(null, true);
             handItem.SetActive(false);
             backpack[backpackIndex] = handItem;

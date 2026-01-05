@@ -22,7 +22,10 @@ public class WandSlotsPanel : MonoBehaviour
     private InventorySlotUI sourceSlot;
     private List<InventorySlotUI> slotUIs = new List<InventorySlotUI>();
     private List<Sprite> originalBGSprites = new List<Sprite>();
-    private int lastSelectedIndex = -1;
+    private List<Image> bgImages = new List<Image>();
+    private List<RectTransform> slotRects = new List<RectTransform>();
+    private int lastSelectedIndex = -1; // stores effective selection used for visuals
+    private bool wasEquipped = false;
 
     public bool IsShowing => wand != null && sourceSlot != null;
 
@@ -84,20 +87,25 @@ public class WandSlotsPanel : MonoBehaviour
                 rt.anchoredPosition = Vector2.zero;
             }
             slotUIs.Add(uiSlot);
+            slotRects.Add(rt);
 
             // cache original BG sprite if present
             Sprite orig = null;
             var bgT = uiSlot.transform.Find("BG");
+            Image bgImg = null;
             if (bgT != null)
             {
                 var img = bgT.GetComponent<Image>();
-                if (img != null) orig = img.sprite;
+                if (img != null) { orig = img.sprite; bgImg = img; }
             }
             originalBGSprites.Add(orig);
+            bgImages.Add(bgImg);
         }
 
         UpdateLayout();
-        lastSelectedIndex = wand.SelectedIndex;
+        wasEquipped = IsEquipped();
+        EnsureSelectionIfNeeded();
+        lastSelectedIndex = GetEffectiveSelectedIndex();
         UpdateSelectionVisuals();
         gameObject.SetActive(true);
     }
@@ -116,6 +124,8 @@ public class WandSlotsPanel : MonoBehaviour
         }
         slotUIs.Clear();
         originalBGSprites.Clear();
+        bgImages.Clear();
+        slotRects.Clear();
         wand = null;
         playerUI = null;
         sourceSlot = null;
@@ -146,9 +156,26 @@ public class WandSlotsPanel : MonoBehaviour
 
     void Update()
     {
-        if (wand != null && wand.SelectedIndex != lastSelectedIndex)
+        if (wand == null) return;
+        bool equipped = IsEquipped();
+        if (equipped != wasEquipped)
         {
-            lastSelectedIndex = wand.SelectedIndex;
+            // If the wand just became equipped, anchor panel to right-hand slot
+            if (equipped && playerUI != null && playerUI.rightHandSlot != null)
+            {
+                sourceSlot = playerUI.rightHandSlot;
+                UpdateLayout();
+            }
+            if (equipped)
+                EnsureSelectionIfNeeded();
+            wasEquipped = equipped;
+            UpdateSelectionVisuals();
+        }
+
+        int effective = GetEffectiveSelectedIndex();
+        if (effective != lastSelectedIndex)
+        {
+            lastSelectedIndex = effective;
             UpdateSelectionVisuals();
         }
     }
@@ -156,27 +183,64 @@ public class WandSlotsPanel : MonoBehaviour
     private void UpdateSelectionVisuals()
     {
         if (slotUIs == null || slotUIs.Count == 0) return;
+        int effective = GetEffectiveSelectedIndex();
         for (int i = 0; i < slotUIs.Count; i++)
         {
             var uiSlot = slotUIs[i];
             if (uiSlot == null) continue;
-            var rt = uiSlot.GetComponent<RectTransform>();
+            var rt = (i < slotRects.Count) ? slotRects[i] : uiSlot.GetComponent<RectTransform>();
             if (rt != null)
             {
-                rt.localScale = (i == wand.SelectedIndex) ? Vector3.one * selectedScale : Vector3.one * normalScale;
+                rt.localScale = (i == effective) ? Vector3.one * selectedScale : Vector3.one * normalScale;
             }
-
-            var bgT = uiSlot.transform.Find("BG");
-            if (bgT != null)
+            var img = (i < bgImages.Count) ? bgImages[i] : null;
+            if (img != null)
             {
-                var img = bgT.GetComponent<Image>();
-                if (img != null)
-                {
-                    if (i == wand.SelectedIndex && selectedBGSprite != null)
-                        img.sprite = selectedBGSprite;
-                    else
-                        img.sprite = (i < originalBGSprites.Count) ? originalBGSprites[i] : img.sprite;
-                }
+                if (i == effective && selectedBGSprite != null)
+                    img.sprite = selectedBGSprite;
+                else
+                    img.sprite = (i < originalBGSprites.Count) ? originalBGSprites[i] : img.sprite;
+            }
+        }
+    }
+
+    private int GetEffectiveSelectedIndex()
+    {
+        if (wand == null) return -1;
+        // Only show selection when the wand is actually equipped in hand
+        bool equipped = IsEquipped();
+        if (!equipped) return -1;
+
+        // If the wand has no spells, do not show selection
+        bool anySpell = false;
+        int n = wand.SlotCount;
+        for (int i = 0; i < n; i++)
+        {
+            if (wand.GetSlotItem(i) != null) { anySpell = true; break; }
+        }
+        if (!anySpell) return -1;
+
+        return wand.SelectedIndex;
+    }
+
+    private bool IsEquipped()
+    {
+        if (playerUI == null || playerUI.inventory == null || wand == null) return false;
+        return playerUI.inventory.rightHandItem == wand.gameObject;
+    }
+
+    private void EnsureSelectionIfNeeded()
+    {
+        if (wand == null) return;
+        if (!IsEquipped()) return;
+        if (wand.SelectedIndex >= 0) return;
+        int n = wand.SlotCount;
+        for (int i = 0; i < n; i++)
+        {
+            if (wand.GetSlotItem(i) != null)
+            {
+                wand.SelectedIndex = i;
+                break;
             }
         }
     }
