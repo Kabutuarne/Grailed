@@ -6,40 +6,44 @@ public class PlayerStats : MonoBehaviour
     // Attributes (these are the RPG-style stat points you should tune in inspector)
     public float intelligence = 10f; // affects max mana & mana regen
     public float strength = 10f;     // affects max health & health regen
-    public float staminaAttr = 10f;  // affects max stamina & stamina regen (rename to avoid conflict with resource)
-    public float agility = 10f;      // affects cast time multiplier & consumable consumption multiplier
+    public float staminaAttr = 10f;  // affects movement speeds & energy resource (sprint)
+    public float agility = 10f;      // affects cast speed & consumable speed
 
     [Header("Base / scaling settings (editable)")]
     [Tooltip("Base max health before Strength scaling")]
-    public float baseMaxHealth = 50f;
+    public float baseMaxHealth = 100f;
     public float healthPerStrength = 5f;
-    public float baseHealthRegen = 0.5f;
+    public float baseHealthRegen = 1.0f;
     public float healthRegenPerStrength = 0.05f;
 
     [Tooltip("Base max mana before Intelligence scaling")]
-    public float baseMaxMana = 30f;
+    public float baseMaxMana = 80f;
     public float manaPerIntelligence = 5f;
-    public float baseManaRegen = 0.5f;
+    public float baseManaRegen = 1.0f;
     public float manaRegenPerIntelligence = 0.05f;
 
     // Current resource values
     public float health;
     public float mana;
 
-    [Header("Sprint / Stamina")]
-    [Tooltip("Base max stamina before Stamina attribute scaling")]
-    public float baseMaxStamina = 50f;
-    public float staminaPerPoint = 5f;
-    public float baseStaminaRegen = 1f;
-    public float staminaRegenPerPoint = 0.2f;
+    [Header("Movement & Energy (Stamina-based)")]
+    [Tooltip("Base walk speed before Stamina scaling")]
+    public float baseWalkSpeed = 3.5f;
+    [Tooltip("Base sprint speed before Stamina scaling")]
+    public float baseSprintSpeed = 6.0f;
 
-    public float stamina; // current stamina resource
+    [Tooltip("Base max energy before Stamina scaling")] // replaces previous stamina-based resource
+    public float baseMaxEnergy = 100f;
+    [Tooltip("Base energy regen per second before Stamina scaling")]
+    public float baseEnergyRegen = 3f;
+
+    public float stamina; // current energy resource (kept name for compatibility)
 
     [Header("Other (agility multipliers)")]
-    [Tooltip("How much each point of Agility reduces cast time (fraction per point, e.g. 0.01 = 1% per point)")]
-    public float agilityCastTimeReductionPerPoint = 0.01f;
-    [Tooltip("How much each point of Agility reduces consumable consumption (fraction per point)")]
-    public float agilityConsumeReductionPerPoint = 0.005f;
+    [Tooltip("Base cast speed multiplier before Agility scaling (1 = baseline)")]
+    public float baseCastSpeed = 1f;
+    [Tooltip("Base consume speed multiplier before Agility scaling (1 = baseline)")]
+    public float baseConsumeSpeed = 1f;
 
     PlayerStatusEffects statusEffects;
 
@@ -61,6 +65,10 @@ public class PlayerStats : MonoBehaviour
 
         if (health < maxHealth)
             Heal(healthRegenPerSecond * Time.deltaTime);
+
+        // Energy regen (sprint stamina)
+        if (stamina < maxStamina)
+            RegenStamina(staminaRegenPerSecond * Time.deltaTime);
     }
 
     // -------- HEALTH --------
@@ -117,20 +125,24 @@ public class PlayerStats : MonoBehaviour
     public float effectiveStaminaAttr => staminaAttr + (statusEffects != null ? statusEffects.GetStaminaAttrAdd() : 0f);
     public float effectiveAgility => agility + (statusEffects != null ? statusEffects.GetAgilityAdd() : 0f);
 
-    public float maxHealth => Mathf.Max(1f, baseMaxHealth + effectiveStrength * healthPerStrength);
-    public float healthRegenPerSecond => Mathf.Max(0f, (baseHealthRegen + effectiveStrength * healthRegenPerStrength) * (statusEffects != null ? statusEffects.GetHealthRegenMultiplier() : 1f));
+    // New scaling formulas driven by attributes (divided by 10) times base values
+    public float maxHealth => Mathf.Max(1f, (effectiveStrength / 10f) * baseMaxHealth);
+    public float healthRegenPerSecond => Mathf.Max(0f, (effectiveStrength / 10f) * baseHealthRegen * (statusEffects != null ? statusEffects.GetHealthRegenMultiplier() : 1f));
 
-    public float maxMana => Mathf.Max(1f, baseMaxMana + effectiveIntelligence * manaPerIntelligence);
-    public float manaRegenPerSecond => Mathf.Max(0f, (baseManaRegen + effectiveIntelligence * manaRegenPerIntelligence) * (statusEffects != null ? statusEffects.GetManaRegenMultiplier() : 1f));
+    public float maxMana => Mathf.Max(1f, (effectiveIntelligence / 10f) * baseMaxMana);
+    public float manaRegenPerSecond => Mathf.Max(0f, (effectiveIntelligence / 10f) * baseManaRegen * (statusEffects != null ? statusEffects.GetManaRegenMultiplier() : 1f));
 
-    public float maxStamina => Mathf.Max(1f, baseMaxStamina + effectiveStaminaAttr * staminaPerPoint);
-    public float staminaRegenPerSecond => Mathf.Max(0f, baseStaminaRegen + effectiveStaminaAttr * staminaRegenPerPoint);
+    // Energy (stamina) resource
+    public float maxStamina => Mathf.Max(1f, (effectiveStaminaAttr / 10f) * baseMaxEnergy);
+    public float staminaRegenPerSecond => Mathf.Max(0f, (effectiveStaminaAttr / 10f) * baseEnergyRegen);
 
-    // Multipliers derived from agility
-    // Cast time multiplier: multiply spell base cast time by this (<= 1.0 means faster)
-    public float castTimeMultiplier => Mathf.Clamp(1f - effectiveAgility * agilityCastTimeReductionPerPoint, 0.25f, 1f);
-    // Consumable consumption multiplier: multiply a consumable's resource cost by this (<= 1.0 means you consume less)
-    public float consumableConsumptionMultiplier => Mathf.Clamp(1f - effectiveAgility * agilityConsumeReductionPerPoint, 0.1f, 1f);
+    // Movement speeds (apply external speed multipliers from status effects)
+    public float walkSpeed => Mathf.Max(0f, (effectiveStaminaAttr / 10f) * baseWalkSpeed * (statusEffects != null ? statusEffects.GetSpeedMultiplier() : 1f));
+    public float sprintSpeed => Mathf.Max(0f, (effectiveStaminaAttr / 10f) * baseSprintSpeed * (statusEffects != null ? statusEffects.GetSpeedMultiplier() : 1f));
+
+    // Speed-based multipliers (greater -> faster). Use to divide times: time = baseTime / speed
+    public float castSpeedMultiplier => Mathf.Max(0.01f, (effectiveAgility / 10f) * baseCastSpeed);
+    public float consumeSpeedMultiplier => Mathf.Max(0.01f, (effectiveAgility / 10f) * baseConsumeSpeed);
 
     public float Health01 => maxHealth > 0f ? health / maxHealth : 0f;
     public float Mana01 => maxMana > 0f ? mana / maxMana : 0f;

@@ -5,6 +5,8 @@ public class ConsumableItem : ItemPickup
 {
     [Header("Data")]
     public EffectCarrier carrier;
+    [Tooltip("Base time in seconds to consume this item (before agility speed).")]
+    public float baseConsumeTime = 1.0f;
 
     [Header("Presentation")]
     public GameObject renderModel;       // 3D model to show in the world

@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: Fireball
   m_EditorClassIdentifier: Assembly-CSharp::ProjectileSpell
   castTime: 3
-  manaCost: 30
-  speed: 8
+  manaCost: 5
+  speed: 32
   lifetime: 5
   impactRadius: 5
   projectileModelPrefab: {fileID: 0}
-  despawnDelay: 3
+  despawnDelay: 1
   effect: {fileID: 11400000, guid: 2bab8f99333d1c049b1c45d65e2884ef, type: 2}
   castStartParticlePrefab: {fileID: 4021103657954561961, guid: 5c755f9bc5253ea418e919994537dcc7, type: 3}
   flyingParticlePrefab: {fileID: 6294508013172393196, guid: 043176b6a68be2b43b073aaaa4782c7d, type: 3}

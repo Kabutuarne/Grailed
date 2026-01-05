@@ -54,6 +54,7 @@ public class PlayerController : MonoBehaviour
     private PlayerStats stats;
     private PlayerStatusEffects statusEffects;
     private PlayerInventory inventory;
+    private PlayerConsume consumer;
 
     private bool isCrouching;
 
@@ -64,6 +65,7 @@ public class PlayerController : MonoBehaviour
         stats = GetComponent<PlayerStats>();
         statusEffects = GetComponent<PlayerStatusEffects>();
         inventory = GetComponent<PlayerInventory>();
+        consumer = GetComponent<PlayerConsume>();
 
         input = new PlayerInputActions();
         input.Player.Enable();
@@ -133,18 +135,22 @@ public class PlayerController : MonoBehaviour
 
     void OnConsumeInput()
     {
-        if (inventory == null)
+        if (inventory == null || consumer == null)
             return;
 
         // Backpack open: consume hovered backpack item
         if (playerUI != null && playerUI.IsBackpackOpen)
         {
-            if (playerUI.TryConsumeHoveredBackpackItem(gameObject))
+            var slot = InventorySlotUI.HoveredSlot;
+            if (slot != null && slot.slotType == InventorySlotUI.SlotType.Backpack && slot.slotIndex >= 0)
+            {
+                consumer.TryStartConsumeFromBackpack(slot.slotIndex);
                 return;
+            }
         }
 
         // Backpack closed (or no hovered item): consume item in hand
-        inventory.ConsumeFromHand(gameObject);
+        consumer.TryStartConsumeFromHand();
     }
 
     void OnDropItemInput()
@@ -236,16 +242,14 @@ public class PlayerController : MonoBehaviour
         bool canSprint = stats != null && stats.stamina > 0.1f;
         bool isSprinting = wantsToSprint && canSprint;
 
+        float speedMult = statusEffects != null ? statusEffects.GetSpeedMultiplier() : 1f;
         float speed;
         if (crouchHeld)
-            speed = crouchSpeed;
+            speed = crouchSpeed * speedMult; // crouch uses fixed base scaled by effects
         else if (isSprinting)
-            speed = sprintSpeed;
+            speed = (stats != null ? stats.sprintSpeed : sprintSpeed);
         else
-            speed = walkSpeed;
-
-        float speedMult = statusEffects != null ? statusEffects.GetSpeedMultiplier() : 1f;
-        speed *= speedMult;
+            speed = (stats != null ? stats.walkSpeed : walkSpeed);
 
         Vector3 move = transform.TransformDirection(inputDir);
 

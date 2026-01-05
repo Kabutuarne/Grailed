@@ -251,6 +251,7 @@ MonoBehaviour:
   itemName: InstantRemovePotion
   itemPrefab: {fileID: 363559983838108877, guid: ebb08a8f9f979fb4698a974f2938b123, type: 3}
   carrier: {fileID: 11400000, guid: 59002acd922f5dc4a847f9f192ef975c, type: 2}
+  baseConsumeTime: 1
   renderModel: {fileID: 363559983838108877, guid: ebb08a8f9f979fb4698a974f2938b123, type: 3}
   rb: {fileID: 6324594}
   inventoryIcon: {fileID: 21300000, guid: 6305accdf83ee5e448cfdb21bf22e2ed, type: 3}
@@ -1080,6 +1081,7 @@ MonoBehaviour:
   itemName: 
   itemPrefab: {fileID: 2028556434}
   carrier: {fileID: 11400000, guid: 13009a62b7e28034799904c68968e5fd, type: 2}
+  baseConsumeTime: 90
   renderModel: {fileID: 2028556434}
   rb: {fileID: 99869161}
   inventoryIcon: {fileID: 21300000, guid: 8e3ef0778c692ed4fadfecc28bacc8da, type: 3}
@@ -6829,7 +6831,6 @@ GameObject:
   - component: {fileID: 1268072111}
   - component: {fileID: 1268072110}
   - component: {fileID: 1268072109}
-  - component: {fileID: 1268072116}
   - component: {fileID: 1268072117}
   - component: {fileID: 1268072118}
   - component: {fileID: 1268072119}
@@ -7036,13 +7037,13 @@ MonoBehaviour:
   manaRegenPerIntelligence: 0.05
   health: 100
   mana: 0
-  baseMaxStamina: 50
-  staminaPerPoint: 5
-  baseStaminaRegen: 1
-  staminaRegenPerPoint: 0.2
+  baseWalkSpeed: 3.5
+  baseSprintSpeed: 6
+  baseMaxEnergy: 50
+  baseEnergyRegen: 1
   stamina: 100
-  agilityCastTimeReductionPerPoint: 0.01
-  agilityConsumeReductionPerPoint: 0.005
+  baseCastSpeed: 1
+  baseConsumeSpeed: 1
 --- !u!114 &1268072114
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7103,19 +7104,6 @@ MonoBehaviour:
   headBone: {fileID: 1174894513}
   headTurnSpeed: 200
   playerUI: {fileID: 1091813535}
---- !u!114 &1268072116
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1268072107}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ee7543d554fbf24da3a7e3864a90d86, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TestConsumableUser
-  effectCarrier: {fileID: 0}
 --- !u!114 &1268072117
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7129,6 +7117,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerConsume
   holdPoint: {fileID: 1871533683}
+  castUI: {fileID: 1148766647}
 --- !u!114 &1268072118
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7633,6 +7622,7 @@ MonoBehaviour:
   itemName: FancyPotion
   itemPrefab: {fileID: 387736761}
   carrier: {fileID: 11400000, guid: 58be220f66a440a4f862297c37737524, type: 2}
+  baseConsumeTime: 1
   renderModel: {fileID: 387736761}
   rb: {fileID: 1377344372}
   inventoryIcon: {fileID: 21300000, guid: b8b3e3d4ebaa73b40b1468c4fd219604, type: 3}
@@ -8344,6 +8334,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerConsume
   holdPoint: {fileID: 2031942887}
+  castUI: {fileID: 0}
 --- !u!114 &1548821297
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8356,7 +8347,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ee7543d554fbf24da3a7e3864a90d86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TestConsumableUser
-  effectCarrier: {fileID: 0}
 --- !u!143 &1548821298
 CharacterController:
   m_ObjectHideFlags: 0
@@ -8535,13 +8525,13 @@ MonoBehaviour:
   manaRegenPerIntelligence: 0.05
   health: 100
   mana: 0
-  baseMaxStamina: 50
-  staminaPerPoint: 5
-  baseStaminaRegen: 1
-  staminaRegenPerPoint: 0.2
+  baseWalkSpeed: 3.5
+  baseSprintSpeed: 6
+  baseMaxEnergy: 50
+  baseEnergyRegen: 1
   stamina: 100
-  agilityCastTimeReductionPerPoint: 0.01
-  agilityConsumeReductionPerPoint: 0.005
+  baseCastSpeed: 1
+  baseConsumeSpeed: 1
 --- !u!114 &1548821303
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8990,9 +8980,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af6226a870ad96b45b24fce286c4a729, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ConsumableItem
-  itemName: FancyPotion
+  itemName: 
   itemPrefab: {fileID: 13144490}
   carrier: {fileID: 11400000, guid: 59002acd922f5dc4a847f9f192ef975c, type: 2}
+  baseConsumeTime: 2
   renderModel: {fileID: 13144490}
   rb: {fileID: 1712634792}
   inventoryIcon: {fileID: 21300000, guid: 186bf289318d6a14498b2ee5da966d7e, type: 3}

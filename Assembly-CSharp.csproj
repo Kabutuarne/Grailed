@@ -61,7 +61,6 @@
     <Compile Include="Assets\Scripts\PlayerScripts\UI\EquippedItemTitleHUD.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Effects\InstantEffect.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Effects\PassiveEffect.cs" />
-    <Compile Include="Assets\Scripts\PlayerScripts\TestConsumableUser.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerStatusEffects.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\InventorySlotUI.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Items\Accessory.cs" />

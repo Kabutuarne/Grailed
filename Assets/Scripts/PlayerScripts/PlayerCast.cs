@@ -101,15 +101,16 @@ public class PlayerCast : MonoBehaviour
         currentAOE = scroll.aoeSpell;
         currentProjectile = scroll.projectileSpell;
 
-        float mult = stats != null ? stats.castTimeMultiplier : 1f;
+        // Compute actual cast time using speed multiplier: time = baseTime / speed
+        float speed = stats != null ? stats.castSpeedMultiplier : 1f;
         if (currentAOE != null)
         {
             // For AOE: use castTime as tick interval, show "Casting", and trigger immediately
-            castTimeActual = Mathf.Max(0.01f, currentAOE.castTime * mult);
+            castTimeActual = Mathf.Max(0.01f, currentAOE.castTime / Mathf.Max(0.01f, speed));
         }
         else if (currentProjectile != null)
         {
-            castTimeActual = Mathf.Max(0.01f, currentProjectile.castTime * mult);
+            castTimeActual = Mathf.Max(0.01f, currentProjectile.castTime / Mathf.Max(0.01f, speed));
         }
         elapsed = 0f;
         isCasting = true;

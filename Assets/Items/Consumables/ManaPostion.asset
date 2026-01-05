@@ -15,13 +15,13 @@ MonoBehaviour:
   effectId: effect
   displayName: Player Effect
   duration: 10
-  speedMultiplier: -3
-  healthRegenMultiplier: -2
-  manaRegenMultiplier: -2
+  speedMultiplier: 1
+  healthRegenMultiplier: 1
+  manaRegenMultiplier: 1
   healPerSecond: 0
   healAmount: 0
   manaAmount: 0
-  addStrength: 0
+  addStrength: -2
   addIntelligence: 0
-  addStaminaAttr: 0
-  addAgility: 0
+  addStaminaAttr: 100
+  addAgility: 100
