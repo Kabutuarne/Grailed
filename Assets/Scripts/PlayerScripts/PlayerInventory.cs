@@ -286,6 +286,26 @@ public class PlayerInventory : MonoBehaviour
         return DropWorldItem(item, dropOrigin);
     }
 
+    // NEW: Drop an accessory from an accessory slot into the world
+    public bool DropFromAccessory(int index, Transform dropOrigin)
+    {
+        if (index < 0 || index >= accessories.Length)
+            return false;
+
+        GameObject item = accessories[index];
+        if (item == null)
+            return false;
+
+        var acc = item.GetComponent<Accessory>();
+        if (acc != null)
+            acc.OnUnequipped();
+
+        accessories[index] = null;
+        OnInventoryChanged?.Invoke();
+
+        return DropWorldItem(item, dropOrigin);
+    }
+
     private bool DropWorldItem(GameObject item, Transform dropOrigin)
     {
         if (item == null)

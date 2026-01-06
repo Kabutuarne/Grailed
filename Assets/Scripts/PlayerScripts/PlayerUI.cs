@@ -26,6 +26,10 @@ public class PlayerUI : MonoBehaviour
     public Transform statusEffectsRoot;
     public GameObject statusEffectPrefab;
 
+    [Header("Status Effects UI (HUD)")]
+    public Transform statusEffectsHudRoot;
+    public GameObject statusEffectHudPrefab;
+
     [Header("Hand Slots UI (Backpack)")]
     public InventorySlotUI rightHandSlot;
 
@@ -100,6 +104,7 @@ public class PlayerUI : MonoBehaviour
     {
         UpdateBars();
         UpdateStatusEffects();
+        UpdateStatusEffectsHUD();
         UpdateHands();
         UpdateBackpackSlots();
         UpdateAccessories();
@@ -356,6 +361,79 @@ public class PlayerUI : MonoBehaviour
             else
             {
                 // Non-carrier entries: keep legacy title/time in first Text
+                Text t = go.GetComponentInChildren<Text>();
+                string titleText;
+                if (timeVal < 0f)
+                    titleText = $"{kv.Key} (ON)";
+                else
+                    titleText = $"{kv.Key} ({Mathf.CeilToInt(timeVal)}s)";
+                if (t != null)
+                    t.text = titleText;
+            }
+        }
+    }
+
+    void UpdateStatusEffectsHUD()
+    {
+        if (statusEffectsHudRoot == null || statusEffectHudPrefab == null || statusEffects == null)
+            return;
+
+        foreach (Transform child in statusEffectsHudRoot)
+            Destroy(child.gameObject);
+
+        var entries = new Dictionary<object, float>();
+
+        foreach (var e in statusEffects.activeEffects)
+        {
+            // Skip effects that request to be hidden (e.g., accessories)
+            if (e.hideInUI)
+                continue;
+            if (e.carrier != null)
+            {
+                float current = entries.ContainsKey(e.carrier) ? entries[e.carrier] : 0f;
+                if (e.duration < 0f)
+                {
+                    entries[e.carrier] = -1f;
+                }
+                else
+                {
+                    float val = e.timer;
+                    entries[e.carrier] = Mathf.Max(current, val);
+                }
+            }
+            else
+            {
+                string key = e.id + "_" + Guid.NewGuid().ToString();
+                entries[key] = e.duration < 0f ? -1f : e.timer;
+            }
+        }
+
+        foreach (var kv in entries)
+        {
+            GameObject go = Instantiate(statusEffectHudPrefab, statusEffectsHudRoot);
+            float timeVal = kv.Value;
+
+            if (kv.Key is EffectCarrier carrierKey)
+            {
+                Image iconImage = null;
+                var iconTransform = go.transform.Find("Icon");
+                if (iconTransform != null)
+                    iconImage = iconTransform.GetComponent<Image>();
+                if (iconImage == null)
+                    iconImage = go.GetComponentInChildren<Image>();
+                if (iconImage != null && carrierKey.icon != null)
+                    iconImage.sprite = carrierKey.icon;
+
+                var descTransform = go.transform.Find("Description");
+                if (descTransform != null)
+                {
+                    var descText = descTransform.GetComponent<Text>();
+                    if (descText != null)
+                        descText.text = carrierKey.description;
+                }
+            }
+            else
+            {
                 Text t = go.GetComponentInChildren<Text>();
                 string titleText;
                 if (timeVal < 0f)
@@ -892,6 +970,22 @@ public class PlayerUI : MonoBehaviour
             return false;
 
         return inventory.DropFromBackpack(slot.slotIndex, dropOrigin);
+    }
+
+    // NEW: Drop accessory from accessory slot while hovering
+    public bool TryDropHoveredAccessoryItem(Transform dropOrigin)
+    {
+        if (!IsBackpackOpen || inventory == null)
+            return false;
+
+        var slot = InventorySlotUI.HoveredSlot;
+        if (slot == null || slot.slotType != InventorySlotUI.SlotType.Accessory)
+            return false;
+
+        if (slot.slotIndex < 0)
+            return false;
+
+        return inventory.DropFromAccessory(slot.slotIndex, dropOrigin);
     }
 
     public void ToggleBackpack()

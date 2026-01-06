@@ -163,6 +163,9 @@ public class PlayerController : MonoBehaviour
         // Backpack open: drop hovered backpack item
         if (playerUI != null && playerUI.IsBackpackOpen)
         {
+            // Try dropping from accessory slot first, then backpack
+            if (playerUI.TryDropHoveredAccessoryItem(dropOrigin))
+                return;
             if (playerUI.TryDropHoveredBackpackItem(dropOrigin))
                 return;
         }
