@@ -21,7 +21,7 @@ public class PlayerController : MonoBehaviour
     public float maxHeadYaw = 75f;      // how far the "head" can twist left/right
     public float maxPitchUp = 80f;
     public float maxPitchDown = -80f;
-    public float bodyTurnSpeed = 360f;  // deg/sec: how fast body aligns to view
+    public float bodyTurnSpeed = 3600f;  // deg/sec: how fast body aligns to view
 
     [Header("Camera Height")]
     public Vector3 standingCamLocalPos = new Vector3(0, 1.6f, 0);
@@ -57,6 +57,8 @@ public class PlayerController : MonoBehaviour
     private PlayerConsume consumer;
 
     private bool isCrouching;
+    private Vector3 externalVelocity;
+    public float knockbackDecay = 8f;
 
     void Awake()
     {
@@ -210,7 +212,7 @@ public class PlayerController : MonoBehaviour
                 verticalVelocity = -1f;
 
             verticalVelocity += gravity * Time.deltaTime;
-            controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
+            controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime + externalVelocity * Time.deltaTime);
 
             if (stats != null)
                 stats.RegenStamina(stats.staminaRegenPerSecond * Time.deltaTime);
@@ -226,6 +228,7 @@ public class PlayerController : MonoBehaviour
             }
 
             wasGrounded = isGrounded;
+            externalVelocity = Vector3.MoveTowards(externalVelocity, Vector3.zero, knockbackDecay * Time.deltaTime);
             return;
         }
 
@@ -270,7 +273,7 @@ public class PlayerController : MonoBehaviour
         verticalVelocity += gravity * Time.deltaTime;
         move.y = verticalVelocity;
 
-        controller.Move(move * speed * Time.deltaTime);
+        controller.Move((move * speed + externalVelocity) * Time.deltaTime);
 
         if (stats != null)
         {
@@ -327,6 +330,7 @@ public class PlayerController : MonoBehaviour
         }
 
         wasGrounded = isGrounded;
+        externalVelocity = Vector3.MoveTowards(externalVelocity, Vector3.zero, knockbackDecay * Time.deltaTime);
     }
 
     void UpdateCameraHeight()
@@ -390,5 +394,22 @@ public class PlayerController : MonoBehaviour
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
+    }
+
+    public void ApplyExplosionKnockback(Vector3 origin, float force, float radius, float upwardsModifier)
+    {
+        Vector3 center = controller != null ? controller.bounds.center : transform.position;
+        Vector3 dir = center - origin;
+        float dist = dir.magnitude;
+        if (dist <= 0.0001f || radius <= 0.0001f)
+            return;
+        dir /= dist;
+        float atten = Mathf.Clamp01(1f - (dist / radius));
+        Vector3 impulse = dir * force * atten;
+        if (upwardsModifier != 0f)
+            impulse += Vector3.up * upwardsModifier;
+        Vector3 horiz = new Vector3(impulse.x, 0f, impulse.z);
+        externalVelocity += horiz;
+        verticalVelocity += impulse.y;
     }
 }

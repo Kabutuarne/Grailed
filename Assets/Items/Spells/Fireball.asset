@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70ed0eca34a575d47abc4eafa96c6c64, type: 3}
   m_Name: Fireball
   m_EditorClassIdentifier: Assembly-CSharp::ProjectileSpell
-  castTime: 3
+  castTime: 1
   manaCost: 5
   speed: 32
   lifetime: 5
-  impactRadius: 5
+  impactRadius: 90
   projectileModelPrefab: {fileID: 0}
   despawnDelay: 1
   effect: {fileID: 11400000, guid: 2bab8f99333d1c049b1c45d65e2884ef, type: 2}

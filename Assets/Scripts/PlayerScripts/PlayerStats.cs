@@ -46,10 +46,21 @@ public class PlayerStats : MonoBehaviour
     public float baseConsumeSpeed = 1f;
 
     PlayerStatusEffects statusEffects;
+    PlayerInventory inventory;
+    RagdollController ragdoll;
+    PlayerController controller;
+
+    [Header("Death & Respawn")]
+    public float respawnDelay = 3f;
+    public Transform respawnPoint;
+    bool isDead = false;
 
     void Start()
     {
         statusEffects = GetComponent<PlayerStatusEffects>();
+        inventory = GetComponent<PlayerInventory>();
+        ragdoll = GetComponent<RagdollController>();
+        controller = GetComponent<PlayerController>();
 
         // Initialize current resources to the derived maximums
         health = maxHealth;
@@ -59,6 +70,15 @@ public class PlayerStats : MonoBehaviour
 
     void Update()
     {
+        // If something externally set health to zero, trigger death
+        if (!isDead && health <= 0f)
+        {
+            Die();
+            return;
+        }
+
+        if (isDead) return; // stop passive updates while dead
+
         // Passive regen tick per second for health & mana
         if (mana < maxMana)
             RestoreMana(manaRegenPerSecond * Time.deltaTime);
@@ -83,11 +103,67 @@ public class PlayerStats : MonoBehaviour
     public void Heal(float amount)
     {
         health = Mathf.Clamp(health + amount, 0f, maxHealth);
+        // If negative "healing" is used as damage elsewhere, ensure death triggers
+        if (!isDead && health <= 0f)
+            Die();
     }
 
     void Die()
     {
         Debug.Log("Player died. Congrats.");
+        if (isDead) return;
+        isDead = true;
+
+        // Stop status effects influencing regen and clear any ongoing effects
+        if (statusEffects != null)
+        {
+            try { statusEffects.ClearAllEffects(); } catch { }
+            statusEffects.enabled = false;
+        }
+
+        // Drop all items
+        if (inventory != null)
+        {
+            try { inventory.DropAllItems(controller != null && controller.cameraPivot != null ? controller.cameraPivot : transform); } catch { }
+        }
+
+        // Engage ragdoll
+        if (ragdoll != null)
+        {
+            try { ragdoll.Activate(); } catch { }
+        }
+
+        // Schedule respawn
+        StartCoroutine(RespawnCoroutine());
+    }
+
+    System.Collections.IEnumerator RespawnCoroutine()
+    {
+        yield return new WaitForSeconds(respawnDelay);
+
+        // Remove previous body (ragdoll) and restore control
+        if (ragdoll != null)
+        {
+            try { ragdoll.DeactivateAndCleanup(); } catch { }
+        }
+
+        // Move to respawn point if set
+        if (respawnPoint != null)
+        {
+            transform.position = respawnPoint.position;
+            transform.rotation = respawnPoint.rotation;
+        }
+
+        // Restore resources
+        health = maxHealth;
+        mana = maxMana;
+        stamina = maxStamina;
+
+        // Re-enable status effects processing (empty)
+        if (statusEffects != null)
+            statusEffects.enabled = true;
+
+        isDead = false;
     }
 
     // -------- MANA --------
@@ -115,6 +191,15 @@ public class PlayerStats : MonoBehaviour
     public void RegenStamina(float amount)
     {
         stamina = Mathf.Clamp(stamina + amount, 0f, maxStamina);
+    }
+
+    // Clamp all current resources to their respective maximums.
+    // Useful after temporary max increases are removed (e.g., accessories/effects).
+    public void ClampResourcesToMax()
+    {
+        health = Mathf.Clamp(health, 0f, maxHealth);
+        mana = Mathf.Clamp(mana, 0f, maxMana);
+        stamina = Mathf.Clamp(stamina, 0f, maxStamina);
     }
 
     // Convenience for UI

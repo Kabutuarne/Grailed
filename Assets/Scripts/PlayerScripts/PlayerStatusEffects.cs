@@ -58,6 +58,7 @@ public class PlayerStatusEffects : MonoBehaviour
 
     void Update()
     {
+        bool removedAny = false;
         for (int i = activeEffects.Count - 1; i >= 0; i--)
         {
             var e = activeEffects[i];
@@ -71,12 +72,14 @@ public class PlayerStatusEffects : MonoBehaviour
                 {
                     Debug.Log($"[StatusEffects] Effect '{e.id}' expired");
                     activeEffects.RemoveAt(i);
+                    removedAny = true;
                 }
             }
             else if (e.duration == 0f)
             {
                 // Instant effects should not be in the list, but just in case remove them
                 activeEffects.RemoveAt(i);
+                removedAny = true;
             }
             else // duration < 0: toggle / infinite effect
             {
@@ -84,6 +87,12 @@ public class PlayerStatusEffects : MonoBehaviour
                     stats.Heal(e.healPerSecond * Time.deltaTime);
                 // don't remove
             }
+        }
+
+        // If any effects were removed or expired, ensure resources do not exceed new maximums
+        if (removedAny && stats != null)
+        {
+            stats.ClampResourcesToMax();
         }
     }
 
@@ -235,6 +244,23 @@ public class PlayerStatusEffects : MonoBehaviour
     {
         int removed = activeEffects.RemoveAll(x => x.id == id);
         if (removed > 0)
+        {
             Debug.Log($"[StatusEffects] Removed {removed} effect(s) with id '{id}'");
+            if (stats != null)
+                stats.ClampResourcesToMax();
+        }
+    }
+
+    // Remove all active/toggle effects and clamp resources to new maxes
+    public void ClearAllEffects()
+    {
+        int removed = activeEffects.Count;
+        activeEffects.Clear();
+        if (removed > 0)
+        {
+            Debug.Log($"[StatusEffects] Cleared all effects ({removed})");
+            if (stats != null)
+                stats.ClampResourcesToMax();
+        }
     }
 }

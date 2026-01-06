@@ -51,6 +51,7 @@
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerInventory.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\ItemTooltip.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\ConsumableItem.cs" />
+    <Compile Include="Assets\Scripts\PlayerScripts\RagdollController.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerInteractor.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\Spells\AOESpell.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerConsume.cs" />

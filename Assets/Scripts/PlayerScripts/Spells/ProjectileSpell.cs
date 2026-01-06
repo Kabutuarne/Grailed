@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 [CreateAssetMenu(menuName = "DungeonBroker/Spell/Projectile", fileName = "NewProjectileSpell")]
 public class ProjectileSpell : ScriptableObject
@@ -134,6 +135,28 @@ public class ProjectileSpell : ScriptableObject
             {
                 flyingParticleInstance = Instantiate(flyingParticlePrefab, transform.position, transform.rotation, transform);
             }
+
+            // Ensure we have a trigger collider and a Rigidbody so trigger events fire
+            var colliders = GetComponentsInChildren<Collider>(true);
+            bool hasAnyCollider = colliders != null && colliders.Length > 0;
+            if (!hasAnyCollider)
+            {
+                var sc = gameObject.AddComponent<SphereCollider>();
+                sc.isTrigger = true;
+                sc.radius = 0.15f;
+            }
+            else
+            {
+                foreach (var col in colliders)
+                    col.isTrigger = true;
+            }
+
+            var rb = GetComponent<Rigidbody>();
+            if (rb == null)
+                rb = gameObject.AddComponent<Rigidbody>();
+            rb.isKinematic = true;
+            rb.useGravity = false;
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         }
 
         void Update()
@@ -144,7 +167,6 @@ public class ProjectileSpell : ScriptableObject
         void OnTriggerEnter(Collider other)
         {
             if (hasHit) return;
-            if (caster != null && other.gameObject == caster) return;
 
             Vector3 hitPos = transform.position;
 
@@ -153,10 +175,29 @@ public class ProjectileSpell : ScriptableObject
             if (impactRadius > 0f)
             {
                 hits = Physics.OverlapSphere(hitPos, impactRadius);
+                var applied = new HashSet<GameObject>();
                 foreach (var c in hits)
                 {
-                    if (caster != null && c.gameObject == caster) continue;
-                    try { effect.Apply(c.gameObject, carrier); } catch { }
+                    var go = c.gameObject;
+                    if (applied.Contains(go)) continue;
+                    try { effect.Apply(go, carrier); } catch { }
+                    applied.Add(go);
+                }
+
+                // Also apply effect to players within radius (CharacterController isn't a Collider)
+                var players = Object.FindObjectsOfType<PlayerController>();
+                foreach (var pc in players)
+                {
+                    if (pc == null) continue;
+                    var go = pc.gameObject;
+                    if (applied.Contains(go)) continue;
+                    var cc = go.GetComponent<CharacterController>();
+                    Vector3 center = cc != null ? cc.bounds.center : go.transform.position;
+                    if (Vector3.Distance(center, hitPos) <= impactRadius)
+                    {
+                        try { effect.Apply(go, carrier); } catch { }
+                        applied.Add(go);
+                    }
                 }
             }
             else

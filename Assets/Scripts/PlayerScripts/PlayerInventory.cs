@@ -335,4 +335,42 @@ public class PlayerInventory : MonoBehaviour
         item.SetActive(true);
         return true;
     }
+
+    // Drop everything the player has: hand, backpack, accessories
+    public void DropAllItems(Transform dropOrigin)
+    {
+        // Hand
+        if (rightHandItem != null)
+        {
+            GameObject item = rightHandItem;
+            rightHandItem = null;
+            OnInventoryChanged?.Invoke();
+            DropWorldItem(item, dropOrigin);
+        }
+
+        // Backpack
+        for (int i = 0; i < backpack.Length; i++)
+        {
+            GameObject item = backpack[i];
+            if (item == null) continue;
+            backpack[i] = null;
+            OnInventoryChanged?.Invoke();
+            DropWorldItem(item, dropOrigin);
+        }
+
+        // Accessories
+        for (int i = 0; i < accessories.Length; i++)
+        {
+            GameObject item = accessories[i];
+            if (item == null) continue;
+
+            var acc = item.GetComponent<Accessory>();
+            if (acc != null)
+                acc.OnUnequipped();
+
+            accessories[i] = null;
+            OnInventoryChanged?.Invoke();
+            DropWorldItem(item, dropOrigin);
+        }
+    }
 }

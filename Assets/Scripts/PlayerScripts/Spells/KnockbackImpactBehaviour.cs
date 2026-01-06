@@ -21,7 +21,6 @@ public class KnockbackImpactBehaviour : ProjectileImpactBehaviour
         {
             if (c == null) continue;
             var go = c.gameObject;
-            if (caster != null && go == caster) continue;
 
             // Layer filter
             if ((layerMask.value & (1 << go.layer)) == 0)
@@ -40,6 +39,21 @@ public class KnockbackImpactBehaviour : ProjectileImpactBehaviour
                 rb.AddExplosionForce(force, hitPos, r, upwardsModifier, forceMode);
             }
             catch { }
+        }
+
+        // Also affect players that use CharacterController (no rigidbody)
+        var players = Object.FindObjectsOfType<PlayerController>();
+        foreach (var pc in players)
+        {
+            if (pc == null) continue;
+            var go = pc.gameObject;
+
+            var cc = go.GetComponent<CharacterController>();
+            Vector3 center = cc != null ? cc.bounds.center : go.transform.position;
+            float dist = Vector3.Distance(center, hitPos);
+            if (dist > r) continue;
+
+            pc.ApplyExplosionKnockback(hitPos, force, r, upwardsModifier);
         }
     }
 }

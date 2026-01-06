@@ -92,6 +92,13 @@ public class Accessory : ItemPickup
             }
         }
 
+        // Ensure current resources do not exceed new maximums after effects are removed
+        var stats = _owner.GetComponent<PlayerStats>();
+        if (stats != null)
+        {
+            stats.ClampResourcesToMax();
+        }
+
         _equipped = false;
         _owner = null;
     }
