@@ -154,14 +154,17 @@ public class PlayerStats : MonoBehaviour
             transform.rotation = respawnPoint.rotation;
         }
 
+        // Clear any remaining effects and reset resources
+        if (statusEffects != null)
+        {
+            statusEffects.ClearAllEffects();
+            statusEffects.enabled = true;
+        }
+
         // Restore resources
         health = maxHealth;
         mana = maxMana;
         stamina = maxStamina;
-
-        // Re-enable status effects processing (empty)
-        if (statusEffects != null)
-            statusEffects.enabled = true;
 
         isDead = false;
     }

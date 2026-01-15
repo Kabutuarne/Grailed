@@ -50,10 +50,12 @@ public class PlayerStatusEffects : MonoBehaviour
 
     public List<Effect> activeEffects = new List<Effect>();
     PlayerStats stats;
+    EnemyStats enemyStats;
 
     void Start()
     {
         stats = GetComponent<PlayerStats>();
+        enemyStats = GetComponent<EnemyStats>();
     }
 
     void Update()
@@ -66,7 +68,7 @@ public class PlayerStatusEffects : MonoBehaviour
             {
                 e.timer -= Time.deltaTime;
                 if (e.healPerSecond != 0)
-                    stats.Heal(e.healPerSecond * Time.deltaTime);
+                    SafeHeal(e.healPerSecond * Time.deltaTime);
 
                 if (e.timer <= 0f)
                 {
@@ -84,16 +86,14 @@ public class PlayerStatusEffects : MonoBehaviour
             else // duration < 0: toggle / infinite effect
             {
                 if (e.healPerSecond != 0)
-                    stats.Heal(e.healPerSecond * Time.deltaTime);
+                    SafeHeal(e.healPerSecond * Time.deltaTime);
                 // don't remove
             }
         }
 
         // If any effects were removed or expired, ensure resources do not exceed new maximums
-        if (removedAny && stats != null)
-        {
-            stats.ClampResourcesToMax();
-        }
+        if (removedAny)
+            SafeClampResourcesToMax();
     }
 
     // Generic adder — callers can build an Effect and add it, or use helpers below.
@@ -103,14 +103,14 @@ public class PlayerStatusEffects : MonoBehaviour
         if (e.duration == 0f)
         {
             if (e.healAmount != 0f)
-                stats.Heal(e.healAmount);
+                SafeHeal(e.healAmount);
 
             if (e.manaAmount != 0f)
-                stats.RestoreMana(e.manaAmount);
+                SafeRestoreMana(e.manaAmount);
 
             // if instant also had per-second healing, do a single tick
             if (e.healPerSecond != 0f)
-                stats.Heal(e.healPerSecond * Time.deltaTime);
+                SafeHeal(e.healPerSecond * Time.deltaTime);
 
             Debug.Log($"[StatusEffects] Applied instant effect '{e.id}' (heal {e.healAmount}, mana {e.manaAmount})");
             // don't add to list
@@ -246,8 +246,7 @@ public class PlayerStatusEffects : MonoBehaviour
         if (removed > 0)
         {
             Debug.Log($"[StatusEffects] Removed {removed} effect(s) with id '{id}'");
-            if (stats != null)
-                stats.ClampResourcesToMax();
+            SafeClampResourcesToMax();
         }
     }
 
@@ -259,8 +258,38 @@ public class PlayerStatusEffects : MonoBehaviour
         if (removed > 0)
         {
             Debug.Log($"[StatusEffects] Cleared all effects ({removed})");
-            if (stats != null)
-                stats.ClampResourcesToMax();
+            SafeClampResourcesToMax();
         }
+    }
+
+    // --- Safe forwarding helpers to support both PlayerStats and EnemyStats ---
+    void SafeHeal(float amount)
+    {
+        try
+        {
+            if (stats != null) stats.Heal(amount);
+            else if (enemyStats != null) enemyStats.Heal(amount);
+        }
+        catch { }
+    }
+
+    void SafeRestoreMana(float amount)
+    {
+        try
+        {
+            if (stats != null) stats.RestoreMana(amount);
+            else if (enemyStats != null) enemyStats.RestoreMana(amount);
+        }
+        catch { }
+    }
+
+    void SafeClampResourcesToMax()
+    {
+        try
+        {
+            if (stats != null) stats.ClampResourcesToMax();
+            else if (enemyStats != null) enemyStats.ClampResourcesToMax();
+        }
+        catch { }
     }
 }

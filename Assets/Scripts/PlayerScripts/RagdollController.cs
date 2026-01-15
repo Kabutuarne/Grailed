@@ -12,6 +12,24 @@ public class RagdollController : MonoBehaviour
     [Header("Activation Settings")]
     public bool setDefaultLayerOnActivate = true;
 
+    bool isActive = false;
+
+    void Update()
+    {
+        if (isActive)
+        {
+            var pc = GetComponent<PlayerController>();
+            if (pc != null && pc.cameraPivot != null)
+            {
+                Vector3 center = GetApproxCenter(GetRig());
+                Vector3 worldOffset = transform.TransformVector(cameraOffset);
+                pc.cameraPivot.position = center + worldOffset;
+                if (lookAtRagdoll)
+                    pc.cameraPivot.rotation = Quaternion.LookRotation(center - pc.cameraPivot.position, Vector3.up);
+            }
+        }
+    }
+
     Transform GetRig()
     {
         if (ragdollRig != null) return ragdollRig;
@@ -63,15 +81,7 @@ public class RagdollController : MonoBehaviour
         if (setDefaultLayerOnActivate)
             SetLayerRecursively(rig.gameObject, 0); // 0 = Default
 
-        // Move camera slightly away for a better view
-        if (pc != null && pc.cameraPivot != null)
-        {
-            Vector3 center = GetApproxCenter(rig);
-            Vector3 worldOffset = transform.TransformVector(cameraOffset);
-            pc.cameraPivot.position = center + worldOffset;
-            if (lookAtRagdoll)
-                pc.cameraPivot.rotation = Quaternion.LookRotation(center - pc.cameraPivot.position, Vector3.up);
-        }
+        isActive = true;
     }
 
     // Restore control and remove ragdoll physics/colliders
@@ -85,6 +95,8 @@ public class RagdollController : MonoBehaviour
         {
             rb.isKinematic = true;
             rb.useGravity = false;
+            rb.linearVelocity = Vector3.zero; // Reset velocity
+            rb.angularVelocity = Vector3.zero; // Reset angular velocity
         }
 
         var cols = rig.GetComponentsInChildren<Collider>(true);
@@ -117,6 +129,8 @@ public class RagdollController : MonoBehaviour
         int playerBodyLayer = LayerMask.NameToLayer("PlayerBody");
         if (playerBodyLayer >= 0)
             SetLayerRecursively(rig.gameObject, playerBodyLayer);
+
+        isActive = false;
     }
 
     static void SetLayerRecursively(GameObject go, int layer)
