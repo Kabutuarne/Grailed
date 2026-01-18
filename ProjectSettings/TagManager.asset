@@ -7,6 +7,7 @@ TagManager:
   - Floor
   - FxTemporaire
   - Enemy
+  - RoomBounds
   layers:
   - Default
   - TransparentFX
