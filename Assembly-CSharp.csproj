@@ -56,7 +56,6 @@
     <Compile Include="Assets\Scripts\World\LevelGeneration\Doorway.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerConsume.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\Room.cs" />
-    <Compile Include="Assets\Scripts\World\LevelGeneration\DoorwayDirection.cs" />
     <Compile Include="Assets\Scripts\Player\ConsumableEntity.cs" />
     <Compile Include="Assets\Scripts\Player\ConsumableItem.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCast.cs" />
@@ -66,8 +65,10 @@
     <Compile Include="Assets\Scripts\Player\PlayerInteractor.cs" />
     <Compile Include="Assets\Scripts\Player\RagdollController.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInventory.cs" />
+    <Compile Include="Assets\Scripts\World\LevelGeneration\RoomGenerator.cs" />
     <Compile Include="Assets\Scripts\Player\Items\Accessory.cs" />
     <Compile Include="Assets\Scripts\Player\ItemPickup.cs" />
+    <Compile Include="Assets\Scripts\World\LevelGeneration\RoomRule.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerUI.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\AOESpell.cs" />
@@ -85,11 +86,11 @@
     <Compile Include="Assets\Scripts\Enemy\EnemyBehaviour.cs" />
     <Compile Include="Assets\Scripts\Enemy\MeleeAttack.cs" />
     <Compile Include="Assets\Scripts\Player\UI\WandSlotsPanel.cs" />
-    <Compile Include="Assets\Scripts\World\LevelGeneration\SimpleLevelGenerator.cs" />
     <Compile Include="Assets\Scripts\Player\Items\WandItem.cs" />
     <Compile Include="Assets\Scripts\Player\UI\EquippedItemTitleHUD.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerStatusEffects.cs" />
     <Compile Include="Assets\Scripts\Enemy\EyeballLookAndChargeBehaviour.cs" />
+    <Compile Include="Assets\Scripts\World\LevelGeneration\RoomSize.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerDecorationPlacer.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\ProjectileImpactBehaviour.cs" />
   </ItemGroup>
@@ -112,6 +113,7 @@
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
     <None Include="Assets\PBS Materials Variety Pack\readme.txt" />
+    <None Include="Assets\CustomShaders\Lit.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
     <None Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Prefabs\Texts\_Make your own text effect.txt" />
     <None Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Assets\Shaders\CFXR_PASSES.cginc" />

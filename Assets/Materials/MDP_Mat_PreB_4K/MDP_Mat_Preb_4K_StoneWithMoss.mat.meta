@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+guid: 8b401c03d7545304bbad08adb91f76c3
+labels:
+- adventureforge
+- brick
+- dungeon
+- medieval
+- moss
+- stone
+- texture
+timeCreated: 1549884428
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 139525
+  packageName: MDP 4K Texture Pack Vol.1
+  packageVersion: 1.0
+  assetPath: Assets/Adventure Forge Studio/Modular Dungeon Pack/MDP_Materials/MDP_Mat_PreBaked/MDP_Mat_PreB_4K/MDP_Mat_Preb_4K_StoneWithMoss.mat
+  uploadId: 293691

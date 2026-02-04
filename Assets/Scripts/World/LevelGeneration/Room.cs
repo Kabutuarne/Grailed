@@ -5,7 +5,10 @@ public class Room : MonoBehaviour
 {
     public BoxCollider bounds;
 
-    private List<Doorway> doorways = new List<Doorway>();
+    [Header("Generation Metadata")]
+    public RoomSize size = RoomSize.OneByOne;
+
+    private readonly List<Doorway> doorways = new List<Doorway>();
 
     void Awake()
     {
