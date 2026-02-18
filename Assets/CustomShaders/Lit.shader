@@ -1,4 +1,4 @@
-Shader "Universal Render Pipeline/Lit Triplanar WS"
+Shader "Universal Render Pipeline/Lit Triplanar WS OptionalMirror"
 {
     Properties
     {
@@ -20,9 +20,10 @@ Shader "Universal Render Pipeline/Lit Triplanar WS"
         [HDR] _EmissionColor("Emission Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
 
-        // Triplanar - ddoubled scale (was 1, now 0.5)
         _TriplanarScale("Triplanar Scale", Float) = 0.5
         _TriplanarBlendSharpness("Blend Sharpness", Range(1,8)) = 4
+
+        [Toggle(_RANDOM_MIRROR)] _RandomMirror("Enable Random Mirror", Float) = 0
 
         [ToggleUI] _ReceiveShadows("Receive Shadows", Float) = 1
     }
@@ -44,7 +45,7 @@ Shader "Universal Render Pipeline/Lit Triplanar WS"
             Tags { "LightMode"="UniversalForward" }
 
             HLSLPROGRAM
-            #pragma target 3.5
+            #pragma target 4.5
             #pragma vertex vert
             #pragma fragment frag
 
@@ -52,6 +53,7 @@ Shader "Universal Render Pipeline/Lit Triplanar WS"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
             #pragma shader_feature_local_fragment _EMISSION
+            #pragma shader_feature_local _RANDOM_MIRROR
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -88,33 +90,69 @@ Shader "Universal Render Pipeline/Lit Triplanar WS"
                 float3 viewDirWS : TEXCOORD2;
             };
 
+            // Stable hash from world position
+            float Hash13(float3 p)
+            {
+                p = frac(p * 0.3183099 + 0.1);
+                p *= 17.0;
+                return frac(p.x * p.y * p.z * (p.x + p.y + p.z));
+            }
+
+            float2 MaybeMirror(float2 uv, float3 wp)
+            {
+                #ifdef _RANDOM_MIRROR
+                    float h = Hash13(floor(wp));
+                    if (h > 0.5)
+                        uv.x = -uv.x; // simple mirror
+                #endif
+                return uv;
+            }
+
+            float3 GetTriplanarWeights(float3 n)
+            {
+                float3 w = abs(n);
+                w = pow(w, _TriplanarBlendSharpness);
+                return w / (w.x + w.y + w.z);
+            }
+
             half4 TriplanarSample(TEXTURE2D_PARAM(tex,samp), float3 wp, float3 wn)
             {
-                float3 w = abs(wn);
-                w = pow(w, _TriplanarBlendSharpness);
-                w /= dot(w, 1);
+                float3 weights = GetTriplanarWeights(wn);
+
+                float2 uvX = wp.zy * _TriplanarScale;
+                float2 uvY = wp.xz * _TriplanarScale;
+                float2 uvZ = wp.xy * _TriplanarScale;
+
+                uvX = MaybeMirror(uvX, wp);
+                uvY = MaybeMirror(uvY, wp);
+                uvZ = MaybeMirror(uvZ, wp);
 
                 return
-                    SAMPLE_TEXTURE2D(tex, samp, wp.zy * _TriplanarScale) * w.x +
-                    SAMPLE_TEXTURE2D(tex, samp, wp.xz * _TriplanarScale) * w.y +
-                    SAMPLE_TEXTURE2D(tex, samp, wp.xy * _TriplanarScale) * w.z;
+                    SAMPLE_TEXTURE2D(tex, samp, uvX) * weights.x +
+                    SAMPLE_TEXTURE2D(tex, samp, uvY) * weights.y +
+                    SAMPLE_TEXTURE2D(tex, samp, uvZ) * weights.z;
             }
 
             half3 TriplanarNormalWS(float3 wp, float3 wn)
             {
-                float3 w = abs(wn);
-                w = pow(w, _TriplanarBlendSharpness);
-                w /= dot(w, 1);
+                float3 weights = GetTriplanarWeights(wn);
 
-                half3 nx = UnpackNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, wp.zy * _TriplanarScale));
-                half3 ny = UnpackNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, wp.xz * _TriplanarScale));
-                half3 nz = UnpackNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, wp.xy * _TriplanarScale));
+                float2 uvX = wp.zy * _TriplanarScale;
+                float2 uvY = wp.xz * _TriplanarScale;
+                float2 uvZ = wp.xy * _TriplanarScale;
 
-                // Reorient normals for each projection axis
+                uvX = MaybeMirror(uvX, wp);
+                uvY = MaybeMirror(uvY, wp);
+                uvZ = MaybeMirror(uvZ, wp);
+
+                half3 nx = UnpackNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uvX));
+                half3 ny = UnpackNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uvY));
+                half3 nz = UnpackNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uvZ));
+
                 nx = half3(nx.z, nx.x, nx.y);
                 ny = half3(ny.x, ny.z, ny.y);
 
-                return normalize(nx * w.x + ny * w.y + nz * w.z);
+                return normalize(nx * weights.x + ny * weights.y + nz * weights.z);
             }
 
             Varyings vert(Attributes v)
@@ -174,46 +212,10 @@ Shader "Universal Render Pipeline/Lit Triplanar WS"
 
                 return UniversalFragmentPBR(inputData, surface);
             }
-            ENDHLSL
-        }
 
-        Pass
-        {
-            Name "ShadowCaster"
-            Tags { "LightMode"="ShadowCaster" }
-
-            ZWrite On
-            ZTest LEqual
-            ColorMask 0
-
-            HLSLPROGRAM
-            #pragma target 3.5
-            #pragma vertex ShadowPassVertex
-            #pragma fragment ShadowPassFragment
-
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "DepthOnly"
-            Tags { "LightMode"="DepthOnly" }
-
-            ZWrite On
-            ColorMask 0
-
-            HLSLPROGRAM
-            #pragma target 3.5
-            #pragma vertex DepthOnlyVertex
-            #pragma fragment DepthOnlyFragment
-
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
             ENDHLSL
         }
     }
+
+    FallBack Off
 }

@@ -53,22 +53,17 @@
     <Compile Include="Assets\Scripts\Player\Effects\PassiveEffect.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\KnockbackImpactBehaviour.cs" />
     <Compile Include="Assets\Scripts\Player\CastUI.cs" />
-    <Compile Include="Assets\Scripts\World\LevelGeneration\Doorway.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerConsume.cs" />
-    <Compile Include="Assets\Scripts\World\LevelGeneration\Room.cs" />
     <Compile Include="Assets\Scripts\Player\ConsumableEntity.cs" />
     <Compile Include="Assets\Scripts\Player\ConsumableItem.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCast.cs" />
-    <Compile Include="Assets\Scripts\World\LevelGeneration\PlayerSpawnPoint.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\InstantEffect.cs" />
     <Compile Include="Assets\Scripts\Enemy\SimpleChaseBehaviour.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInteractor.cs" />
     <Compile Include="Assets\Scripts\Player\RagdollController.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInventory.cs" />
-    <Compile Include="Assets\Scripts\World\LevelGeneration\RoomGenerator.cs" />
     <Compile Include="Assets\Scripts\Player\Items\Accessory.cs" />
     <Compile Include="Assets\Scripts\Player\ItemPickup.cs" />
-    <Compile Include="Assets\Scripts\World\LevelGeneration\RoomRule.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerUI.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\AOESpell.cs" />
@@ -90,7 +85,6 @@
     <Compile Include="Assets\Scripts\Player\UI\EquippedItemTitleHUD.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerStatusEffects.cs" />
     <Compile Include="Assets\Scripts\Enemy\EyeballLookAndChargeBehaviour.cs" />
-    <Compile Include="Assets\Scripts\World\LevelGeneration\RoomSize.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerDecorationPlacer.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\ProjectileImpactBehaviour.cs" />
   </ItemGroup>
@@ -104,6 +98,7 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Mobile.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF SSD.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface-Mobile.shader" />
+    <None Include="Assets\Kartograph\Packages\Kartograph-core.dll" />
     <None Include="Assets\TextMesh Pro\Shaders\SDFFunctions.hlsl" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface.shader" />
     <None Include="Assets\TextMesh Pro\Sprites\EmojiOne Attribution.txt" />
@@ -621,6 +616,10 @@
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>Library\PackageCache\com.unity.ext.nunit@031a54704bff\net40\unity-custom\nunit.framework.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Kartograph-core">
+      <HintPath>Assets\Kartograph\Packages\Kartograph-core.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.IO.Hashing">
