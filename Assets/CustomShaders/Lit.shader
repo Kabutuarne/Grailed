@@ -1,4 +1,4 @@
-Shader "Universal Render Pipeline/Lit Triplanar WS OptionalMirror"
+Shader "Custom/URP Lit Triplanar Bricks"
 {
     Properties
     {
@@ -6,35 +6,22 @@ Shader "Universal Render Pipeline/Lit Triplanar WS OptionalMirror"
         [MainColor] _BaseColor("Base Color", Color) = (1,1,1,1)
 
         _Metallic("Metallic", Range(0,1)) = 0
-        _MetallicGlossMap("Metallic Map", 2D) = "white" {}
-
         _Smoothness("Smoothness", Range(0,1)) = 0.5
-        _GlossMapScale("Smoothness Scale", Range(0,1)) = 1
 
-        _BumpScale("Normal Strength", Float) = 1
-        _BumpMap("Normal Map", 2D) = "bump" {}
+        [Normal] _BumpMap("Normal Map", 2D) = "bump" {}
+        _BumpScale("Normal Strength", Range(0,2)) = 1
 
-        _OcclusionStrength("Occlusion Strength", Range(0,1)) = 1
-        _OcclusionMap("Occlusion", 2D) = "white" {}
-
-        [HDR] _EmissionColor("Emission Color", Color) = (0,0,0)
-        _EmissionMap("Emission", 2D) = "white" {}
-
-        _TriplanarScale("Triplanar Scale", Float) = 0.5
-        _TriplanarBlendSharpness("Blend Sharpness", Range(1,8)) = 4
-
-        [Toggle(_RANDOM_MIRROR)] _RandomMirror("Enable Random Mirror", Float) = 0
-
-        [ToggleUI] _ReceiveShadows("Receive Shadows", Float) = 1
+        _TriplanarScale("Triplanar Scale", Float) = 1
+        _TriplanarBlend("Blend Sharpness", Range(1,8)) = 4
     }
 
     SubShader
     {
         Tags
         {
-            "RenderPipeline"="UniversalPipeline"
-            "RenderType"="Opaque"
-            "UniversalMaterialType"="Lit"
+            "RenderPipeline" = "UniversalPipeline"
+            "RenderType" = "Opaque"
+            "UniversalMaterialType" = "Lit"
         }
 
         LOD 300
@@ -49,11 +36,18 @@ Shader "Universal Render Pipeline/Lit Triplanar WS OptionalMirror"
             #pragma vertex vert
             #pragma fragment frag
 
+            // Lighting variants
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile_fog
+
             #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
-            #pragma shader_feature_local_fragment _OCCLUSIONMAP
-            #pragma shader_feature_local_fragment _EMISSION
-            #pragma shader_feature_local _RANDOM_MIRROR
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -62,155 +56,139 @@ Shader "Universal Render Pipeline/Lit Triplanar WS OptionalMirror"
                 half4 _BaseColor;
                 half _Metallic;
                 half _Smoothness;
-                half _GlossMapScale;
                 half _BumpScale;
-                half _OcclusionStrength;
-                half4 _EmissionColor;
                 float _TriplanarScale;
-                float _TriplanarBlendSharpness;
+                float _TriplanarBlend;
             CBUFFER_END
 
             TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
-            TEXTURE2D(_MetallicGlossMap); SAMPLER(sampler_MetallicGlossMap);
             TEXTURE2D(_BumpMap); SAMPLER(sampler_BumpMap);
-            TEXTURE2D(_OcclusionMap); SAMPLER(sampler_OcclusionMap);
-            TEXTURE2D(_EmissionMap); SAMPLER(sampler_EmissionMap);
 
             struct Attributes
             {
                 float4 positionOS : POSITION;
-                float3 normalOS : NORMAL;
+                float3 normalOS   : NORMAL;
+                float2 lightmapUV : TEXCOORD1;
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                float3 positionWS : TEXCOORD0;
-                float3 normalWS : TEXCOORD1;
-                float3 viewDirWS : TEXCOORD2;
+                float4 positionCSRaw : TEXCOORD0;
+                float3 positionWS : TEXCOORD1;
+                float3 normalWS : TEXCOORD2;
+                float3 viewDirWS : TEXCOORD3;
+                float4 shadowCoord : TEXCOORD4;
+                half3 vertexLighting : TEXCOORD5;
+                float fogCoord : TEXCOORD6;
+                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 7);
             };
 
-            // Stable hash from world position
-            float Hash13(float3 p)
+            // ===============================
+            // Triplanar
+            // ===============================
+            float3 TriplanarWeights(float3 n)
             {
-                p = frac(p * 0.3183099 + 0.1);
-                p *= 17.0;
-                return frac(p.x * p.y * p.z * (p.x + p.y + p.z));
+                float3 w = pow(abs(n), _TriplanarBlend);
+                return w / max(dot(w,1.0), 1e-4);
             }
 
-            float2 MaybeMirror(float2 uv, float3 wp)
+            half4 TriplanarAlbedo(float3 worldPos, float3 worldNormal)
             {
-                #ifdef _RANDOM_MIRROR
-                    float h = Hash13(floor(wp));
-                    if (h > 0.5)
-                        uv.x = -uv.x; // simple mirror
-                #endif
-                return uv;
+                float3 w = TriplanarWeights(worldNormal);
+                float2 uvX = worldPos.zy * _TriplanarScale;
+                float2 uvY = worldPos.xz * _TriplanarScale;
+                float2 uvZ = worldPos.xy * _TriplanarScale;
+
+                half4 sampleX = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uvX);
+                half4 sampleY = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uvY);
+                half4 sampleZ = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uvZ);
+
+                return sampleX * w.x + sampleY * w.y + sampleZ * w.z;
             }
 
-            float3 GetTriplanarWeights(float3 n)
+            half3 TriplanarNormalWS(float3 worldPos, float3 worldNormal)
             {
-                float3 w = abs(n);
-                w = pow(w, _TriplanarBlendSharpness);
-                return w / (w.x + w.y + w.z);
+                float3 w = TriplanarWeights(worldNormal);
+                float2 uvX = worldPos.zy * _TriplanarScale;
+                float2 uvY = worldPos.xz * _TriplanarScale;
+                float2 uvZ = worldPos.xy * _TriplanarScale;
+
+                half3 nX = UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uvX), _BumpScale);
+                half3 nY = UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uvY), _BumpScale);
+                half3 nZ = UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uvZ), _BumpScale);
+
+                half3 worldX = half3(nX.z, nX.x, nX.y);
+                half3 worldY = half3(nY.x, nY.z, nY.y);
+                half3 worldZ = nZ;
+
+                return normalize(worldX*w.x + worldY*w.y + worldZ*w.z);
             }
 
-            half4 TriplanarSample(TEXTURE2D_PARAM(tex,samp), float3 wp, float3 wn)
-            {
-                float3 weights = GetTriplanarWeights(wn);
-
-                float2 uvX = wp.zy * _TriplanarScale;
-                float2 uvY = wp.xz * _TriplanarScale;
-                float2 uvZ = wp.xy * _TriplanarScale;
-
-                uvX = MaybeMirror(uvX, wp);
-                uvY = MaybeMirror(uvY, wp);
-                uvZ = MaybeMirror(uvZ, wp);
-
-                return
-                    SAMPLE_TEXTURE2D(tex, samp, uvX) * weights.x +
-                    SAMPLE_TEXTURE2D(tex, samp, uvY) * weights.y +
-                    SAMPLE_TEXTURE2D(tex, samp, uvZ) * weights.z;
-            }
-
-            half3 TriplanarNormalWS(float3 wp, float3 wn)
-            {
-                float3 weights = GetTriplanarWeights(wn);
-
-                float2 uvX = wp.zy * _TriplanarScale;
-                float2 uvY = wp.xz * _TriplanarScale;
-                float2 uvZ = wp.xy * _TriplanarScale;
-
-                uvX = MaybeMirror(uvX, wp);
-                uvY = MaybeMirror(uvY, wp);
-                uvZ = MaybeMirror(uvZ, wp);
-
-                half3 nx = UnpackNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uvX));
-                half3 ny = UnpackNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uvY));
-                half3 nz = UnpackNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uvZ));
-
-                nx = half3(nx.z, nx.x, nx.y);
-                ny = half3(ny.x, ny.z, ny.y);
-
-                return normalize(nx * weights.x + ny * weights.y + nz * weights.z);
-            }
-
+            // ===============================
+            // Vertex
+            // ===============================
             Varyings vert(Attributes v)
             {
                 Varyings o;
-                VertexPositionInputs p = GetVertexPositionInputs(v.positionOS.xyz);
-                o.positionCS = p.positionCS;
-                o.positionWS = p.positionWS;
-                o.normalWS = TransformObjectToWorldNormal(v.normalOS);
-                o.viewDirWS = GetWorldSpaceViewDir(p.positionWS);
+
+                VertexPositionInputs pos = GetVertexPositionInputs(v.positionOS.xyz);
+                VertexNormalInputs norm = GetVertexNormalInputs(v.normalOS);
+
+                o.positionCS = pos.positionCS;
+                o.positionCSRaw = pos.positionCS;
+                o.positionWS = pos.positionWS;
+                o.normalWS = NormalizeNormalPerVertex(norm.normalWS);
+                o.viewDirWS = GetWorldSpaceViewDir(pos.positionWS);
+                o.shadowCoord = GetShadowCoord(pos);
+                o.fogCoord = ComputeFogFactor(pos.positionCS.z);
+
+                OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapUV);
+                OUTPUT_SH(o.normalWS, o.vertexSH);
+
+                o.vertexLighting = half3(0,0,0);
+
                 return o;
             }
 
+            // ===============================
+            // Fragment
+            // ===============================
             half4 frag(Varyings i) : SV_Target
             {
-                half4 albedo = TriplanarSample(_BaseMap, sampler_BaseMap, i.positionWS, i.normalWS) * _BaseColor;
+                SurfaceData surface;
+                ZERO_INITIALIZE(SurfaceData, surface);
 
-                half metallic = _Metallic;
-                half smoothness = _Smoothness;
+                // Triplanar Albedo
+                half4 albedoSample = TriplanarAlbedo(i.positionWS, i.normalWS);
+                surface.albedo = albedoSample.rgb * _BaseColor.rgb;
+                surface.metallic = _Metallic;
+                surface.smoothness = _Smoothness;
+                surface.occlusion = 1;
+                surface.alpha = 1;
 
-                #ifdef _METALLICSPECGLOSSMAP
-                    half4 mg = TriplanarSample(_MetallicGlossMap, sampler_MetallicGlossMap, i.positionWS, i.normalWS);
-                    metallic = mg.r;
-                    smoothness = mg.a * _GlossMapScale;
-                #endif
-
+                // Triplanar normal
                 half3 normalWS = i.normalWS;
                 #ifdef _NORMALMAP
-                    normalWS = TriplanarNormalWS(i.positionWS, i.normalWS);
-                    normalWS = normalize(lerp(i.normalWS, normalWS, _BumpScale));
+                    normalWS = TriplanarNormalWS(i.positionWS, normalWS);
                 #endif
+                normalWS = NormalizeNormalPerPixel(normalWS);
 
-                half occlusion = 1;
-                #ifdef _OCCLUSIONMAP
-                    occlusion = TriplanarSample(_OcclusionMap, sampler_OcclusionMap, i.positionWS, i.normalWS).g;
-                    occlusion = lerp(1, occlusion, _OcclusionStrength);
-                #endif
-
-                half3 emission = 0;
-                #ifdef _EMISSION
-                    emission = TriplanarSample(_EmissionMap, sampler_EmissionMap, i.positionWS, i.normalWS).rgb * _EmissionColor.rgb;
-                #endif
-
-                InputData inputData = (InputData)0;
+                InputData inputData;
+                ZERO_INITIALIZE(InputData, inputData);
                 inputData.positionWS = i.positionWS;
                 inputData.normalWS = normalWS;
                 inputData.viewDirectionWS = SafeNormalize(i.viewDirWS);
-                inputData.shadowCoord = TransformWorldToShadowCoord(i.positionWS);
+                inputData.shadowCoord = i.shadowCoord;
+                inputData.fogCoord = i.fogCoord;
+                inputData.vertexLighting = i.vertexLighting;
+                inputData.bakedGI = SAMPLE_GI(i.lightmapUV, i.vertexSH, normalWS);
+                inputData.shadowMask = SAMPLE_SHADOWMASK(i.lightmapUV);
+                inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(i.positionCSRaw);
 
-                SurfaceData surface = (SurfaceData)0;
-                surface.albedo = albedo.rgb;
-                surface.metallic = metallic;
-                surface.smoothness = smoothness;
-                surface.alpha = albedo.a;
-                surface.occlusion = occlusion;
-                surface.emission = emission;
-
-                return UniversalFragmentPBR(inputData, surface);
+                half4 color = UniversalFragmentPBR(inputData, surface);
+                color.rgb = MixFog(color.rgb, inputData.fogCoord);
+                return color;
             }
 
             ENDHLSL

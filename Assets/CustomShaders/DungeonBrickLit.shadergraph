@@ -1,0 +1,217 @@
+{
+  "m_SerializedVersion": 1,
+  "m_ActiveOutputNodeGuid": "6ca6d4fa08e64d41b0e25e6487ef7fcd",
+  "m_Nodes": [
+    {
+      "GUID": "6ca6d4fa08e64d41b0e25e6487ef7fcd",
+      "ShaderStageCapability": "Fragment",
+      "NodeClassName": "MasterNode",
+      "NodeType": "UniversalMaster",
+      "DrawState": {
+        "x": 960,
+        "y": 300,
+        "expanded": true,
+        "wireColor": {
+          "r": 1,
+          "g": 1,
+          "b": 1,
+          "a": 1
+        }
+      },
+      "Precision": "Float",
+      "Slots": [
+        {
+          "ValueType": "Vector3",
+          "StageCapability": "Fragment",
+          "ShaderOutputName": "Normal",
+          "Name": "Normal",
+          "SlotType": "Input",
+          "ShaderStage": "Fragment"
+        },
+        {
+          "ValueType": "Vector3",
+          "StageCapability": "Fragment",
+          "ShaderOutputName": "Albedo",
+          "Name": "Albedo",
+          "SlotType": "Input",
+          "ShaderStage": "Fragment"
+        },
+        {
+          "ValueType": "Vector1",
+          "StageCapability": "Fragment",
+          "ShaderOutputName": "Smoothness",
+          "Name": "Smoothness",
+          "SlotType": "Input",
+          "ShaderStage": "Fragment"
+        },
+        {
+          "ValueType": "Vector1",
+          "StageCapability": "Fragment",
+          "ShaderOutputName": "Metallic",
+          "Name": "Metallic",
+          "SlotType": "Input",
+          "ShaderStage": "Fragment"
+        },
+        {
+          "ValueType": "Vector4",
+          "StageCapability": "Fragment",
+          "ShaderOutputName": "Emission",
+          "Name": "Emission",
+          "SlotType": "Input",
+          "ShaderStage": "Fragment"
+        }
+      ],
+      "DrawStateExpanded": true
+    },
+    {
+      "GUID": "2f5ea65ef1964213980adb9f0b6691e9",
+      "ShaderStageCapability": "Fragment",
+      "NodeClassName": "Texture2DSampleNode",
+      "NodeType": "Texture2DSample",
+      "AssetGUID": "BaseMap",
+      "Texture": {
+        "m_Texture": {
+          "fileID": 0,
+          "guid": "BaseMap"
+        }
+      },
+      "DefaultName": "BaseMap_Tex",
+      "DrawState": {
+        "x": 360,
+        "y": 480,
+        "expanded": true,
+        "wireColor": {
+          "r": 0.5,
+          "g": 0.5,
+          "b": 0.5,
+          "a": 1
+        }
+      }
+    },
+    {
+      "GUID": "83c98e9dc8d74b0b8d1ab09b3420e38d",
+      "ShaderStageCapability": "Fragment",
+      "NodeClassName": "Texture2DSampleNode",
+      "NodeType": "Texture2DSample",
+      "AssetGUID": "BumpMap",
+      "Texture": {
+        "m_Texture": {
+          "fileID": 0,
+          "guid": "BumpMap"
+        }
+      },
+      "DefaultName": "BumpMap_Tex",
+      "DrawState": {
+        "x": 360,
+        "y": 720,
+        "expanded": true,
+        "wireColor": {
+          "r": 0.5,
+          "g": 0.5,
+          "b": 0.5,
+          "a": 1
+        }
+      }
+    },
+    {
+      "GUID": "83deff0c29654b96a62f1bb28d258f57",
+      "ShaderStageCapability": "Fragment",
+      "NodeClassName": "PositionNode",
+      "NodeType": "Position",
+      "DrawState": {
+        "x": 120,
+        "y": 300,
+        "expanded": true
+      },
+      "Space": "World"
+    },
+    {
+      "GUID": "9be2d0bd72d74607b3bb38338bc402b2",
+      "ShaderStageCapability": "Fragment",
+      "NodeClassName": "NormalVectorNode",
+      "NodeType": "NormalVector",
+      "DrawState": {
+        "x": 120,
+        "y": 600,
+        "expanded": true
+      },
+      "Space": "World"
+    },
+    {
+      "GUID": "f7cd1ed6fe214c81a4e6658e4c9bb480",
+      "ShaderStageCapability": "Fragment",
+      "NodeClassName": "Vector1Node",
+      "NodeType": "Vector1",
+      "DrawState": {
+        "x": 240,
+        "y": 240,
+        "expanded": true
+      },
+      "m_Value": 1.0,
+      "Precision": "Float"
+    },
+    {
+      "GUID": "cff3bc6488c241e59bb8288a3b840855",
+      "ShaderStageCapability": "Fragment",
+      "NodeClassName": "Vector1Node",
+      "NodeType": "Vector1",
+      "DrawState": {
+        "x": 240,
+        "y": 480,
+                "expanded": true
+      },
+      "m_Value": 4.0,
+      "Precision": "Float"
+    },
+    {
+      "GUID": "d4d8db85d8c74571a5e8f8f742fbea3a",
+      "ShaderStageCapability": "Fragment",
+      "NodeClassName": "SplitNode",
+      "NodeType": "Split",
+      "DrawState": {
+        "x": 480,
+        "y": 360,
+        "expanded": true
+      }
+    },
+    {
+      "GUID": "341674724e9b4e96aa1a25d76b459387",
+      "ShaderStageCapability": "Fragment",
+      "NodeClassName": "Vector3Node",
+      "NodeType": "Vector3",
+      "DrawState": {
+        "x": 480,
+        "y": 480,
+        "expanded": true
+      },
+      "m_Value": { "x": 0, "y": 0, "z": 0 }
+    },
+    {
+      "GUID": "abda9d4efbfd4207a0e4cb8b3f3f0d84",
+      "ShaderStageCapability": "Fragment",
+      "NodeClassName": "MultiplyNode",
+      "NodeType": "Multiply",
+      "DrawState": {
+        "x": 600,
+        "y": 360,
+        "expanded": true
+      }
+    },
+    {
+      "GUID": "788382f607db44a593ceb91722d101de",
+      "ShaderStageCapability": "Fragment",
+      "NodeClassName": "AddNode",
+      "NodeType": "Add",
+      "DrawState": {
+        "x": 840,
+        "y": 480,
+        "expanded": true
+      }
+    }
+  ],
+  "m_OutputNodeLinks": [
+    {
+      "BaseMap_TexRGBA": "Albedo"
+    }
+  ]
+}
