@@ -40,7 +40,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
         m_Texture: {fileID: 2800000, guid: aed1d69bbe159a445a40fb1f523730ab, type: 3}
-        m_Scale: {x: 0.16666667, y: 0.16666667}
+        m_Scale: {x: 3, y: 3}
         m_Offset: {x: 0, y: 0}
     - _DetailMask:
         m_Texture: {fileID: 0}
