@@ -57,6 +57,7 @@
     <Compile Include="Assets\Scripts\Player\ConsumableEntity.cs" />
     <Compile Include="Assets\Scripts\Player\ConsumableItem.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCast.cs" />
+    <Compile Include="Assets\Scripts\World\Door.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\InstantEffect.cs" />
     <Compile Include="Assets\Scripts\Enemy\SimpleChaseBehaviour.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInteractor.cs" />

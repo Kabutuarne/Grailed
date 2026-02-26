@@ -7,6 +7,10 @@ public class PlayerInteractor : MonoBehaviour
     public LayerMask interactMask;
     public Camera cam;
 
+    [Header("Priority")]
+    [Tooltip("If true, doors are interacted with before items when both are hit.")]
+    public bool doorsTakePriority = true;
+
     private PlayerInputActions input;
     private PlayerInventory inventory;
     private ItemPickup lookedAtItem;
@@ -44,23 +48,63 @@ public class PlayerInteractor : MonoBehaviour
 
     void TryInteract()
     {
+        if (cam == null) return;
+
         if (Physics.Raycast(cam.transform.position, cam.transform.forward, out RaycastHit hit, interactRange, interactMask))
         {
+            // Get components from collider OR parent (common with mesh colliders on child objects)
+            Door door = hit.collider.GetComponentInParent<Door>();
             ItemPickup item = hit.collider.GetComponent<ItemPickup>();
-            if (item != null)
+
+            // Optionally check parent for items too (depends on your prefab setup)
+            if (item == null)
+                item = hit.collider.GetComponentInParent<ItemPickup>();
+
+            if (doorsTakePriority)
             {
-                bool placedInBackpack = inventory.PickupToBackpack(item.gameObject);
-                if (placedInBackpack)
-                    item.OnPickedUp();
+                if (door != null)
+                {
+                    door.Interact();
+                    return;
+                }
+
+                if (item != null)
+                {
+                    bool placedInBackpack = inventory.PickupToBackpack(item.gameObject);
+                    if (placedInBackpack)
+                        item.OnPickedUp();
+                    return;
+                }
+            }
+            else
+            {
+                if (item != null)
+                {
+                    bool placedInBackpack = inventory.PickupToBackpack(item.gameObject);
+                    if (placedInBackpack)
+                        item.OnPickedUp();
+                    return;
+                }
+
+                if (door != null)
+                {
+                    door.Interact();
+                    return;
+                }
             }
         }
     }
 
     void CheckLookAtItem()
     {
+        if (cam == null) return;
+
         if (Physics.Raycast(cam.transform.position, cam.transform.forward, out RaycastHit hit, interactRange, interactMask))
         {
             ItemPickup item = hit.collider.GetComponent<ItemPickup>();
+            if (item == null)
+                item = hit.collider.GetComponentInParent<ItemPickup>();
+
             if (item != null)
             {
                 if (item != lookedAtItem)
@@ -76,7 +120,6 @@ public class PlayerInteractor : MonoBehaviour
         if (lookedAtItem != null)
         {
             lookedAtItem = null;
-            // optional: log when stop looking
         }
     }
 }
