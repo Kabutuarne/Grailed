@@ -21,20 +21,22 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Brick 10
-  m_Shader: {fileID: 4800000, guid: c986f344e4cbdbb4fae8142396cda6f3, type: 3}
+  m_Shader: {fileID: 4800000, guid: 5e6e89fd83ac1fc4d83c9ed829359840, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - _NORMALMAP
-  m_InvalidKeywords:
   - _EMISSION
+  - _NORMALMAP
   - _OCCLUSIONMAP
   - _PARALLAXMAP
+  m_InvalidKeywords:
+  - _PLANARPLANE_XY
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap: {}
+  stringTagMap:
+    RenderType: Opaque
   disabledShaderPasses: []
   m_LockedProperties: 
   m_SavedProperties:
@@ -66,7 +68,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 2800000, guid: 219df7742933e1242be51f71b26ba221, type: 3}
-        m_Scale: {x: 2, y: 2}
+        m_Scale: {x: 0.3, y: 0.3}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
         m_Texture: {fileID: 0}
@@ -120,6 +122,7 @@ Material:
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
+    - _PlanarPlane: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _Smoothness: 0

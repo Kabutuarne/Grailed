@@ -1,4 +1,4 @@
-Shader "Universal Render Pipeline/Lit (World Space)"
+Shader "Universal Render Pipeline/Lit (World Space Triplanar)"
 {
     Properties
     {
@@ -42,7 +42,7 @@ Shader "Universal Render Pipeline/Lit (World Space)"
 
         // ---- World-Space Triplanar Settings ----
         [Header(World Space Triplanar)]
-        _WorldScale("World Texture Scale", Float) = 1.0
+        _WorldScale("World Texture Scale (tiles per world unit)", Float) = 1.0
         _TriplanarSharpness("Triplanar Blend Sharpness", Range(1.0, 16.0)) = 4.0
 
         // SRP batching compatibility for Clear Coat (Not used in Lit)
@@ -91,7 +91,7 @@ Shader "Universal Render Pipeline/Lit (World Space)"
         LOD 300
 
         // ------------------------------------------------------------------
-        //  Forward pass — world-space triplanar UV
+        //  Forward pass — world-space TRIPLANAR UV
         // ------------------------------------------------------------------
         Pass
         {
@@ -163,14 +163,11 @@ Shader "Universal Render Pipeline/Lit (World Space)"
             #pragma instancing_options renderinglayer
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
-            // LitInput.hlsl declares all textures/samplers and the UnityPerMaterial CBUFFER.
-            // We do NOT include LitForwardPass.hlsl; we write our own vertex/fragment below.
+            // LitInput.hlsl declares all textures/samplers and UnityPerMaterial CBUFFER.
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
-            // _WorldScale and _TriplanarSharpness must live outside UnityPerMaterial to avoid
-            // redefining the CBUFFER that LitInput.hlsl already closed.  This means they are
-            // not SRP-Batcher compatible, but every other property remains compatible.
+            // Keep these outside UnityPerMaterial to avoid redefining URP's CBUFFER.
             float _WorldScale;
             float _TriplanarSharpness;
 
@@ -178,65 +175,99 @@ Shader "Universal Render Pipeline/Lit (World Space)"
             // Triplanar helpers
             // ================================================================
 
-            // Blend weights from the absolute world normal raised to _TriplanarSharpness.
-            float3 TriplanarWeights(float3 worldNormal)
+            float3 WS_AxisSign(float3 n)
             {
-                float3 w = pow(abs(worldNormal), max(_TriplanarSharpness, 0.001));
+                // Avoid 0 sign components
+                return (n >= 0.0) ? 1.0 : -1.0;
+            }
+
+            float3 WS_TriplanarWeights(float3 worldNormal)
+            {
+                float sharp = max(_TriplanarSharpness, 0.001);
+                float3 w = pow(abs(worldNormal), sharp);
                 return w / (w.x + w.y + w.z + 1e-5);
             }
 
-            // Axis-aligned UVs with correct mirroring so seams line up at negative faces.
-            //   X face  → YZ plane  : uv = (worldPos.z * signX, worldPos.y)
-            //   Y face  → XZ plane  : uv = (worldPos.x * signY, worldPos.z)
-            //   Z face  → XY plane  : uv = (worldPos.x * -signZ, worldPos.y)
-            float2 TriUV_X(float3 p, float3 s) { return float2(p.z * s.x,  p.y      ); }
-            float2 TriUV_Y(float3 p, float3 s) { return float2(p.x * s.y,  p.z      ); }
-            float2 TriUV_Z(float3 p, float3 s) { return float2(p.x * -s.z, p.y      ); }
+            // Mirrored UVs so seams line up across negative faces.
+            float2 WS_TriUV_X(float3 p, float3 s) { return float2(p.z * s.x,   p.y); }     // YZ plane
+            float2 WS_TriUV_Y(float3 p, float3 s) { return float2(p.x * s.y,   p.z); }     // XZ plane
+            float2 WS_TriUV_Z(float3 p, float3 s) { return float2(p.x * -s.z,  p.y); }     // XY plane (mirrored U)
 
-            // Sample any texture with triplanar projection.
-            half4 SampleTriplanar(TEXTURE2D_PARAM(tex, samp), float3 worldPos, float3 weights, float3 axisSign)
+            float2 WS_ApplyST(float2 uv, float4 st)
             {
-                half4 xS = SAMPLE_TEXTURE2D(tex, samp, TriUV_X(worldPos, axisSign) * _WorldScale);
-                half4 yS = SAMPLE_TEXTURE2D(tex, samp, TriUV_Y(worldPos, axisSign) * _WorldScale);
-                half4 zS = SAMPLE_TEXTURE2D(tex, samp, TriUV_Z(worldPos, axisSign) * _WorldScale);
+                return uv * st.xy + st.zw;
+            }
+
+            half4 WS_SampleTriplanar(TEXTURE2D_PARAM(tex, samp), float3 worldPos, float3 weights, float3 axisSign, float4 st)
+            {
+                float2 uvX = WS_ApplyST(WS_TriUV_X(worldPos, axisSign) * _WorldScale, st);
+                float2 uvY = WS_ApplyST(WS_TriUV_Y(worldPos, axisSign) * _WorldScale, st);
+                float2 uvZ = WS_ApplyST(WS_TriUV_Z(worldPos, axisSign) * _WorldScale, st);
+
+                half4 xS = SAMPLE_TEXTURE2D(tex, samp, uvX);
+                half4 yS = SAMPLE_TEXTURE2D(tex, samp, uvY);
+                half4 zS = SAMPLE_TEXTURE2D(tex, samp, uvZ);
+
                 return xS * weights.x + yS * weights.y + zS * weights.z;
             }
 
-            // Sample the normal map with triplanar projection.
-            // Uses Ben Golus' "Whiteout Blend" technique to produce a world-space normal.
             #ifdef _NORMALMAP
-            half3 SampleNormalTriplanar(float3 worldPos, float3 worldNormal, float3 weights, float3 axisSign, float bumpScale)
+            half3 WS_SampleNormalTriplanar(float3 worldPos, half3 geomNormalWS, float3 weights, float3 axisSign, float bumpScale, float4 st)
             {
-                float4 nX = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, TriUV_X(worldPos, axisSign) * _WorldScale);
-                float4 nY = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, TriUV_Y(worldPos, axisSign) * _WorldScale);
-                float4 nZ = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, TriUV_Z(worldPos, axisSign) * _WorldScale);
+                float2 uvX = WS_ApplyST(WS_TriUV_X(worldPos, axisSign) * _WorldScale, st);
+                float2 uvY = WS_ApplyST(WS_TriUV_Y(worldPos, axisSign) * _WorldScale, st);
+                float2 uvZ = WS_ApplyST(WS_TriUV_Z(worldPos, axisSign) * _WorldScale, st);
 
-                float3 tnX = UnpackNormalScale(nX, bumpScale);
-                float3 tnY = UnpackNormalScale(nY, bumpScale);
-                float3 tnZ = UnpackNormalScale(nZ, bumpScale);
+                half3 nX_ts = UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uvX), bumpScale);
+                half3 nY_ts = UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uvY), bumpScale);
+                half3 nZ_ts = UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uvZ), bumpScale);
 
-                // Reorient each tangent-space sample into world space (Whiteout blend).
-                tnX = float3(tnX.xy * axisSign.x + worldNormal.zy, abs(tnX.z) * worldNormal.x);
-                tnY = float3(tnY.xy * axisSign.y + worldNormal.xz, abs(tnY.z) * worldNormal.y);
-                tnZ = float3(tnZ.xy * -axisSign.z + worldNormal.xy, abs(tnZ.z) * worldNormal.z);
+                // Build per-axis world bases that match the UV mirroring above.
+                // X projection (YZ): N=±X, T along +Z (mirrored by sign), B along +Y
+                half3 Nx = half3(axisSign.x, 0, 0);
+                half3 Tx = half3(0, 0, axisSign.x);
+                half3 Bx = half3(0, 1, 0);
 
-                return normalize(tnX.zyx * weights.x + tnY.xzy * weights.y + tnZ.xyz * weights.z);
+                // Y projection (XZ): N=±Y, T along +X, B along +Z (mirrored by sign)
+                half3 Ny = half3(0, axisSign.y, 0);
+                half3 Ty = half3(1, 0, 0);
+                half3 By = half3(0, 0, axisSign.y);
+
+                // Z projection (XY): N=±Z, T along +X (mirrored by -sign), B along +Y
+                half3 Nz = half3(0, 0, axisSign.z);
+                half3 Tz = half3(-axisSign.z, 0, 0);
+                half3 Bz = half3(0, 1, 0);
+
+                half3 nX_ws = normalize(Tx * nX_ts.x + Bx * nX_ts.y + Nx * nX_ts.z);
+                half3 nY_ws = normalize(Ty * nY_ts.x + By * nY_ts.y + Ny * nY_ts.z);
+                half3 nZ_ws = normalize(Tz * nZ_ts.x + Bz * nZ_ts.y + Nz * nZ_ts.z);
+
+                // Weighted blend
+                half3 nWS = normalize(nX_ws * weights.x + nY_ws * weights.y + nZ_ws * weights.z);
+
+                // Keep it oriented close to the geometry normal (helps stability on edges)
+                // (Optional but usually beneficial for walls/level geo)
+                if (dot(nWS, geomNormalWS) < 0) nWS = -nWS;
+
+                return nWS;
             }
-            #endif // _NORMALMAP
+            #endif
 
             // ================================================================
-            // Surface data initialisation (replaces InitializeStandardLitSurfaceData)
+            // Surface init (triplanar)
+            //
+            // IMPORTANT: We intentionally drive ALL map sampling ST from _BaseMap_ST.
+            // This avoids relying on _XMap_ST uniforms that may not exist in URP.
             // ================================================================
-
-            void InitializeSurfaceDataWorldSpace(float3 worldPos, float3 worldNormal, out SurfaceData s)
+            void InitializeSurfaceDataWorldTriplanar(float3 worldPos, half3 worldNormal, out SurfaceData s)
             {
                 s = (SurfaceData)0;
 
-                float3 weights  = TriplanarWeights(worldNormal);
-                float3 axisSign = sign(worldNormal);
+                float3 weights  = WS_TriplanarWeights(worldNormal);
+                float3 axisSign = WS_AxisSign(worldNormal);
 
                 // --- Albedo / Alpha ---
-                half4 albedoAlpha = SampleTriplanar(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), worldPos, weights, axisSign) * _BaseColor;
+                half4 albedoAlpha = WS_SampleTriplanar(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), worldPos, weights, axisSign, _BaseMap_ST) * _BaseColor;
                 s.alpha = albedoAlpha.a;
 
                 #ifdef _ALPHATEST_ON
@@ -254,7 +285,7 @@ Shader "Universal Render Pipeline/Lit (World Space)"
                 #if defined(_SPECULAR_SETUP)
                     s.metallic = half(1.0);
                     #if defined(_METALLICSPECGLOSSMAP)
-                        half4 specGloss = SampleTriplanar(TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap), worldPos, weights, axisSign);
+                        half4 specGloss = WS_SampleTriplanar(TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap), worldPos, weights, axisSign, _BaseMap_ST);
                         s.specular = specGloss.rgb;
                         #if defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
                             s.smoothness = albedoAlpha.a * _Smoothness;
@@ -269,10 +300,10 @@ Shader "Universal Render Pipeline/Lit (World Space)"
                             s.smoothness = _Smoothness;
                         #endif
                     #endif
-                #else  // metallic workflow
-                    s.specular = half3(0, 0, 0);
+                #else
+                    s.specular = half3(0,0,0);
                     #if defined(_METALLICSPECGLOSSMAP)
-                        half4 metallicGloss = SampleTriplanar(TEXTURE2D_ARGS(_MetallicGlossMap, sampler_MetallicGlossMap), worldPos, weights, axisSign);
+                        half4 metallicGloss = WS_SampleTriplanar(TEXTURE2D_ARGS(_MetallicGlossMap, sampler_MetallicGlossMap), worldPos, weights, axisSign, _BaseMap_ST);
                         s.metallic = metallicGloss.r * _Metallic;
                         #if defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
                             s.smoothness = albedoAlpha.a * _Smoothness;
@@ -289,13 +320,12 @@ Shader "Universal Render Pipeline/Lit (World Space)"
                     #endif
                 #endif
 
-                // normalTS is not used directly for world-space normals;
-                // we compute the final world-space normal separately in the fragment.
-                s.normalTS = half3(0.0h, 0.0h, 1.0h);
+                // placeholder; final world normal is computed in fragment
+                s.normalTS = half3(0,0,1);
 
                 // --- Occlusion ---
                 #if defined(_OCCLUSIONMAP)
-                    half4 occ = SampleTriplanar(TEXTURE2D_ARGS(_OcclusionMap, sampler_OcclusionMap), worldPos, weights, axisSign);
+                    half4 occ = WS_SampleTriplanar(TEXTURE2D_ARGS(_OcclusionMap, sampler_OcclusionMap), worldPos, weights, axisSign, _BaseMap_ST);
                     s.occlusion = LerpWhiteTo(occ.g, _OcclusionStrength);
                 #else
                     s.occlusion = half(1.0);
@@ -303,22 +333,21 @@ Shader "Universal Render Pipeline/Lit (World Space)"
 
                 // --- Emission ---
                 #if defined(_EMISSION)
-                    s.emission = SampleTriplanar(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), worldPos, weights, axisSign).rgb * _EmissionColor.rgb;
+                    s.emission = WS_SampleTriplanar(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), worldPos, weights, axisSign, _BaseMap_ST).rgb * _EmissionColor.rgb;
                 #else
-                    s.emission = half3(0, 0, 0);
+                    s.emission = half3(0,0,0);
                 #endif
 
-                // --- Detail maps (world-space triplanar) ---
+                // --- Detail albedo (triplanar) ---
                 #if defined(_DETAIL_MULX2) || defined(_DETAIL_SCALED)
-                    half  detailMask   = SampleTriplanar(TEXTURE2D_ARGS(_DetailMask,       sampler_DetailMask),       worldPos, weights, axisSign).a;
-                    half4 detailAlbedo = SampleTriplanar(TEXTURE2D_ARGS(_DetailAlbedoMap,  sampler_DetailAlbedoMap),  worldPos, weights, axisSign);
+                    half  detailMask   = WS_SampleTriplanar(TEXTURE2D_ARGS(_DetailMask, sampler_DetailMask), worldPos, weights, axisSign, _BaseMap_ST).a;
+                    half4 detailAlbedo = WS_SampleTriplanar(TEXTURE2D_ARGS(_DetailAlbedoMap, sampler_DetailAlbedoMap), worldPos, weights, axisSign, _BaseMap_ST);
 
                     #if defined(_DETAIL_MULX2)
                         s.albedo = s.albedo * LerpWhiteTo(detailAlbedo.rgb * unity_ColorSpaceDouble.rgb, detailMask * _DetailAlbedoMapScale);
                     #elif defined(_DETAIL_SCALED)
                         s.albedo = lerp(s.albedo, s.albedo * detailAlbedo.rgb * unity_ColorSpaceDouble.rgb, detailMask * _DetailAlbedoMapScale);
                     #endif
-                    // Detail normal handled below via the _NORMALMAP path
                 #endif
             }
 
@@ -339,11 +368,11 @@ Shader "Universal Render Pipeline/Lit (World Space)"
 
             struct Varyings
             {
-                float2 uv                      : TEXCOORD0;
+                float2 uv                      : TEXCOORD0; // kept for lightmaps/compat
                 float3 positionWS              : TEXCOORD1;
                 half3  normalWS                : TEXCOORD2;
             #ifdef _NORMALMAP
-                half4  tangentWS               : TEXCOORD3; // xyz tangent, w sign
+                half4  tangentWS               : TEXCOORD3;
             #endif
             #ifdef _ADDITIONAL_LIGHTS_VERTEX
                 half3  vertexLighting          : TEXCOORD4;
@@ -358,7 +387,7 @@ Shader "Universal Render Pipeline/Lit (World Space)"
             #if USE_APV_PROBE_OCCLUSION
                 float4 probeOcclusion          : TEXCOORD10;
             #endif
-                half4  fogFactorAndVertexLight : TEXCOORD11; // x: fog, yzw: vertex light
+                half4  fogFactorAndVertexLight : TEXCOORD11;
                 float4 positionCS              : SV_POSITION;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
@@ -385,7 +414,6 @@ Shader "Universal Render Pipeline/Lit (World Space)"
                     fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
                 #endif
 
-                // Standard mesh UV is still passed (used only for lightmaps)
                 output.uv         = TRANSFORM_TEX(input.texcoord, _BaseMap);
                 output.normalWS   = normalInput.normalWS;
                 output.positionWS = vertexInput.positionWS;
@@ -400,9 +428,6 @@ Shader "Universal Render Pipeline/Lit (World Space)"
                 output.dynamicLightmapUV = input.dynamicLightmapUV.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
             #endif
 
-                // OUTPUT_SH4 writes spherical harmonics (and probe occlusion when APV is active).
-                // When USE_APV_PROBE_OCCLUSION is false the macro ignores output.probeOcclusion,
-                // so passing it is always safe even though the field is conditionally declared.
                 OUTPUT_SH4(vertexInput.positionWS, output.normalWS.xyz,
                            GetWorldSpaceNormalizeViewDir(vertexInput.positionWS),
                            output.vertexSH, output.probeOcclusion);
@@ -441,36 +466,62 @@ Shader "Universal Render Pipeline/Lit (World Space)"
 
                 // ---- Surface data (triplanar world-space) ----
                 SurfaceData surfaceData;
-                InitializeSurfaceDataWorldSpace(positionWS, geometryNorm, surfaceData);
+                InitializeSurfaceDataWorldTriplanar(positionWS, geometryNorm, surfaceData);
 
                 // ---- World-space normal (geometry or normal-mapped) ----
-                half3 finalNormalWS;
+                half3 finalNormalWS = geometryNorm;
+
             #ifdef _NORMALMAP
                 {
-                    float3 weights  = TriplanarWeights(geometryNorm);
-                    float3 axisSign = sign(geometryNorm);
-                    finalNormalWS = SampleNormalTriplanar(positionWS, geometryNorm, weights, axisSign, _BumpScale);
+                    float3 weights  = WS_TriplanarWeights(geometryNorm);
+                    float3 axisSign = WS_AxisSign(geometryNorm);
 
-                    // Blend in detail normal if requested
+                    finalNormalWS = WS_SampleNormalTriplanar(positionWS, geometryNorm, weights, axisSign, _BumpScale, _BaseMap_ST);
+
+                    // Optional detail normal triplanar
                     #if defined(_DETAIL_MULX2) || defined(_DETAIL_SCALED)
                     {
-                        half4 dn = SampleTriplanar(TEXTURE2D_ARGS(_DetailNormalMap, sampler_DetailNormalMap), positionWS, weights, axisSign);
-                        half3 detailNorm = UnpackNormalScale(dn, _DetailNormalMapScale);
-                        // Re-orient detail normal the same way and blend
-                        detailNorm = float3(detailNorm.xy * axisSign.x + geometryNorm.zy, abs(detailNorm.z) * geometryNorm.x);
-                        finalNormalWS = NormalizeNormalPerPixel(half3(finalNormalWS.xy + detailNorm.xy, finalNormalWS.z));
+                        half detailMask = WS_SampleTriplanar(TEXTURE2D_ARGS(_DetailMask, sampler_DetailMask), positionWS, weights, axisSign, _BaseMap_ST).a;
+
+                        // Sample detail normal per axis and transform same way (reuse bases from main function via duplicated logic)
+                        float2 uvX = WS_ApplyST(WS_TriUV_X(positionWS, axisSign) * _WorldScale, _BaseMap_ST);
+                        float2 uvY = WS_ApplyST(WS_TriUV_Y(positionWS, axisSign) * _WorldScale, _BaseMap_ST);
+                        float2 uvZ = WS_ApplyST(WS_TriUV_Z(positionWS, axisSign) * _WorldScale, _BaseMap_ST);
+
+                        half3 dnX_ts = UnpackNormalScale(SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailNormalMap, uvX), _DetailNormalMapScale);
+                        half3 dnY_ts = UnpackNormalScale(SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailNormalMap, uvY), _DetailNormalMapScale);
+                        half3 dnZ_ts = UnpackNormalScale(SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailNormalMap, uvZ), _DetailNormalMapScale);
+
+                        half3 Nx = half3(axisSign.x, 0, 0);
+                        half3 Tx = half3(0, 0, axisSign.x);
+                        half3 Bx = half3(0, 1, 0);
+
+                        half3 Ny = half3(0, axisSign.y, 0);
+                        half3 Ty = half3(1, 0, 0);
+                        half3 By = half3(0, 0, axisSign.y);
+
+                        half3 Nz = half3(0, 0, axisSign.z);
+                        half3 Tz = half3(-axisSign.z, 0, 0);
+                        half3 Bz = half3(0, 1, 0);
+
+                        half3 dnX_ws = normalize(Tx * dnX_ts.x + Bx * dnX_ts.y + Nx * dnX_ts.z);
+                        half3 dnY_ws = normalize(Ty * dnY_ts.x + By * dnY_ts.y + Ny * dnY_ts.z);
+                        half3 dnZ_ws = normalize(Tz * dnZ_ts.x + Bz * dnZ_ts.y + Nz * dnZ_ts.z);
+
+                        half3 detailNWS = normalize(dnX_ws * weights.x + dnY_ws * weights.y + dnZ_ws * weights.z);
+                        if (dot(detailNWS, geometryNorm) < 0) detailNWS = -detailNWS;
+
+                        // Simple world-space blend (masked)
+                        finalNormalWS = NormalizeNormalPerPixel(lerp(finalNormalWS, NormalizeNormalPerPixel(finalNormalWS + detailNWS), detailMask));
                     }
                     #endif
                 }
-            #else
-                finalNormalWS = geometryNorm;
             #endif
 
                 half3 viewDirWS = GetWorldSpaceNormalizeViewDir(positionWS);
 
-                // ---- Build a TBN for inputData.tangentToWorld ----
-                // Required for debug views and some reflection calculations.
-                // Derived from the geometry normal so it is always valid.
+                // ---- TangentToWorld for debug/reflections ----
+                // Use a stable fallback basis from geometry normal
                 half3 tAlt = (abs(geometryNorm.y) < 0.999h) ? half3(0,1,0) : half3(1,0,0);
                 half3 tWS  = normalize(cross(tAlt, (half3)geometryNorm));
                 half3 bWS  = cross((half3)geometryNorm, tWS);
@@ -489,7 +540,7 @@ Shader "Universal Render Pipeline/Lit (World Space)"
             #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
                 inputData.shadowCoord = TransformWorldToShadowCoord(positionWS);
             #else
-                inputData.shadowCoord = float4(0, 0, 0, 0);
+                inputData.shadowCoord = float4(0,0,0,0);
             #endif
 
                 inputData.fogCoord        = InitializeInputDataFog(float4(positionWS, 1.0), input.fogFactorAndVertexLight.x);
@@ -534,8 +585,7 @@ Shader "Universal Render Pipeline/Lit (World Space)"
         }
 
         // ------------------------------------------------------------------
-        //  All passes below are unchanged from the stock URP Lit shader.
-        //  They use mesh UVs for alpha-test, which is fine for depth/shadow.
+        //  Passes below unchanged from the stock URP Lit shader.
         // ------------------------------------------------------------------
 
         Pass
