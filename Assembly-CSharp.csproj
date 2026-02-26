@@ -54,6 +54,7 @@
     <Compile Include="Assets\Scripts\Player\Spells\KnockbackImpactBehaviour.cs" />
     <Compile Include="Assets\Scripts\Player\CastUI.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerConsume.cs" />
+    <Compile Include="Assets\Scripts\World\LevelGeneration\RandomRoomSpawner.cs" />
     <Compile Include="Assets\Scripts\Player\ConsumableEntity.cs" />
     <Compile Include="Assets\Scripts\Player\ConsumableItem.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCast.cs" />
@@ -111,7 +112,7 @@
     <None Include="Assets\PBS Materials Variety Pack\readme.txt" />
     <None Include="Assets\CustomShaders\Lit.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
-    <None Include="Assets\Scripts\World\LevelGeneration\CFXR Prefabs\Texts\_Make your own text effect.txt" />
+    <None Include="Assets\CFXR Prefabs\Texts\_Make your own text effect.txt" />
     <None Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Assets\Shaders\CFXR_PASSES.cginc" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
