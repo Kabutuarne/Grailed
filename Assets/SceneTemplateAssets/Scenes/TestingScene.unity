@@ -186,7 +186,7 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: cbd5882f70c5d4045a8f99fc21236fca, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: f2b361308e38cfb489086f1064025902, type: 2}
+      objectReference: {fileID: 2100000, guid: c72c18a65c5a3ed4ead4b1b025a1a5d8, type: 2}
     - target: {fileID: -7511558181221131132, guid: cbd5882f70c5d4045a8f99fc21236fca, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
@@ -1776,7 +1776,7 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: cbd5882f70c5d4045a8f99fc21236fca, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 09e2f242838b4b54093740f3818f9960, type: 2}
+      objectReference: {fileID: 2100000, guid: c72c18a65c5a3ed4ead4b1b025a1a5d8, type: 2}
     - target: {fileID: -7511558181221131132, guid: cbd5882f70c5d4045a8f99fc21236fca, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
@@ -3353,7 +3353,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &604712594
 Transform:
   m_ObjectHideFlags: 0
@@ -4200,7 +4200,7 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: cbd5882f70c5d4045a8f99fc21236fca, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 956ebec33533a2643845b30de6f7b621, type: 2}
+      objectReference: {fileID: 2100000, guid: c72c18a65c5a3ed4ead4b1b025a1a5d8, type: 2}
     - target: {fileID: -7511558181221131132, guid: cbd5882f70c5d4045a8f99fc21236fca, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
@@ -6001,7 +6001,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9326002c363edf7409890f499fa94094, type: 2}
+  - {fileID: 2100000, guid: aa6d8869248601c44be3a977050f30f4, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7314,6 +7314,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   cam: {fileID: 2146323522}
+  doorsTakePriority: 1
 --- !u!114 &1268072112
 MonoBehaviour:
   m_ObjectHideFlags: 0

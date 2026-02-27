@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Player\Spells\ProjectileSpell.cs" />
+    <Compile Include="Assets\Scripts\World\Chest.cs" />
     <Compile Include="Assets\Scripts\Player\ItemTooltip.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\PassiveEffect.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\KnockbackImpactBehaviour.cs" />

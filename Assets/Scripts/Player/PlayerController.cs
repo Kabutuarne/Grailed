@@ -27,7 +27,6 @@ public class PlayerController : MonoBehaviour
     public Vector3 standingCamLocalPos = new Vector3(0, 1.6f, 0);
     public Vector3 crouchingCamLocalPos = new Vector3(0, 1.0f, 0);
     public float camHeightLerpSpeed = 10f;
-
     [Header("Head / Rig")]
     public Transform headBone;          // assign DEF-head here
     public float headTurnSpeed = 10f;   // how fast head rotates toward camera

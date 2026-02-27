@@ -287,6 +287,8 @@ MonoBehaviour:
   bottomImage: {fileID: 377403881155305042}
   titleText: {fileID: 5167726542779539730}
   descriptionText: {fileID: 6695656532059815787}
+  rowsRoot: {fileID: 0}
+  rowPrefab: {fileID: 5167726542779539730}
   paddingVertical: 8
   paddingHorizontal: 8
   maxWidth: 20
