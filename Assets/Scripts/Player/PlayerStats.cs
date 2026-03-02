@@ -124,7 +124,7 @@ public class PlayerStats : MonoBehaviour
         // Drop all items
         if (inventory != null)
         {
-            try { inventory.DropAllItems(controller != null && controller.cameraPivot != null ? controller.cameraPivot : transform); } catch { }
+            inventory.DropAllItems(controller != null && controller.playerCamera != null ? controller.playerCamera : transform);
         }
 
         // Engage ragdoll

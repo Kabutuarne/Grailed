@@ -171,9 +171,7 @@ public class EyeballLookAndChargeBehaviour : EnemyBehaviour
         {
             // Prefer the player's camera pivot; fall back to main camera
             var pc = player != null ? player.GetComponent<PlayerController>() : null;
-            if (pc != null && pc.cameraPivot != null)
-                playerView = pc.cameraPivot;
-            else if (Camera.main != null)
+            if (Camera.main != null)
                 playerView = Camera.main.transform;
         }
         return player != null && playerView != null;
