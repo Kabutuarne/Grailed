@@ -21,30 +21,28 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: M_YFAM_TilesConcave
-  m_Shader: {fileID: 4800000, guid: c986f344e4cbdbb4fae8142396cda6f3, type: 3}
+  m_Shader: {fileID: 4800000, guid: 5e6e89fd83ac1fc4d83c9ed829359840, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - _NORMALMAP
-  m_InvalidKeywords:
-  - _METALLICGLOSSMAP
   - _METALLICSPECGLOSSMAP
-  - _SPECGLOSSMAP
+  - _NORMALMAP
   - _SPECULAR_SETUP
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses:
-  - MOTIONVECTORS
+  stringTagMap:
+    RenderType: Opaque
+  disabledShaderPasses: []
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
         m_Texture: {fileID: 2800000, guid: 3ad89ad5dbe077741b596223d3e04046, type: 3}
-        m_Scale: {x: 1, y: 1}
+        m_Scale: {x: 0.3, y: 0.3}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 2800000, guid: fd8dc291d3fdb7e479a63cee0bc75e95, type: 3}
@@ -68,7 +66,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 2800000, guid: 3ad89ad5dbe077741b596223d3e04046, type: 3}
-        m_Scale: {x: 1, y: 1}
+        m_Scale: {x: 0.3, y: 0.3}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
         m_Texture: {fileID: 2800000, guid: e143ad5ac66e01a41a925e8e6d9891d1, type: 3}
@@ -132,13 +130,15 @@ Material:
     - _Surface: 0
     - _TriplanarBlend: 4.24
     - _TriplanarScale: 0.3
+    - _TriplanarSharpness: 4
     - _UVSec: 0
     - _WorkflowMode: 0
+    - _WorldScale: 1
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.49056596, g: 0.29150167, b: 0.15966532, a: 1}
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0.49056596, g: 0.29150164, b: 0.15966529, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
