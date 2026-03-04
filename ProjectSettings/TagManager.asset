@@ -8,6 +8,7 @@ TagManager:
   - FxTemporaire
   - Enemy
   - RoomBounds
+  - StartSpawn
   layers:
   - Default
   - TransparentFX

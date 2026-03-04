@@ -114,6 +114,7 @@ public class PlayerInteractor : MonoBehaviour
 
         Door door = hit.collider.GetComponentInParent<Door>();
         Chest chest = hit.collider.GetComponentInParent<Chest>();
+        KartographGeneratorInteract kartographGen = hit.collider.GetComponent<KartographGeneratorInteract>();
 
         ItemPickup item = hit.collider.GetComponent<ItemPickup>();
         if (item == null)
@@ -123,6 +124,7 @@ public class PlayerInteractor : MonoBehaviour
         {
             if (door != null) { door.Interact(); return; }
             if (chest != null) { chest.Interact(); return; }
+            if (kartographGen != null) { kartographGen.Interact(); return; }
 
             if (item != null)
             {
