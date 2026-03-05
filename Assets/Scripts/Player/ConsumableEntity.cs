@@ -10,7 +10,6 @@ public class ConsumableItem : ItemPickup
 
     [Header("Presentation")]
     public GameObject renderModel;       // 3D model to show in the world
-    public Rigidbody rb;                 // rigidbody for physics
 
     [Header("Inventory UI")]
     public Sprite inventoryIcon;

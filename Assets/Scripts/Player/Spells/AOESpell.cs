@@ -11,30 +11,21 @@ public class AOESpell : ScriptableObject
     public float radius = 3f;
 
     [Header("Effect")]
-    public PlayerEffect effect; // can be DurationEffect or InstantEffect
+    public EffectCarrier effectCarrier; // contains multiple effects + UI info
 
     [Header("Visuals")]
     public GameObject castingParticlePrefab; // shown at caster position for each tick
     public Vector3 effectOffset = Vector3.zero;      // offset from player position for the visual/effect center
 
-    [Header("Status UI")]
-    public string uiTitle = "Area Effect";
-    public Sprite uiIcon;
-    [TextArea]
-    public string uiDescription;
-
-    private EffectCarrier runtimeCarrier; // created at runtime to feed UI (icon/title/description)
-
     // Call when casting begins to show a persistent UI entry while the player is affected
     public void BeginCasting(GameObject caster)
     {
         if (caster == null) return;
-        EnsureRuntimeCarrier();
         var status = caster.GetComponent<PlayerStatusEffects>();
         if (status == null) return;
         // Add a toggle effect purely for UI display
         var e = new PlayerStatusEffects.Effect(GetUIEffectId(), -1f);
-        e.carrier = runtimeCarrier;
+        e.carrier = effectCarrier;
         status.AddEffect(e);
     }
 
@@ -47,47 +38,28 @@ public class AOESpell : ScriptableObject
         status.RemoveEffect(GetUIEffectId());
     }
 
-    private void EnsureRuntimeCarrier()
-    {
-        if (runtimeCarrier == null)
-        {
-            runtimeCarrier = ScriptableObject.CreateInstance<EffectCarrier>();
-            runtimeCarrier.title = string.IsNullOrEmpty(uiTitle) ? name : uiTitle;
-            runtimeCarrier.icon = uiIcon;
-            runtimeCarrier.description = uiDescription;
-        }
-    }
-
     private string GetUIEffectId()
     {
-        return (effect != null ? effect.effectId : name) + "_aoe_ui";
+        if (effectCarrier != null && effectCarrier.effects != null && effectCarrier.effects.Length > 0)
+            return effectCarrier.effects[0].effectId + "_aoe_ui";
+        return name + "_aoe_ui";
     }
 
     // Triggers one AOE tick while holding cast. Returns true if mana was spent and effect applied.
-    public bool TriggerTick(GameObject caster, EffectCarrier carrier = null)
+    public bool TriggerTick(GameObject caster)
     {
-        if (caster == null || effect == null) return false;
+        if (caster == null || effectCarrier == null) return false;
 
         if (!TrySpendMana(caster, manaCostPerTick))
             return false;
 
         // Visual is managed persistently by PlayerCast; do not spawn per tick
 
-        // Prepare a carrier so UI can show icon/title/description for the applied effect
-        EnsureRuntimeCarrier();
-
-        // Apply effect to all entities within radius
+        // Apply all effects to all entities within radius
         Collider[] hits = Physics.OverlapSphere(caster.transform.position + effectOffset, radius);
         foreach (var c in hits)
         {
-            try
-            {
-                effect.Apply(c.gameObject, runtimeCarrier);
-            }
-            catch
-            {
-                // If target doesn't support PlayerEffect, just skip
-            }
+            ApplyEffects(c.gameObject);
         }
 
         return true;
@@ -130,5 +102,29 @@ public class AOESpell : ScriptableObject
 
         // If we can't determine, allow cast
         return true;
+    }
+
+    void ApplyEffects(GameObject target)
+    {
+        if (effectCarrier == null)
+        {
+            Debug.Log($"[AOESpell] No effect carrier, skipping effect application");
+            return;
+        }
+        if (effectCarrier.effects == null || effectCarrier.effects.Length == 0)
+        {
+            Debug.Log($"[AOESpell] Effect carrier has no effects");
+            return;
+        }
+
+        Debug.Log($"[AOESpell] Applying {effectCarrier.effects.Length} effects to {target.name}");
+        foreach (var eff in effectCarrier.effects)
+        {
+            if (eff != null)
+            {
+                Debug.Log($"[AOESpell] Applying effect: {eff.displayName} to {target.name}");
+                try { eff.Apply(target, effectCarrier); } catch (System.Exception ex) { Debug.LogError($"[AOESpell] Exception applying effect: {ex.Message}"); }
+            }
+        }
     }
 }

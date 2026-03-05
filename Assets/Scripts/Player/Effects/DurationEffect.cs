@@ -12,9 +12,12 @@ public class DurationEffect : PlayerEffect
     public float manaRegenMultiplier = 1f;
 
     [Header("Per-second & instant")]
-    public float healPerSecond = 0f;
-    public float healAmount = 0f; // applied instantly on add if desired
-    public float manaAmount = 0f; // applied instantly on add if desired
+    [Tooltip("Health per second (positive = heal, negative = damage). Applied continuously for duration.")]
+    public float healthPerSecond = 0f;
+    [Tooltip("Health amount applied instantly when effect starts (positive = heal, negative = damage).")]
+    public float healthAmount = 0f;
+    [Tooltip("Mana amount applied instantly when effect starts (positive = restore, negative = drain).")]
+    public float manaAmount = 0f;
 
     [Header("Temporary attribute adds (applied while active)")]
     public float addStrength = 0f;
@@ -32,12 +35,20 @@ public class DurationEffect : PlayerEffect
             return;
         }
 
-        // If this effect includes instant resource additions, apply them instantly first
-        if (healAmount != 0f)
-            status.AddHealthEffect(effectId + "_instheal", healAmount);
+        Debug.Log($"[DurationEffect] Applying to {user.name}: duration={duration}s, health/sec={healthPerSecond}, instant health={healthAmount}, instant mana={manaAmount}");
+
+        // If this effect includes instant resource changes, apply them instantly first
+        if (healthAmount != 0f)
+        {
+            status.AddHealthEffect(effectId + "_insthealth", healthAmount);
+            Debug.Log($"[DurationEffect] Instant health applied: {healthAmount}");
+        }
 
         if (manaAmount != 0f)
+        {
             status.AddManaEffect(effectId + "_instmana", manaAmount);
+            Debug.Log($"[DurationEffect] Instant mana applied: {manaAmount}");
+        }
 
         // Build a timed effect for the rest and add it
         var e = new PlayerStatusEffects.Effect(effectId, duration)
@@ -45,7 +56,7 @@ public class DurationEffect : PlayerEffect
             speedMultiplier = speedMultiplier,
             healthRegenMultiplier = healthRegenMultiplier,
             manaRegenMultiplier = manaRegenMultiplier,
-            healPerSecond = healPerSecond,
+            healPerSecond = healthPerSecond,
             addStrength = addStrength,
             addIntelligence = addIntelligence,
             addStaminaAttr = addStaminaAttr,
@@ -56,5 +67,6 @@ public class DurationEffect : PlayerEffect
         e.carrier = carrier;
 
         status.AddEffect(e);
+        Debug.Log($"[DurationEffect] Timed effect applied: {duration}s with {healthPerSecond}/sec health");
     }
 }

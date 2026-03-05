@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70ed0eca34a575d47abc4eafa96c6c64, type: 3}
+  m_Name: WindPoof
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectileSpell
+  castTime: 2
+  manaCost: 5
+  speed: 20
+  lifetime: 5
+  impactRadius: 5
+  projectileModelPrefab: {fileID: 4441222061639230485, guid: a4efcd9bc31b144459af55f1a5d82226, type: 3}
+  despawnDelay: 1
+  cameraLocalSpawnOffset: {x: 0, y: -0.15, z: 0.25}
+  cameraForwardSpawnPush: 0.35
+  ignoreCasterColliders: 1
+  aimViaCameraRaycast: 1
+  aimRayDistance: 200
+  aimRayMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  effectCarrier: {fileID: 0}
+  castStartParticlePrefab: {fileID: 8525990746615576120, guid: 41438986f6bc36941a67b0520d6cf11f, type: 3}
+  flyingParticlePrefab: {fileID: 4441222061639230485, guid: a4efcd9bc31b144459af55f1a5d82226, type: 3}
+  hitParticlePrefab: {fileID: 8525990746615576120, guid: 41438986f6bc36941a67b0520d6cf11f, type: 3}
+  impactBehaviours:
+  - {fileID: 11400000, guid: aa63c1966c8d2da4e9c40123d3966fed, type: 2}

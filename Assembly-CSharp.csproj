@@ -58,6 +58,7 @@
     <Compile Include="Assets\Scripts\World\LevelGeneration\RandomRoomSpawner.cs" />
     <Compile Include="Assets\Scripts\Player\ConsumableEntity.cs" />
     <Compile Include="Assets\Scripts\Player\ConsumableItem.cs" />
+    <Compile Include="Assets\Scripts\Player\Items\DecorationItem.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCast.cs" />
     <Compile Include="Assets\Scripts\World\Door.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\InstantEffect.cs" />
@@ -81,7 +82,6 @@
     <Compile Include="Assets\Scripts\Player\Spells\ScrollItem.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerStats.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyAttack.cs" />
-    <Compile Include="Assets\Scripts\Player\DecorationItem.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyNameHealthUI.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyBehaviour.cs" />
     <Compile Include="Assets\Scripts\Enemy\MeleeAttack.cs" />

@@ -250,18 +250,6 @@ public class WandItem : ItemPickup
         return go.GetComponent<ScrollItem>();
     }
 
-    public void CastSelected(GameObject user, Transform origin)
-    {
-        var scroll = GetSelectedScroll();
-        if (scroll == null) return;
-        scroll.Cast(user, origin);
-
-        if (scroll.destroyOnCast)
-        {
-            RemoveSlotItem(selectedIndex);
-        }
-    }
-
     private int FindFirstFilledSlotIndex()
     {
         if (spellSlots == null || spellSlots.Length == 0) return -1;

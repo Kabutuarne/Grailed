@@ -18,6 +18,10 @@ public class EffectCarrier : ScriptableObject
     [TextArea]
     public string description;
 
+    [Header("Visuals")]
+    [Tooltip("Optional: Particle prefab to spawn on the player while this effect is active (duration effects only)")]
+    public GameObject particlePrefab;
+
     // The time left to display for the carrier when active (the longest duration among contained DurationEffects)
     // Note: at author-time this is calculated from configured DurationEffects; runtime UI will read the active effect timer from PlayerStatusEffects
     public float GetLongestDuration()

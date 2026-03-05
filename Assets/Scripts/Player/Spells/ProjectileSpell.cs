@@ -15,8 +15,27 @@ public class ProjectileSpell : ScriptableObject
     public GameObject projectileModelPrefab; // optional visual model for projectile
     public float despawnDelay = 1.0f;         // how long the entity remains after impact
 
+    [Header("Spawn From Camera (Projectiles)")]
+    [Tooltip("Offset in CAMERA LOCAL SPACE (x=right, y=up, z=forward). Use this to nudge the spawn away from the player.")]
+    public Vector3 cameraLocalSpawnOffset = new Vector3(0.0f, -0.15f, 0.25f);
+
+    [Tooltip("Extra push forward from camera to ensure we don't start inside any collider.")]
+    public float cameraForwardSpawnPush = 0.35f;
+
+    [Tooltip("If true, projectile ignores all colliders on the caster (recommended).")]
+    public bool ignoreCasterColliders = true;
+
+    [Tooltip("Optional: if enabled, raycast from camera to pick a point, then aim from spawnPos to that point (still 'where camera is facing', but avoids near-wall issues).")]
+    public bool aimViaCameraRaycast = true;
+
+    [Tooltip("Max distance for the camera raycast when aimViaCameraRaycast is on.")]
+    public float aimRayDistance = 200f;
+
+    [Tooltip("Layers considered for the aim raycast. Leave as Everything if unsure.")]
+    public LayerMask aimRayMask = ~0;
+
     [Header("Effect")]
-    public PlayerEffect effect; // can be DurationEffect or InstantEffect
+    public EffectCarrier effectCarrier; // contains multiple effects + UI info
 
     [Header("Particles")]
     public GameObject castStartParticlePrefab;
@@ -27,26 +46,46 @@ public class ProjectileSpell : ScriptableObject
     public ProjectileImpactBehaviour[] impactBehaviours; // optional extra behaviours applied on impact
 
     // Triggers once after cast finishes. Returns true if spawned.
-    public bool TriggerOnce(GameObject caster, EffectCarrier carrier = null)
+    public bool TriggerOnce(GameObject caster)
     {
-        if (caster == null || effect == null) return false;
+        if (caster == null) return false;
+        // effectCarrier is optional - spells can use only ImpactBehaviours
 
         if (!TrySpendMana(caster, manaCost))
             return false;
 
-        // Determine aim direction from camera if available
-        Vector3 aimDir = caster.transform.forward;
-        if (Camera.main != null)
-            aimDir = Camera.main.transform.forward;
+        // Pick a camera: prefer Camera.main, otherwise try caster children.
+        Camera cam = Camera.main;
+        if (cam == null)
+            cam = caster.GetComponentInChildren<Camera>(true);
 
-        Vector3 spawnPos = caster.transform.position + aimDir.normalized * 1f + Vector3.up * 0.5f;
+        Transform aimT = cam != null ? cam.transform : caster.transform;
+
+        // Direction is EXACTLY where camera faces
+        Vector3 aimDir = aimT.forward.normalized;
+
+        // Spawn from camera position with a CAMERA-LOCAL offset + forward push
+        Vector3 spawnPos = aimT.position;
+        spawnPos += aimT.TransformVector(cameraLocalSpawnOffset);
+        spawnPos += aimDir * cameraForwardSpawnPush;
+
+        // Optional: aim at what the camera is looking at (helps when camera is close to walls)
+        if (aimViaCameraRaycast)
+        {
+            if (Physics.Raycast(aimT.position, aimDir, out RaycastHit hit, aimRayDistance, aimRayMask, QueryTriggerInteraction.Ignore))
+            {
+                Vector3 toHit = (hit.point - spawnPos);
+                if (toHit.sqrMagnitude > 0.0001f)
+                    aimDir = toHit.normalized; // still driven by camera forward, but converges on hit point
+            }
+        }
 
         // Start particle
         if (castStartParticlePrefab != null)
-            Object.Instantiate(castStartParticlePrefab, spawnPos, Quaternion.identity);
+            Object.Instantiate(castStartParticlePrefab, spawnPos, Quaternion.LookRotation(aimDir));
 
         // Build projectile GO
-        GameObject proj = null;
+        GameObject proj;
         if (projectileModelPrefab != null)
         {
             proj = Object.Instantiate(projectileModelPrefab, spawnPos, Quaternion.LookRotation(aimDir));
@@ -64,14 +103,15 @@ public class ProjectileSpell : ScriptableObject
         runtime.speed = speed;
         runtime.lifeTime = lifetime;
         runtime.impactRadius = impactRadius;
-        runtime.effect = effect;
+        runtime.effectCarrier = effectCarrier;
         runtime.flyingParticlePrefab = flyingParticlePrefab;
         runtime.hitParticlePrefab = hitParticlePrefab;
         runtime.caster = caster;
-        runtime.carrier = carrier;
         runtime.despawnDelay = despawnDelay;
         runtime.parentSpell = this;
+        runtime.ignoreCasterColliders = false;
 
+        Debug.Log($"[ProjectileSpell] Spawned projectile at {spawnPos} with direction {aimDir}. Effects: {(effectCarrier != null ? effectCarrier.effects.Length : 0)}. ImpactBehaviours: {(impactBehaviours != null ? impactBehaviours.Length : 0)}");
         proj.transform.forward = aimDir;
         return true;
     }
@@ -115,19 +155,22 @@ public class ProjectileSpell : ScriptableObject
         public float speed;
         public float lifeTime;
         public float impactRadius;
-        public PlayerEffect effect;
+        public EffectCarrier effectCarrier;
         public GameObject flyingParticlePrefab;
         public GameObject hitParticlePrefab;
         public GameObject caster;
-        public EffectCarrier carrier;
         public float despawnDelay = 1.0f;
         public ProjectileSpell parentSpell;
+
+        [HideInInspector] public bool ignoreCasterColliders = false;
 
         GameObject flyingParticleInstance;
         bool hasHit = false;
 
         void Start()
         {
+            Debug.Log($"[ProjectileRuntime] Starting projectile setup. Speed: {speed}, Lifetime: {lifeTime}, ImpactRadius: {impactRadius}");
+
             if (lifeTime > 0f)
                 Destroy(gameObject, lifeTime);
 
@@ -141,9 +184,11 @@ public class ProjectileSpell : ScriptableObject
             bool hasAnyCollider = colliders != null && colliders.Length > 0;
             if (!hasAnyCollider)
             {
+                Debug.Log($"[ProjectileRuntime] No collider found, adding SphereCollider");
                 var sc = gameObject.AddComponent<SphereCollider>();
                 sc.isTrigger = true;
                 sc.radius = 0.15f;
+                colliders = new Collider[] { sc };
             }
             else
             {
@@ -157,6 +202,26 @@ public class ProjectileSpell : ScriptableObject
             rb.isKinematic = true;
             rb.useGravity = false;
             rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+            // Only ignore caster collisions if the flag is set
+            if (ignoreCasterColliders && caster != null)
+            {
+                var casterCols = caster.GetComponentsInChildren<Collider>(true);
+                if (casterCols != null && casterCols.Length > 0 && colliders != null)
+                {
+                    foreach (var pc in colliders)
+                    {
+                        if (pc == null) continue;
+                        foreach (var cc in casterCols)
+                        {
+                            if (cc == null) continue;
+                            Physics.IgnoreCollision(pc, cc, true);
+                        }
+                    }
+                }
+            }
+
+            Debug.Log($"[ProjectileRuntime] Projectile setup complete. Colliders: {colliders.Length}, Rigidbody kinematic: {GetComponent<Rigidbody>().isKinematic}");
         }
 
         void Update()
@@ -167,21 +232,46 @@ public class ProjectileSpell : ScriptableObject
         void OnTriggerEnter(Collider other)
         {
             if (hasHit) return;
+            if (other == null) return;
+
+            Debug.Log($"[Projectile] Hit detected: {other.name}");
+
+
+            // Extra safety: never hit the caster or its children - this is fucking stupid
+            // if (caster != null)
+            // {
+            //     if (other.gameObject == caster)
+            //     {
+            //         // DO NOTHING
+            //     }
+            //     if (other.transform.IsChildOf(caster.transform))
+            //     {
+            //         Debug.Log($"[Projectile] Ignoring hit on caster child");
+            //         return;
+            //     }
+            // }
 
             Vector3 hitPos = transform.position;
 
             // Gather hits for both area and single-target
             Collider[] hits;
+            var applied = new HashSet<GameObject>();
             if (impactRadius > 0f)
             {
                 hits = Physics.OverlapSphere(hitPos, impactRadius);
-                var applied = new HashSet<GameObject>();
                 foreach (var c in hits)
                 {
+                    // if (c == null) continue;
+                    // // Skip caster in AOE too - also fucking stupid
+                    // if (caster != null && (c.gameObject == caster || c.transform.IsChildOf(caster.transform)))
+                    //     continue;
                     var go = c.gameObject;
                     if (applied.Contains(go)) continue;
-                    try { effect.Apply(go, carrier); } catch { }
-                    applied.Add(go);
+                    if (go.CompareTag("Player") || go.CompareTag("Enemy"))
+                    {
+                        ApplyEffects(go);
+                        applied.Add(go);
+                    }
                 }
 
                 // Also apply effect to players within radius (CharacterController isn't a Collider)
@@ -190,20 +280,30 @@ public class ProjectileSpell : ScriptableObject
                 {
                     if (pc == null) continue;
                     var go = pc.gameObject;
+                    // if (caster != null && (go == caster || go.transform.IsChildOf(caster.transform)))
+                    //     continue;
                     if (applied.Contains(go)) continue;
                     var cc = go.GetComponent<CharacterController>();
                     Vector3 center = cc != null ? cc.bounds.center : go.transform.position;
                     if (Vector3.Distance(center, hitPos) <= impactRadius)
                     {
-                        try { effect.Apply(go, carrier); } catch { }
-                        applied.Add(go);
+                        if (go.CompareTag("Player") || go.CompareTag("Enemy"))
+                        {
+                            ApplyEffects(go);
+                            applied.Add(go);
+                        }
                     }
                 }
             }
             else
             {
                 hits = new Collider[] { other };
-                try { effect.Apply(other.gameObject, carrier); } catch { }
+                var go = other.gameObject;
+                if (go.CompareTag("Player") || go.CompareTag("Enemy"))
+                {
+                    ApplyEffects(go);
+                    applied.Add(go);
+                }
             }
 
             // Apply any extra impact behaviours
@@ -231,8 +331,8 @@ public class ProjectileSpell : ScriptableObject
                 r.enabled = false;
 
             // Disable colliders to prevent further triggers
-            var colliders = GetComponentsInChildren<Collider>(true);
-            foreach (var col in colliders)
+            var cols2 = GetComponentsInChildren<Collider>(true);
+            foreach (var col in cols2)
                 col.enabled = false;
 
             // Play hit particle
@@ -244,6 +344,30 @@ public class ProjectileSpell : ScriptableObject
 
             // Despawn after delay
             Destroy(gameObject, despawnDelay);
+        }
+
+        void ApplyEffects(GameObject target)
+        {
+            if (effectCarrier == null)
+            {
+                Debug.Log($"[Projectile] No effect carrier on spell, skipping effect application");
+                return;
+            }
+            if (effectCarrier.effects == null || effectCarrier.effects.Length == 0)
+            {
+                Debug.Log($"[Projectile] Effect carrier has no effects");
+                return;
+            }
+
+            Debug.Log($"[Projectile] Applying {effectCarrier.effects.Length} effects to {target.name}");
+            foreach (var eff in effectCarrier.effects)
+            {
+                if (eff != null)
+                {
+                    Debug.Log($"[Projectile] Applying effect: {eff.displayName} to {target.name}");
+                    try { eff.Apply(target, effectCarrier); } catch (System.Exception ex) { Debug.LogError($"[Projectile] Exception applying effect: {ex.Message}"); }
+                }
+            }
         }
     }
 }

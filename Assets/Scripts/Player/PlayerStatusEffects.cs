@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 public class PlayerStatusEffects : MonoBehaviour
 {
+    // Track spawned particles for each effect (by effect id)
+    private Dictionary<string, GameObject> activeParticles = new Dictionary<string, GameObject>();
     [System.Serializable]
     public class Effect
     {
@@ -73,6 +75,12 @@ public class PlayerStatusEffects : MonoBehaviour
                 if (e.timer <= 0f)
                 {
                     Debug.Log($"[StatusEffects] Effect '{e.id}' expired");
+                    // Destroy particle if spawned
+                    if (activeParticles.TryGetValue(e.id, out var go) && go != null)
+                    {
+                        Destroy(go);
+                        activeParticles.Remove(e.id);
+                    }
                     activeEffects.RemoveAt(i);
                     removedAny = true;
                 }
@@ -80,6 +88,12 @@ public class PlayerStatusEffects : MonoBehaviour
             else if (e.duration == 0f)
             {
                 // Instant effects should not be in the list, but just in case remove them
+                // Also ensure no particle is left
+                if (activeParticles.TryGetValue(e.id, out var go) && go != null)
+                {
+                    Destroy(go);
+                    activeParticles.Remove(e.id);
+                }
                 activeEffects.RemoveAt(i);
                 removedAny = true;
             }
@@ -102,17 +116,29 @@ public class PlayerStatusEffects : MonoBehaviour
         // Instant application
         if (e.duration == 0f)
         {
+            Debug.Log($"[StatusEffects] Applying instant effect '{e.id}' - health: {e.healAmount}, mana: {e.manaAmount}");
+
             if (e.healAmount != 0f)
+            {
+                Debug.Log($"[StatusEffects] SafeHeal({e.healAmount}) for instant effect '{e.id}'");
                 SafeHeal(e.healAmount);
+            }
 
             if (e.manaAmount != 0f)
+            {
+                Debug.Log($"[StatusEffects] SafeRestoreMana({e.manaAmount}) for instant effect '{e.id}'");
                 SafeRestoreMana(e.manaAmount);
+            }
 
             // if instant also had per-second healing, do a single tick
             if (e.healPerSecond != 0f)
-                SafeHeal(e.healPerSecond * Time.deltaTime);
+            {
+                float tick = e.healPerSecond * Time.deltaTime;
+                Debug.Log($"[StatusEffects] SafeHeal({tick}) for instant per-second effect '{e.id}'");
+                SafeHeal(tick);
+            }
 
-            Debug.Log($"[StatusEffects] Applied instant effect '{e.id}' (heal {e.healAmount}, mana {e.manaAmount})");
+            Debug.Log($"[StatusEffects] Instant effect '{e.id}' applied completely");
             // don't add to list
             return;
         }
@@ -123,7 +149,18 @@ public class PlayerStatusEffects : MonoBehaviour
 
         // duration < 0 stays as infinite toggle (timer unused)
         activeEffects.Add(e);
-        Debug.Log($"[StatusEffects] Added effect '{e.id}' duration={e.duration} speedMult={e.speedMultiplier} hRegenMult={e.healthRegenMultiplier} mRegenMult={e.manaRegenMultiplier} addStr={e.addStrength} addInt={e.addIntelligence} addStam={e.addStaminaAttr} addAgi={e.addAgility}");
+        Debug.Log($"[StatusEffects] Added timed effect '{e.id}' duration={e.duration}s speedMult={e.speedMultiplier} hRegenMult={e.healthRegenMultiplier} mRegenMult={e.manaRegenMultiplier} healthPerSec={e.healPerSecond} addStr={e.addStrength} addInt={e.addIntelligence} addStam={e.addStaminaAttr} addAgi={e.addAgility}");
+
+        // Spawn particle if duration > 0 and carrier has a particlePrefab
+        if (e.duration > 0f && e.carrier != null && e.carrier.particlePrefab != null)
+        {
+            // Only spawn if not already present for this effect id
+            if (!activeParticles.ContainsKey(e.id))
+            {
+                var go = Instantiate(e.carrier.particlePrefab, this.transform);
+                activeParticles[e.id] = go;
+            }
+        }
     }
 
     // Convenience helpers for required effect types
@@ -246,6 +283,12 @@ public class PlayerStatusEffects : MonoBehaviour
         if (removed > 0)
         {
             Debug.Log($"[StatusEffects] Removed {removed} effect(s) with id '{id}'");
+            // Destroy particle if present
+            if (activeParticles.TryGetValue(id, out var go) && go != null)
+            {
+                Destroy(go);
+                activeParticles.Remove(id);
+            }
             SafeClampResourcesToMax();
         }
     }
@@ -255,6 +298,12 @@ public class PlayerStatusEffects : MonoBehaviour
     {
         int removed = activeEffects.Count;
         activeEffects.Clear();
+        // Destroy all particles
+        foreach (var go in activeParticles.Values)
+        {
+            if (go != null) Destroy(go);
+        }
+        activeParticles.Clear();
         if (removed > 0)
         {
             Debug.Log($"[StatusEffects] Cleared all effects ({removed})");
@@ -267,20 +316,50 @@ public class PlayerStatusEffects : MonoBehaviour
     {
         try
         {
-            if (stats != null) stats.Heal(amount);
-            else if (enemyStats != null) enemyStats.Heal(amount);
+            if (stats != null)
+            {
+                Debug.Log($"[StatusEffects] Healing player by {amount}");
+                stats.Heal(amount);
+            }
+            else if (enemyStats != null)
+            {
+                Debug.Log($"[StatusEffects] Healing enemy by {amount}");
+                enemyStats.Heal(amount);
+            }
+            else
+            {
+                Debug.LogWarning($"[StatusEffects] SafeHeal({amount}): No stats component found!");
+            }
         }
-        catch { }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[StatusEffects] SafeHeal exception: {ex.Message}");
+        }
     }
 
     void SafeRestoreMana(float amount)
     {
         try
         {
-            if (stats != null) stats.RestoreMana(amount);
-            else if (enemyStats != null) enemyStats.RestoreMana(amount);
+            if (stats != null)
+            {
+                Debug.Log($"[StatusEffects] Restoring mana by {amount}");
+                stats.RestoreMana(amount);
+            }
+            else if (enemyStats != null)
+            {
+                Debug.Log($"[StatusEffects] Restoring enemy mana by {amount}");
+                enemyStats.RestoreMana(amount);
+            }
+            else
+            {
+                Debug.LogWarning($"[StatusEffects] SafeRestoreMana({amount}): No stats component found!");
+            }
         }
-        catch { }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[StatusEffects] SafeRestoreMana exception: {ex.Message}");
+        }
     }
 
     void SafeClampResourcesToMax()

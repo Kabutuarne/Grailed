@@ -13,18 +13,21 @@ public class PlayerController : MonoBehaviour
 
     [Header("Sprint / Stamina")]
     public float staminaUsePerSecond = 25f;
-    public float staminaRegenPerSecond = 15f; // legacy base fallback — PlayerStats now provides per-player derived rate
+    public float staminaRegenPerSecond = 15f;
 
     [Header("Look / Camera")]
-    public Transform playerCamera;      // the Camera transform (child of Player)
+    public Transform playerCamera;
+    public Transform cameraPivot;
     public float lookSensitivity = 0.1f;
     public float maxPitchUp = 80f;
     public float maxPitchDown = -80f;
 
-    [Header("Camera Height")]
-    public Vector3 standingCamLocalPos = new Vector3(0, 1.6f, 0);
-    public Vector3 crouchingCamLocalPos = new Vector3(0, 1.0f, 0);
-    public float camHeightLerpSpeed = 10f;
+    [Header("Crouch")]
+    public float standingHeight = 1.8f;
+    public float crouchingHeight = 1.0f;
+    public float standingCameraHeight = 1.6f;
+    public float crouchingCameraHeight = 1.0f;
+    public float crouchLerpSpeed = 10f;
 
     [Header("UI")]
     public PlayerUI playerUI;
@@ -44,12 +47,14 @@ public class PlayerController : MonoBehaviour
     private PlayerConsume consumer;
 
     private bool isCrouching;
+
     private Vector3 externalVelocity;
     public float knockbackDecay = 8f;
 
     void Awake()
     {
         controller = GetComponent<CharacterController>();
+
         stats = GetComponent<PlayerStats>();
         statusEffects = GetComponent<PlayerStatusEffects>();
         inventory = GetComponent<PlayerInventory>();
@@ -86,18 +91,25 @@ public class PlayerController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        if (playerCamera != null)
-            playerCamera.localPosition = standingCamLocalPos;
+        if (cameraPivot != null)
+        {
+            Vector3 p = cameraPivot.localPosition;
+            p.y = standingCameraHeight;
+            cameraPivot.localPosition = p;
+        }
+
+        controller.height = standingHeight;
+        controller.center = new Vector3(0, standingHeight / 2f, 0);
     }
 
     void Update()
     {
         HandleLook();
         HandleMovement();
-        UpdateCameraHeight();
+        UpdateCrouch();
     }
 
-    // ----------------- INPUT HANDLERS -----------------
+    // ----------------- INPUT -----------------
 
     void OnConsumeInput()
     {
@@ -107,7 +119,10 @@ public class PlayerController : MonoBehaviour
         if (playerUI != null && playerUI.IsBackpackOpen)
         {
             var slot = InventorySlotUI.HoveredSlot;
-            if (slot != null && slot.slotType == InventorySlotUI.SlotType.Backpack && slot.slotIndex >= 0)
+
+            if (slot != null &&
+                slot.slotType == InventorySlotUI.SlotType.Backpack &&
+                slot.slotIndex >= 0)
             {
                 consumer.TryStartConsumeFromBackpack(slot.slotIndex);
                 return;
@@ -128,6 +143,7 @@ public class PlayerController : MonoBehaviour
         {
             if (playerUI.TryDropHoveredAccessoryItem(dropOrigin))
                 return;
+
             if (playerUI.TryDropHoveredBackpackItem(dropOrigin))
                 return;
         }
@@ -135,78 +151,89 @@ public class PlayerController : MonoBehaviour
         inventory.DropFromHand(dropOrigin);
     }
 
-    // ----------------- LOOK / MOVE -----------------
+    // ----------------- LOOK -----------------
 
     void HandleLook()
     {
-        // If backpack is open, don't rotate camera/body
         if (playerUI != null && playerUI.IsBackpackOpen)
             return;
 
         float mouseX = lookInput.x * lookSensitivity;
         float mouseY = lookInput.y * lookSensitivity;
 
-        // Pitch (camera only)
         cameraPitch -= mouseY;
         cameraPitch = Mathf.Clamp(cameraPitch, maxPitchDown, maxPitchUp);
 
-        // Yaw (body turns exactly with camera yaw)
         transform.Rotate(0f, mouseX, 0f);
 
         if (playerCamera != null)
             playerCamera.localRotation = Quaternion.Euler(cameraPitch, 0f, 0f);
     }
 
+    // ----------------- MOVEMENT -----------------
+
     void HandleMovement()
     {
-        bool isGrounded = controller.isGrounded;
+        bool grounded = controller.isGrounded;
 
-        // Backpack open: no movement input, just gravity & stamina regen
         if (playerUI != null && playerUI.IsBackpackOpen)
         {
-            if (isGrounded && verticalVelocity < 0f)
+            if (grounded && verticalVelocity < 0)
                 verticalVelocity = -1f;
 
             verticalVelocity += gravity * Time.deltaTime;
-            controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime + externalVelocity * Time.deltaTime);
+
+            controller.Move(
+                new Vector3(0, verticalVelocity, 0) * Time.deltaTime +
+                externalVelocity * Time.deltaTime
+            );
 
             if (stats != null)
                 stats.RegenStamina(stats.staminaRegenPerSecond * Time.deltaTime);
 
             isCrouching = false;
-            externalVelocity = Vector3.MoveTowards(externalVelocity, Vector3.zero, knockbackDecay * Time.deltaTime);
+
+            externalVelocity = Vector3.MoveTowards(
+                externalVelocity,
+                Vector3.zero,
+                knockbackDecay * Time.deltaTime
+            );
+
             return;
         }
 
         bool sprintHeld = input.Player.Sprint.IsPressed();
-
         bool crouchHeld = Keyboard.current != null && Keyboard.current.cKey.isPressed;
-        isCrouching = crouchHeld;
-        if (crouchHeld) sprintHeld = false;
 
-        Vector3 inputDir = new Vector3(moveInput.x, 0f, moveInput.y);
+        isCrouching = crouchHeld;
+
+        if (crouchHeld)
+            sprintHeld = false;
+
+        Vector3 inputDir = new Vector3(moveInput.x, 0, moveInput.y);
         inputDir = Vector3.ClampMagnitude(inputDir, 1f);
 
-        bool wantsToSprint = sprintHeld && inputDir.z > 0.1f && !crouchHeld;
+        bool wantsSprint = sprintHeld && inputDir.z > 0.1f && !crouchHeld;
         bool canSprint = stats != null && stats.stamina > 0.1f;
-        bool isSprinting = wantsToSprint && canSprint;
+        bool sprinting = wantsSprint && canSprint;
 
         float speedMult = statusEffects != null ? statusEffects.GetSpeedMultiplier() : 1f;
+
         float speed;
+
         if (crouchHeld)
             speed = crouchSpeed * speedMult;
-        else if (isSprinting)
-            speed = (stats != null ? stats.sprintSpeed : sprintSpeed);
+        else if (sprinting)
+            speed = stats != null ? stats.sprintSpeed : sprintSpeed;
         else
-            speed = (stats != null ? stats.walkSpeed : walkSpeed);
+            speed = stats != null ? stats.walkSpeed : walkSpeed;
 
-        // Movement aligned to body yaw (which matches camera yaw)
         Vector3 move = transform.TransformDirection(inputDir);
 
-        if (isGrounded && verticalVelocity < 0f)
+        if (grounded && verticalVelocity < 0)
             verticalVelocity = -1f;
 
-        if (isGrounded && !crouchHeld && input.Player.Jump.WasPressedThisFrame())
+        if (grounded && !crouchHeld && input.Player.Jump.WasPressedThisFrame())
             verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
 
         verticalVelocity += gravity * Time.deltaTime;
@@ -216,27 +243,49 @@ public class PlayerController : MonoBehaviour
 
         if (stats != null)
         {
-            if (isSprinting && new Vector3(move.x, 0f, move.z).sqrMagnitude > 0.001f)
+            if (sprinting && new Vector3(move.x, 0, move.z).sqrMagnitude > 0.001f)
                 stats.ConsumeStamina(staminaUsePerSecond * Time.deltaTime);
-            else if (isGrounded && !sprintHeld)
+            else if (grounded && !sprintHeld)
                 stats.RegenStamina(stats.staminaRegenPerSecond * Time.deltaTime);
         }
 
-        externalVelocity = Vector3.MoveTowards(externalVelocity, Vector3.zero, knockbackDecay * Time.deltaTime);
-    }
-
-    void UpdateCameraHeight()
-    {
-        if (playerCamera == null) return;
-
-        Vector3 targetPos = isCrouching ? crouchingCamLocalPos : standingCamLocalPos;
-
-        playerCamera.localPosition = Vector3.Lerp(
-            playerCamera.localPosition,
-            targetPos,
-            camHeightLerpSpeed * Time.deltaTime
+        externalVelocity = Vector3.MoveTowards(
+            externalVelocity,
+            Vector3.zero,
+            knockbackDecay * Time.deltaTime
         );
     }
+
+    // ----------------- CROUCH -----------------
+
+    void UpdateCrouch()
+    {
+        float targetHeight = isCrouching ? crouchingHeight : standingHeight;
+        float targetCamY = isCrouching ? crouchingCameraHeight : standingCameraHeight;
+
+        controller.height = Mathf.Lerp(
+            controller.height,
+            targetHeight,
+            crouchLerpSpeed * Time.deltaTime
+        );
+
+        controller.center = new Vector3(0, controller.height / 2f, 0);
+
+        if (cameraPivot != null)
+        {
+            Vector3 pos = cameraPivot.localPosition;
+
+            pos.y = Mathf.Lerp(
+                pos.y,
+                targetCamY,
+                crouchLerpSpeed * Time.deltaTime
+            );
+
+            cameraPivot.localPosition = pos;
+        }
+    }
+
+    // ----------------- BACKPACK -----------------
 
     void ToggleBackpack()
     {
@@ -257,21 +306,36 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void ApplyExplosionKnockback(Vector3 origin, float force, float radius, float upwardsModifier)
+    // ----------------- EXPLOSION -----------------
+
+    public void ApplyExplosionKnockback(
+        Vector3 origin,
+        float force,
+        float radius,
+        float upwardsModifier)
     {
-        Vector3 center = controller != null ? controller.bounds.center : transform.position;
+        Vector3 center = controller != null
+            ? controller.bounds.center
+            : transform.position;
+
         Vector3 dir = center - origin;
+
         float dist = dir.magnitude;
+
         if (dist <= 0.0001f || radius <= 0.0001f)
             return;
 
         dir /= dist;
+
         float atten = Mathf.Clamp01(1f - (dist / radius));
+
         Vector3 impulse = dir * force * atten;
-        if (upwardsModifier != 0f)
+
+        if (upwardsModifier != 0)
             impulse += Vector3.up * upwardsModifier;
 
-        Vector3 horiz = new Vector3(impulse.x, 0f, impulse.z);
+        Vector3 horiz = new Vector3(impulse.x, 0, impulse.z);
+
         externalVelocity += horiz;
         verticalVelocity += impulse.y;
     }

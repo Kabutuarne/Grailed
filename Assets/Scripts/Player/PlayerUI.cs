@@ -349,13 +349,18 @@ public class PlayerUI : MonoBehaviour
                 if (iconImage != null && carrierKey.icon != null)
                     iconImage.sprite = carrierKey.icon;
 
-                // Set description to provided text
+                // Set description to provided text, and append duration if timed
                 var descTransform = go.transform.Find("Description");
                 if (descTransform != null)
                 {
                     var descText = descTransform.GetComponent<Text>();
                     if (descText != null)
-                        descText.text = carrierKey.description;
+                    {
+                        if (timeVal > 0f)
+                            descText.text = $"{carrierKey.description}\n<color=yellow>{Mathf.CeilToInt(timeVal)}s left</color>";
+                        else
+                            descText.text = carrierKey.description;
+                    }
                 }
             }
             else
