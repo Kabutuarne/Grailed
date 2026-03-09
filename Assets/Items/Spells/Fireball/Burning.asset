@@ -16,9 +16,9 @@ MonoBehaviour:
   displayName: Burning Effect
   duration: 6
   speedMultiplier: 1
-  healthRegenMultiplier: 1
+  healthRegenMultiplier: -1
   manaRegenMultiplier: 1
-  healthPerSecond: -5
+  healthPerSecond: -8
   healthAmount: 0
   manaAmount: 0
   addStrength: 0

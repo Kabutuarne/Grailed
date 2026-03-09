@@ -19,9 +19,9 @@ MonoBehaviour:
   impactRadius: 5
   projectileModelPrefab: {fileID: 4441222061639230485, guid: a4efcd9bc31b144459af55f1a5d82226, type: 3}
   despawnDelay: 1
-  cameraLocalSpawnOffset: {x: 0, y: -0.15, z: 0.25}
-  cameraForwardSpawnPush: 0.35
-  ignoreCasterColliders: 1
+  cameraLocalSpawnOffset: {x: 0, y: -0.15, z: 2}
+  cameraForwardSpawnPush: 2
+  ignoreCasterColliders: 0
   aimViaCameraRaycast: 1
   aimRayDistance: 200
   aimRayMask:

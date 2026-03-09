@@ -17,9 +17,9 @@ MonoBehaviour:
   speed: 32
   lifetime: 5
   impactRadius: 20
-  projectileModelPrefab: {fileID: 0}
+  projectileModelPrefab: {fileID: 1206498299807332555, guid: af6c1e3f046eecd4d81330aeb285600f, type: 3}
   despawnDelay: 1
-  cameraLocalSpawnOffset: {x: 0, y: -0.15, z: 6}
+  cameraLocalSpawnOffset: {x: 0, y: -0.15, z: 2}
   cameraForwardSpawnPush: 1
   ignoreCasterColliders: 0
   aimViaCameraRaycast: 1
@@ -29,7 +29,7 @@ MonoBehaviour:
     m_Bits: 4294967295
   effectCarrier: {fileID: 11400000, guid: 4586faef0de8a494f82f963c5eff0567, type: 2}
   castStartParticlePrefab: {fileID: 4021103657954561961, guid: 5c755f9bc5253ea418e919994537dcc7, type: 3}
-  flyingParticlePrefab: {fileID: 6294508013172393196, guid: 043176b6a68be2b43b073aaaa4782c7d, type: 3}
+  flyingParticlePrefab: {fileID: 0}
   hitParticlePrefab: {fileID: 2504214343621411470, guid: 3ed0d324122d7b24eaec75c55c74aafc, type: 3}
   impactBehaviours:
   - {fileID: 11400000, guid: 6c230f87db5de714d8379cf66a91fe80, type: 2}

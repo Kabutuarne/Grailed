@@ -5,7 +5,7 @@ public class AOESpell : ScriptableObject
 {
     [Header("Casting")]
     public float castTime = 1f;
-    public float manaCostPerTick = 0f;
+    public float manaCost = 0f;
 
     [Header("Area")]
     public float radius = 3f;
@@ -14,49 +14,24 @@ public class AOESpell : ScriptableObject
     public EffectCarrier effectCarrier; // contains multiple effects + UI info
 
     [Header("Visuals")]
-    public GameObject castingParticlePrefab; // shown at caster position for each tick
-    public Vector3 effectOffset = Vector3.zero;      // offset from player position for the visual/effect center
+    public GameObject castingParticlePrefab; // shown ONLY when cast completes
+    public Vector3 effectOffset = Vector3.zero; // offset from player position for the visual/effect center
 
-    // Call when casting begins to show a persistent UI entry while the player is affected
-    public void BeginCasting(GameObject caster)
-    {
-        if (caster == null) return;
-        var status = caster.GetComponent<PlayerStatusEffects>();
-        if (status == null) return;
-        // Add a toggle effect purely for UI display
-        var e = new PlayerStatusEffects.Effect(GetUIEffectId(), -1f);
-        e.carrier = effectCarrier;
-        status.AddEffect(e);
-    }
-
-    // Call when casting ends to clear the persistent UI entry
-    public void EndCasting(GameObject caster)
-    {
-        if (caster == null) return;
-        var status = caster.GetComponent<PlayerStatusEffects>();
-        if (status == null) return;
-        status.RemoveEffect(GetUIEffectId());
-    }
-
-    private string GetUIEffectId()
-    {
-        if (effectCarrier != null && effectCarrier.effects != null && effectCarrier.effects.Length > 0)
-            return effectCarrier.effects[0].effectId + "_aoe_ui";
-        return name + "_aoe_ui";
-    }
-
-    // Triggers one AOE tick while holding cast. Returns true if mana was spent and effect applied.
-    public bool TriggerTick(GameObject caster)
+    // Triggers a single AOE cast. Returns true if mana was spent and effect applied.
+    public bool TriggerCast(GameObject caster)
     {
         if (caster == null || effectCarrier == null) return false;
-
-        if (!TrySpendMana(caster, manaCostPerTick))
+        if (!TrySpendMana(caster, manaCost))
             return false;
 
-        // Visual is managed persistently by PlayerCast; do not spawn per tick
+        Vector3 effectCenter = caster.transform.position + effectOffset;
+
+        // Spawn the visual ONLY when the cast actually completes
+        if (castingParticlePrefab != null)
+            Object.Instantiate(castingParticlePrefab, effectCenter, Quaternion.identity);
 
         // Apply all effects to all entities within radius
-        Collider[] hits = Physics.OverlapSphere(caster.transform.position + effectOffset, radius);
+        Collider[] hits = Physics.OverlapSphere(effectCenter, radius);
         foreach (var c in hits)
         {
             ApplyEffects(c.gameObject);
@@ -74,7 +49,6 @@ public class AOESpell : ScriptableObject
         var stats = caster.GetComponent<PlayerStats>();
         if (stats != null)
         {
-            // Prefer explicit API if available
             var mTry = stats.GetType().GetMethod("TrySpendMana");
             if (mTry != null)
             {
@@ -93,14 +67,12 @@ public class AOESpell : ScriptableObject
             }
         }
 
-        // Fallback: use status effects to subtract mana instantly
         var status = caster.GetComponent<PlayerStatusEffects>();
         if (status != null)
         {
             try { status.AddManaEffect("aoe_spell_cost", -amount); return true; } catch { }
         }
 
-        // If we can't determine, allow cast
         return true;
     }
 
@@ -123,7 +95,8 @@ public class AOESpell : ScriptableObject
             if (eff != null)
             {
                 Debug.Log($"[AOESpell] Applying effect: {eff.displayName} to {target.name}");
-                try { eff.Apply(target, effectCarrier); } catch (System.Exception ex) { Debug.LogError($"[AOESpell] Exception applying effect: {ex.Message}"); }
+                try { eff.Apply(target, effectCarrier); }
+                catch (System.Exception ex) { Debug.LogError($"[AOESpell] Exception applying effect: {ex.Message}"); }
             }
         }
     }
