@@ -256,7 +256,7 @@ MonoBehaviour:
   itemName: Health Regeneration
   itemPrefab: {fileID: 5934874947720631336}
   carrier: {fileID: 11400000, guid: e6e83f90a1fcb0e44a8701ca5b96a2dc, type: 2}
-  baseConsumeTime: 4
+  baseConsumeTime: 2
   renderModel: {fileID: 5934874947720631336}
   inventoryIcon: {fileID: 21300000, guid: 2a594dc4ecdcb1c4686d678fb8a2f60f, type: 3}
   title: Health Regeneration Potion

@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Accessory items that can be placed in accessory slots. While equipped, they apply
-// one or more PassiveEffect-like modifiers to the player, but these do not show in UI.
+// one or more passive modifiers to the player, but these do not show in the status UI.
 public class Accessory : ItemPickup
 {
     [Header("Effects (applied while equipped)")]
-    public PassiveEffect[] passiveEffects; // configured ScriptableObjects to read effect values from
+    public PassiveEffect[] passiveEffects;
 
     [Header("Presentation")]
     public Sprite inventoryIcon;
@@ -24,88 +24,88 @@ public class Accessory : ItemPickup
     [Header("Tooltip Description Rows")]
     public List<DescriptionRow> descriptionRows = new List<DescriptionRow>();
 
-    private bool _equipped;
-    private GameObject _owner;
+    private bool equipped;
+    private GameObject owner;
 
-    // Call when placed into an accessory slot.
     public void OnEquipped(GameObject user)
     {
-        if (user == null || _equipped)
+        if (user == null || equipped)
             return;
 
-        _owner = user;
-        var status = _owner.GetComponent<PlayerStatusEffects>();
+        owner = user;
+
+        PlayerStatusEffects status = owner.GetComponent<PlayerStatusEffects>();
         if (status == null)
             return;
 
-        if (passiveEffects == null)
+        if (passiveEffects != null)
         {
-            _equipped = true; // nothing to apply, but mark equipped to avoid repeat
-            return;
-        }
-
-        foreach (var pe in passiveEffects)
-        {
-            if (pe == null) continue;
-
-            // Build a unique id so removal only affects this accessory-applied instance
-            string uniqueId = $"acc_{GetInstanceID()}_{(string.IsNullOrEmpty(pe.effectId) ? "effect" : pe.effectId)}";
-
-            var e = new PlayerStatusEffects.Effect(uniqueId, -1f)
+            foreach (PassiveEffect passiveEffect in passiveEffects)
             {
-                speedMultiplier = pe.speedMultiplier,
-                healthRegenMultiplier = pe.healthRegenMultiplier,
-                manaRegenMultiplier = pe.manaRegenMultiplier,
-                healPerSecond = pe.healPerSecond,
-                addStrength = pe.addStrength,
-                addIntelligence = pe.addIntelligence,
-                addStaminaAttr = pe.addStaminaAttr,
-                addAgility = pe.addAgility,
-                // Accessories should not appear in UI
-                hideInUI = true
-            };
+                if (passiveEffect == null)
+                    continue;
 
-            status.AddEffect(e);
-        }
+                string uniqueId = GetUniqueEffectId(passiveEffect);
 
-        _equipped = true;
-    }
+                PlayerStatusEffects.Effect effect = new PlayerStatusEffects.Effect(uniqueId, -1f)
+                {
+                    speedMultiplier = passiveEffect.speedMultiplier,
+                    healthRegenMultiplier = passiveEffect.healthRegenMultiplier,
+                    manaRegenMultiplier = passiveEffect.manaRegenMultiplier,
+                    energyRegenMultiplier = passiveEffect.energyRegenMultiplier,
+                    healthPerSecond = passiveEffect.healthPerSecond,
+                    manaPerSecond = passiveEffect.manaPerSecond,
+                    energyPerSecond = passiveEffect.energyPerSecond,
+                    addStrength = passiveEffect.addStrength,
+                    addIntelligence = passiveEffect.addIntelligence,
+                    addStaminaAttr = passiveEffect.addStaminaAttr,
+                    addAgility = passiveEffect.addAgility,
+                    hideInUI = true
+                };
 
-    // Call when removed from an accessory slot.
-    public void OnUnequipped()
-    {
-        if (!_equipped || _owner == null)
-        {
-            _equipped = false;
-            _owner = null;
-            return;
-        }
-
-        var status = _owner.GetComponent<PlayerStatusEffects>();
-        if (status != null && passiveEffects != null)
-        {
-            foreach (var pe in passiveEffects)
-            {
-                if (pe == null) continue;
-                string uniqueId = $"acc_{GetInstanceID()}_{(string.IsNullOrEmpty(pe.effectId) ? "effect" : pe.effectId)}";
-                status.RemoveEffect(uniqueId);
+                status.AddEffect(effect);
             }
         }
 
-        // Ensure current resources do not exceed new maximums after effects are removed
-        var stats = _owner.GetComponent<PlayerStats>();
-        if (stats != null)
-        {
-            stats.ClampResourcesToMax();
-        }
-
-        _equipped = false;
-        _owner = null;
+        equipped = true;
     }
 
-    void OnDestroy()
+    public void OnUnequipped()
     {
-        // Clean up effects if the object is destroyed while equipped
+        if (!equipped || owner == null)
+        {
+            equipped = false;
+            owner = null;
+            return;
+        }
+
+        PlayerStatusEffects status = owner.GetComponent<PlayerStatusEffects>();
+        if (status != null && passiveEffects != null)
+        {
+            foreach (PassiveEffect passiveEffect in passiveEffects)
+            {
+                if (passiveEffect == null)
+                    continue;
+
+                status.RemoveEffect(GetUniqueEffectId(passiveEffect));
+            }
+        }
+
+        equipped = false;
+        owner = null;
+    }
+
+    private string GetUniqueEffectId(PassiveEffect passiveEffect)
+    {
+        string baseId = passiveEffect != null && !string.IsNullOrEmpty(passiveEffect.effectId)
+            ? passiveEffect.effectId
+            : "effect";
+
+        return $"acc_{GetInstanceID()}_{baseId}";
+    }
+
+    private void OnDestroy()
+    {
         OnUnequipped();
     }
 }

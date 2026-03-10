@@ -188,7 +188,7 @@ MonoBehaviour:
   itemName: Mana Regeneration
   itemPrefab: {fileID: 7727407233950344413}
   carrier: {fileID: 11400000, guid: c98b92b41e20bdd48b09bb509bd47543, type: 2}
-  baseConsumeTime: 4
+  baseConsumeTime: 2
   renderModel: {fileID: 7727407233950344413}
   inventoryIcon: {fileID: 21300000, guid: 88967bfd0065b284f93dfaa98435e7b9, type: 3}
   title: Mana Regeneration Potion
