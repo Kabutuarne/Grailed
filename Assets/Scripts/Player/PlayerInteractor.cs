@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using TMPro;
 
 public class PlayerInteractor : MonoBehaviour
 {
@@ -19,68 +20,90 @@ public class PlayerInteractor : MonoBehaviour
     [Tooltip("If true, prevents world interaction when the pointer is over any UI.")]
     public bool uiPointerSafe = true;
 
+    [Header("Item Hover Visuals")]
+    [Tooltip("Optional: child object name to toggle as glow/highlight, e.g. 'Glow'")]
+    public string glowChildName = "Glow";
+
+    [Tooltip("Optional: instead of child name, toggle the first child/object with this tag.")]
+    public string glowTag = "ItemGlow";
+
+    [Header("World Text")]
+    public Vector3 textOffset = new Vector3(0f, 1.5f, 0f);
+    public float textScale = 0.05f;
+    public bool billboardTextToCamera = true;
+    public float textFontSize = 8f;
+
     private PlayerInputActions input;
     private PlayerInventory inventory;
     private ItemPickup lookedAtItem;
-
     private bool lastBackpackOpen;
+
+    private GameObject worldTextObject;
+    private TextMeshPro worldText;
 
     void Awake()
     {
         input = new PlayerInputActions();
         inventory = GetComponent<PlayerInventory>();
-
-        // Do NOT enable here unconditionally; we gate it based on backpack state.
-        // We'll enable/disable in Update once playerUI is known/ready.
+        CreateWorldText();
     }
 
     void OnEnable()
     {
         if (input == null) input = new PlayerInputActions();
-        // Defer enabling until Update() so we can respect backpack state immediately.
     }
 
     void OnDisable()
     {
         if (input == null) return;
         input.Player.Disable();
+        ClearCurrentItemVisuals();
     }
 
     void Start()
     {
-        // Initialize state and apply correct enable/disable immediately
         lastBackpackOpen = (playerUI != null && playerUI.IsBackpackOpen);
         ApplyInputState(lastBackpackOpen);
+        HideWorldText();
     }
 
     void Update()
     {
         bool backpackOpen = (playerUI != null && playerUI.IsBackpackOpen);
 
-        // Auto-toggle this component's input map when backpack opens/closes
         if (backpackOpen != lastBackpackOpen)
         {
             lastBackpackOpen = backpackOpen;
             ApplyInputState(backpackOpen);
 
-            // Clear look-at state when UI opens
             if (backpackOpen)
-                lookedAtItem = null;
+            {
+                ClearCurrentItemVisuals();
+            }
         }
 
-        // If UI open, do nothing (input map is disabled, but this is extra safety)
         if (backpackOpen)
             return;
 
-        // UI-pointer safe: if mouse is over UI, don't raycast/interact with world.
-        // This prevents clicks intended for UI (drag, drop, consume, tooltip hover) from also triggering Interact.
         if (uiPointerSafe && EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            ClearCurrentItemVisuals();
             return;
+        }
 
-        // Keep your debug look-at behavior
         CheckLookAtItem();
 
-        // Only try interact if this input map is enabled and Interact pressed
+        if (lookedAtItem != null)
+        {
+            UpdateWorldTextPosition();
+
+            if (billboardTextToCamera && cam != null && worldTextObject != null)
+            {
+                worldTextObject.transform.forward =
+                    worldTextObject.transform.position - cam.transform.position;
+            }
+        }
+
         if (input != null && input.Player.enabled && input.Player.Interact.WasPressedThisFrame())
         {
             TryInteract();
@@ -92,14 +115,9 @@ public class PlayerInteractor : MonoBehaviour
         if (input == null) return;
 
         if (backpackOpen)
-        {
-            // Disable ONLY this script's gameplay Interact map while UI is open
             input.Player.Disable();
-        }
         else
-        {
             input.Player.Enable();
-        }
     }
 
     void TryInteract()
@@ -129,7 +147,13 @@ public class PlayerInteractor : MonoBehaviour
             if (item != null)
             {
                 bool placedInBackpack = inventory.PickupToBackpack(item.gameObject);
-                if (placedInBackpack) item.OnPickedUp();
+                if (placedInBackpack)
+                {
+                    item.OnPickedUp();
+
+                    if (item == lookedAtItem)
+                        ClearCurrentItemVisuals();
+                }
                 return;
             }
         }
@@ -138,12 +162,19 @@ public class PlayerInteractor : MonoBehaviour
             if (item != null)
             {
                 bool placedInBackpack = inventory.PickupToBackpack(item.gameObject);
-                if (placedInBackpack) item.OnPickedUp();
+                if (placedInBackpack)
+                {
+                    item.OnPickedUp();
+
+                    if (item == lookedAtItem)
+                        ClearCurrentItemVisuals();
+                }
                 return;
             }
 
             if (door != null) { door.Interact(); return; }
             if (chest != null) { chest.Interact(); return; }
+            if (kartographGen != null) { kartographGen.Interact(); return; }
         }
     }
 
@@ -164,14 +195,154 @@ public class PlayerInteractor : MonoBehaviour
             {
                 if (item != lookedAtItem)
                 {
-                    lookedAtItem = item;
-                    Debug.Log($"Looking at item: {item.itemName} (gameobject {item.gameObject.name})");
+                    SetLookedAtItem(item);
                 }
                 return;
             }
         }
 
         if (lookedAtItem != null)
+            ClearCurrentItemVisuals();
+    }
+
+    void SetLookedAtItem(ItemPickup newItem)
+    {
+        ClearCurrentItemVisuals();
+
+        lookedAtItem = newItem;
+
+        ToggleItemGlow(lookedAtItem, true);
+        ShowWorldText(GetItemTitle(lookedAtItem), lookedAtItem.transform.position + textOffset);
+
+        Debug.Log($"Looking at item: {lookedAtItem.itemName} (gameobject {lookedAtItem.gameObject.name})");
+    }
+
+    void ClearCurrentItemVisuals()
+    {
+        if (lookedAtItem != null)
+        {
+            ToggleItemGlow(lookedAtItem, false);
             lookedAtItem = null;
+        }
+
+        HideWorldText();
+    }
+
+    void ToggleItemGlow(ItemPickup item, bool state)
+    {
+        if (item == null) return;
+
+        GameObject glowObj = FindGlowObject(item.gameObject);
+        if (glowObj != null)
+            glowObj.SetActive(state);
+    }
+
+    GameObject FindGlowObject(GameObject root)
+    {
+        if (root == null) return null;
+
+        if (!string.IsNullOrWhiteSpace(glowChildName))
+        {
+            Transform child = FindChildRecursive(root.transform, glowChildName);
+            if (child != null)
+                return child.gameObject;
+        }
+
+        if (!string.IsNullOrWhiteSpace(glowTag))
+        {
+            Transform[] allChildren = root.GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < allChildren.Length; i++)
+            {
+                if (allChildren[i].CompareTag(glowTag))
+                    return allChildren[i].gameObject;
+            }
+        }
+
+        return null;
+    }
+
+    Transform FindChildRecursive(Transform parent, string childName)
+    {
+        foreach (Transform child in parent)
+        {
+            if (child.name == childName)
+                return child;
+
+            Transform result = FindChildRecursive(child, childName);
+            if (result != null)
+                return result;
+        }
+
+        return null;
+    }
+
+    string GetItemTitle(ItemPickup itemPickup)
+    {
+        if (itemPickup == null) return "Item";
+
+        ScrollItem scrollItem = itemPickup.GetComponent<ScrollItem>();
+        if (scrollItem == null) scrollItem = itemPickup.GetComponentInParent<ScrollItem>();
+        if (scrollItem != null) return scrollItem.title;
+
+        Accessory accessory = itemPickup.GetComponent<Accessory>();
+        if (accessory == null) accessory = itemPickup.GetComponentInParent<Accessory>();
+        if (accessory != null) return accessory.title;
+
+        DecorationItem decoration = itemPickup.GetComponent<DecorationItem>();
+        if (decoration == null) decoration = itemPickup.GetComponentInParent<DecorationItem>();
+        if (decoration != null) return decoration.title;
+
+        WandItem wand = itemPickup.GetComponent<WandItem>();
+        if (wand == null) wand = itemPickup.GetComponentInParent<WandItem>();
+        if (wand != null) return wand.title;
+
+        ConsumableItem consumable = itemPickup.GetComponent<ConsumableItem>();
+        if (consumable == null) consumable = itemPickup.GetComponentInParent<ConsumableItem>();
+        if (consumable != null) return consumable.title;
+
+        return itemPickup.itemName;
+    }
+
+    void CreateWorldText()
+    {
+        worldTextObject = new GameObject("ItemHoverWorldText");
+        worldTextObject.transform.SetParent(null);
+        worldTextObject.transform.localScale = Vector3.one * textScale;
+
+        worldText = worldTextObject.AddComponent<TextMeshPro>();
+        worldText.alignment = TextAlignmentOptions.Center;
+        worldText.fontSize = textFontSize;
+        worldText.text = "";
+        worldText.color = Color.white;
+        worldText.outlineWidth = 0.2f;
+
+        worldTextObject.SetActive(false);
+    }
+
+    void ShowWorldText(string text, Vector3 position)
+    {
+        if (worldTextObject == null || worldText == null) return;
+
+        worldText.text = text;
+        worldTextObject.transform.position = position;
+        worldTextObject.SetActive(true);
+    }
+
+    void HideWorldText()
+    {
+        if (worldTextObject != null)
+            worldTextObject.SetActive(false);
+    }
+
+    void UpdateWorldTextPosition()
+    {
+        if (lookedAtItem == null || worldTextObject == null) return;
+        worldTextObject.transform.position = lookedAtItem.transform.position + textOffset;
+    }
+
+    void OnDestroy()
+    {
+        if (worldTextObject != null)
+            Destroy(worldTextObject);
     }
 }

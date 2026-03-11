@@ -47,7 +47,6 @@ public class PlayerStats : MonoBehaviour
 
     PlayerStatusEffects statusEffects;
     PlayerInventory inventory;
-    RagdollController ragdoll;
     PlayerController controller;
 
     [Header("Death & Respawn")]
@@ -59,7 +58,6 @@ public class PlayerStats : MonoBehaviour
     {
         statusEffects = GetComponent<PlayerStatusEffects>();
         inventory = GetComponent<PlayerInventory>();
-        ragdoll = GetComponent<RagdollController>();
         controller = GetComponent<PlayerController>();
 
         // Initialize current resources to the derived maximums
@@ -127,12 +125,6 @@ public class PlayerStats : MonoBehaviour
             inventory.DropAllItems(controller != null && controller.playerCamera != null ? controller.playerCamera : transform);
         }
 
-        // Engage ragdoll
-        if (ragdoll != null)
-        {
-            try { ragdoll.Activate(); } catch { }
-        }
-
         // Schedule respawn
         StartCoroutine(RespawnCoroutine());
     }
@@ -140,12 +132,6 @@ public class PlayerStats : MonoBehaviour
     System.Collections.IEnumerator RespawnCoroutine()
     {
         yield return new WaitForSeconds(respawnDelay);
-
-        // Remove previous body (ragdoll) and restore control
-        if (ragdoll != null)
-        {
-            try { ragdoll.DeactivateAndCleanup(); } catch { }
-        }
 
         // Move to respawn point if set
         if (respawnPoint != null)

@@ -33,29 +33,52 @@ public class DurationEffect : PlayerEffect
     {
         if (user == null) return;
 
-        var status = user.GetComponent<PlayerStatusEffects>();
-        if (status == null)
+        var playerStatus = user.GetComponent<PlayerStatusEffects>();
+        if (playerStatus != null)
         {
-            Debug.LogWarning($"DurationEffect '{displayName}' cannot be applied: PlayerStatusEffects missing on {user.name}");
+            var effect = new PlayerStatusEffects.Effect(effectId, duration)
+            {
+                carrier = carrier,
+                speedMultiplier = speedMultiplier,
+                healthRegenMultiplier = healthRegenMultiplier,
+                manaRegenMultiplier = manaRegenMultiplier,
+                energyRegenMultiplier = energyRegenMultiplier,
+                healthPerSecond = healthPerSecond,
+                manaPerSecond = manaPerSecond,
+                energyPerSecond = energyPerSecond,
+                addStrength = addStrength,
+                addIntelligence = addIntelligence,
+                addStaminaAttr = addStaminaAttr,
+                addAgility = addAgility
+            };
+
+            playerStatus.AddEffect(effect);
             return;
         }
 
-        var effect = new PlayerStatusEffects.Effect(effectId, duration)
+        var enemyStatus = user.GetComponent<EnemyStatusEffects>();
+        if (enemyStatus != null)
         {
-            carrier = carrier,
-            speedMultiplier = speedMultiplier,
-            healthRegenMultiplier = healthRegenMultiplier,
-            manaRegenMultiplier = manaRegenMultiplier,
-            energyRegenMultiplier = energyRegenMultiplier,
-            healthPerSecond = healthPerSecond,
-            manaPerSecond = manaPerSecond,
-            energyPerSecond = energyPerSecond,
-            addStrength = addStrength,
-            addIntelligence = addIntelligence,
-            addStaminaAttr = addStaminaAttr,
-            addAgility = addAgility
-        };
+            var effect = new EnemyStatusEffects.Effect(effectId, duration)
+            {
+                carrier = carrier,
+                speedMultiplier = speedMultiplier,
+                healthRegenMultiplier = healthRegenMultiplier,
+                manaRegenMultiplier = manaRegenMultiplier,
+                energyRegenMultiplier = energyRegenMultiplier,
+                healthPerSecond = healthPerSecond,
+                manaPerSecond = manaPerSecond,
+                energyPerSecond = energyPerSecond,
+                addStrength = addStrength,
+                addIntelligence = addIntelligence,
+                addStaminaAttr = addStaminaAttr,
+                addAgility = addAgility
+            };
 
-        status.AddEffect(effect);
+            enemyStatus.AddEffect(effect);
+            return;
+        }
+
+        Debug.LogWarning($"DurationEffect '{displayName}' cannot be applied: no compatible status effects found on {user.name}");
     }
 }

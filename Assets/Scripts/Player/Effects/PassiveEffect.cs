@@ -25,39 +25,70 @@ public class PassiveEffect : PlayerEffect
     {
         if (user == null) return;
 
-        PlayerStatusEffects status = user.GetComponent<PlayerStatusEffects>();
-        if (status == null)
+        PlayerStatusEffects playerStatus = user.GetComponent<PlayerStatusEffects>();
+        if (playerStatus != null)
         {
-            Debug.LogWarning($"PassiveEffect '{displayName}' cannot be applied: PlayerStatusEffects missing on {user.name}");
+            PlayerStatusEffects.Effect effect = new PlayerStatusEffects.Effect(effectId, -1f)
+            {
+                carrier = carrier,
+                speedMultiplier = speedMultiplier,
+                healthRegenMultiplier = healthRegenMultiplier,
+                manaRegenMultiplier = manaRegenMultiplier,
+                energyRegenMultiplier = energyRegenMultiplier,
+                healthPerSecond = healthPerSecond,
+                manaPerSecond = manaPerSecond,
+                energyPerSecond = energyPerSecond,
+                addStrength = addStrength,
+                addIntelligence = addIntelligence,
+                addStaminaAttr = addStaminaAttr,
+                addAgility = addAgility
+            };
+
+            playerStatus.AddEffect(effect);
             return;
         }
 
-        PlayerStatusEffects.Effect effect = new PlayerStatusEffects.Effect(effectId, -1f)
+        EnemyStatusEffects enemyStatus = user.GetComponent<EnemyStatusEffects>();
+        if (enemyStatus != null)
         {
-            carrier = carrier,
-            speedMultiplier = speedMultiplier,
-            healthRegenMultiplier = healthRegenMultiplier,
-            manaRegenMultiplier = manaRegenMultiplier,
-            energyRegenMultiplier = energyRegenMultiplier,
-            healthPerSecond = healthPerSecond,
-            manaPerSecond = manaPerSecond,
-            energyPerSecond = energyPerSecond,
-            addStrength = addStrength,
-            addIntelligence = addIntelligence,
-            addStaminaAttr = addStaminaAttr,
-            addAgility = addAgility
-        };
+            EnemyStatusEffects.Effect effect = new EnemyStatusEffects.Effect(effectId, -1f)
+            {
+                carrier = carrier,
+                speedMultiplier = speedMultiplier,
+                healthRegenMultiplier = healthRegenMultiplier,
+                manaRegenMultiplier = manaRegenMultiplier,
+                energyRegenMultiplier = energyRegenMultiplier,
+                healthPerSecond = healthPerSecond,
+                manaPerSecond = manaPerSecond,
+                energyPerSecond = energyPerSecond,
+                addStrength = addStrength,
+                addIntelligence = addIntelligence,
+                addStaminaAttr = addStaminaAttr,
+                addAgility = addAgility
+            };
 
-        status.AddEffect(effect);
+            enemyStatus.AddEffect(effect);
+            return;
+        }
+
+        Debug.LogWarning($"PassiveEffect '{displayName}' cannot be applied: no compatible status effects found on {user.name}");
     }
 
     public override void Remove(GameObject user)
     {
         if (user == null) return;
 
-        PlayerStatusEffects status = user.GetComponent<PlayerStatusEffects>();
-        if (status == null) return;
+        PlayerStatusEffects playerStatus = user.GetComponent<PlayerStatusEffects>();
+        if (playerStatus != null)
+        {
+            playerStatus.RemoveEffect(effectId);
+            return;
+        }
 
-        status.RemoveEffect(effectId);
+        EnemyStatusEffects enemyStatus = user.GetComponent<EnemyStatusEffects>();
+        if (enemyStatus != null)
+        {
+            enemyStatus.RemoveEffect(effectId);
+        }
     }
 }

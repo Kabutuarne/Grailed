@@ -17,13 +17,25 @@ public class InstantEffect : PlayerEffect
     {
         if (user == null) return;
 
-        var status = user.GetComponent<PlayerStatusEffects>();
-        if (status == null)
+        PlayerStatusEffects playerStatus = user.GetComponent<PlayerStatusEffects>();
+        if (playerStatus != null)
         {
-            Debug.LogWarning($"InstantEffect '{displayName}' cannot be applied: PlayerStatusEffects component missing on {user.name}");
+            ApplyToPlayer(playerStatus, carrier);
             return;
         }
 
+        EnemyStatusEffects enemyStatus = user.GetComponent<EnemyStatusEffects>();
+        if (enemyStatus != null)
+        {
+            ApplyToEnemy(enemyStatus, carrier);
+            return;
+        }
+
+        Debug.LogWarning($"InstantEffect '{displayName}' cannot be applied: no compatible status effects component found on {user.name}");
+    }
+
+    private void ApplyToPlayer(PlayerStatusEffects status, EffectCarrier carrier)
+    {
         if (healthAmount != 0f)
         {
             var effect = new PlayerStatusEffects.Effect(effectId + "_health")
@@ -49,6 +61,42 @@ public class InstantEffect : PlayerEffect
         if (energyAmount != 0f)
         {
             var effect = new PlayerStatusEffects.Effect(effectId + "_energy")
+            {
+                duration = 0f,
+                carrier = carrier,
+                energyAmount = energyAmount
+            };
+            status.AddEffect(effect);
+        }
+    }
+
+    private void ApplyToEnemy(EnemyStatusEffects status, EffectCarrier carrier)
+    {
+        if (healthAmount != 0f)
+        {
+            var effect = new EnemyStatusEffects.Effect(effectId + "_health")
+            {
+                duration = 0f,
+                carrier = carrier,
+                healAmount = healthAmount
+            };
+            status.AddEffect(effect);
+        }
+
+        if (manaAmount != 0f)
+        {
+            var effect = new EnemyStatusEffects.Effect(effectId + "_mana")
+            {
+                duration = 0f,
+                carrier = carrier,
+                manaAmount = manaAmount
+            };
+            status.AddEffect(effect);
+        }
+
+        if (energyAmount != 0f)
+        {
+            var effect = new EnemyStatusEffects.Effect(effectId + "_energy")
             {
                 duration = 0f,
                 carrier = carrier,

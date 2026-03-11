@@ -18,10 +18,11 @@ MonoBehaviour:
   speedMultiplier: 0
   healthRegenMultiplier: 0
   manaRegenMultiplier: 0
+  energyRegenMultiplier: 0
   healthPerSecond: 0
-  healthAmount: 0
-  manaAmount: 0
+  manaPerSecond: 0
+  energyPerSecond: 0
   addStrength: 0
   addIntelligence: 0
-  addStaminaAttr: -10
-  addAgility: -10
+  addStaminaAttr: -1000
+  addAgility: -1000
