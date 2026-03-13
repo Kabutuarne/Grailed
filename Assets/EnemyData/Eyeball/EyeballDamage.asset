@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51bd952c2d850644699e8544acb30e8c, type: 3}
   m_Name: EyeballDamage
   m_EditorClassIdentifier: Assembly-CSharp::InstantEffect
-  effectId: effect
-  displayName: Player Effect
-  healthAmount: 0
+  effectId: EyeballDamageEffect
+  displayName: EyeballDamageEffect
+  healthAmount: -66
   manaAmount: 0
   energyAmount: 0
