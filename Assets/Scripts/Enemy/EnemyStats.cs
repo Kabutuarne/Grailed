@@ -3,174 +3,227 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class EnemyStats : MonoBehaviour
 {
-    [Header("Attributes (same model as player)")]
+    [Header("Core Attributes")]
+    [Tooltip("Intelligence - Used for magical damage and mana calculations")]
     public float intelligence = 10f;
+
+    [Tooltip("Strength - Used for health and health regeneration calculations")]
     public float strength = 10f;
-    public float staminaAttr = 10f;
+
+    [Tooltip("Stamina - Used for movement speed and energy calculations")]
+    public float stamina = 10f;
+
+    [Tooltip("Agility - Used for attack speed calculations")]
     public float agility = 10f;
 
-    [Header("Base / scaling settings")]
+    [Header("Stat Randomization")]
+    [Tooltip("Randomize attributes on Awake within the specified variance ranges")]
+    public bool randomizeOnSpawn = false;
+
+    [Min(0f)] public float intelligenceVariance = 2f;
+    [Min(0f)] public float strengthVariance = 2f;
+    [Min(0f)] public float staminaVariance = 2f;
+    [Min(0f)] public float agilityVariance = 2f;
+
+    [Header("Base Scaling Values")]
+    [Tooltip("Base max health before strength scaling")]
     public float baseMaxHealth = 100f;
+    [Tooltip("Base health regen per second before strength scaling")]
     public float baseHealthRegen = 0.5f;
+    [Tooltip("Base max mana before intelligence scaling")]
     public float baseMaxMana = 20f;
+    [Tooltip("Base mana regen per second before intelligence scaling")]
     public float baseManaRegen = 0f;
+    [Tooltip("Base max energy before stamina scaling")]
     public float baseMaxEnergy = 100f;
+    [Tooltip("Base energy regen per second before stamina scaling")]
     public float baseEnergyRegen = 5f;
 
-    [Header("Movement")]
-    public float baseWalkSpeed = 2.5f;
-    public float baseSprintSpeed = 4f;
-
-    [Header("Current resources")]
+    [Header("Current Resources (Auto-Managed)")]
+    [Tooltip("Current health - managed automatically by status effects")]
     public float health;
+    [Tooltip("Current mana - managed automatically by status effects")]
     public float mana;
+    [Tooltip("Current energy - managed automatically by status effects")]
     public float energy;
 
-    [Header("Combat")]
-    public float contactDamage = 10f;
-    public float attackCooldown = 1f;
-    public bool destroyOnDeath = true;
-    public float destroyDelay = 0f;
+    [Header("Death Drops")]
+    [Tooltip("Prefabs to spawn at this position when the enemy dies")]
+    public GameObject[] deathDropPrefabs;
 
-    [Header("Optional death effects")]
-    public EffectCarrier[] onDeathEffects;
+    [Tooltip("Random scatter radius for dropped items")]
+    public float dropScatterRadius = 1f;
 
     private EnemyStatusEffects statusEffects;
-    private bool isDead;
 
-    public bool IsDead => isDead;
+    // Effective attributes include base stats + status effect modifiers
+    public float EffectiveIntelligence => Mathf.Max(0.1f, intelligence + GetStatusEffectAttributeAdd("intelligence"));
+    public float EffectiveStrength => Mathf.Max(0.1f, strength + GetStatusEffectAttributeAdd("strength"));
+    public float EffectiveStamina => Mathf.Max(0.1f, stamina + GetStatusEffectAttributeAdd("stamina"));
+    public float EffectiveAgility => Mathf.Max(0.1f, agility + GetStatusEffectAttributeAdd("agility"));
 
-    public float effectiveStrength => strength + (statusEffects != null ? statusEffects.GetStrengthAdd() : 0f);
-    public float effectiveIntelligence => intelligence + (statusEffects != null ? statusEffects.GetIntelligenceAdd() : 0f);
-    public float effectiveStaminaAttr => staminaAttr + (statusEffects != null ? statusEffects.GetStaminaAttrAdd() : 0f);
-    public float effectiveAgility => agility + (statusEffects != null ? statusEffects.GetAgilityAdd() : 0f);
+    // Max resources calculated from attributes
+    public float MaxHealth => Mathf.Max(1f, (EffectiveStrength / 10f) * baseMaxHealth);
+    public float MaxMana => Mathf.Max(0f, (EffectiveIntelligence / 10f) * baseMaxMana);
+    public float MaxEnergy => Mathf.Max(1f, (EffectiveStamina / 10f) * baseMaxEnergy);
 
-    public float maxHealth => Mathf.Max(1f, (effectiveStrength / 10f) * baseMaxHealth);
-    public float healthRegenPerSecond => Mathf.Max(0f, (effectiveStrength / 10f) * baseHealthRegen * (statusEffects != null ? statusEffects.GetHealthRegenMultiplier() : 1f));
-    public float maxMana => Mathf.Max(0f, (effectiveIntelligence / 10f) * baseMaxMana);
-    public float manaRegenPerSecond => Mathf.Max(0f, (effectiveIntelligence / 10f) * baseManaRegen * (statusEffects != null ? statusEffects.GetManaRegenMultiplier() : 1f));
-    public float maxEnergy => Mathf.Max(1f, (effectiveStaminaAttr / 10f) * baseMaxEnergy);
-    public float energyRegenPerSecond => Mathf.Max(0f, (effectiveStaminaAttr / 10f) * baseEnergyRegen * (statusEffects != null ? statusEffects.GetEnergyRegenMultiplier() : 1f));
-    public float walkSpeed => Mathf.Max(0f, (effectiveStaminaAttr / 10f) * baseWalkSpeed * (statusEffects != null ? statusEffects.GetSpeedMultiplier() : 1f));
-    public float sprintSpeed => Mathf.Max(0f, (effectiveStaminaAttr / 10f) * baseSprintSpeed * (statusEffects != null ? statusEffects.GetSpeedMultiplier() : 1f));
+    // Regen rates calculated from attributes and status effect multipliers
+    public float HealthRegenPerSecond => Mathf.Max(0f, (EffectiveStrength / 10f) * baseHealthRegen * GetHealthRegenMultiplier());
+    public float ManaRegenPerSecond => Mathf.Max(0f, (EffectiveIntelligence / 10f) * baseManaRegen * GetManaRegenMultiplier());
+    public float EnergyRegenPerSecond => Mathf.Max(0f, (EffectiveStamina / 10f) * baseEnergyRegen * GetEnergyRegenMultiplier());
 
-    public float Health01 => maxHealth > 0f ? health / maxHealth : 0f;
-    public float Mana01 => maxMana > 0f ? mana / maxMana : 0f;
-    public float Energy01 => maxEnergy > 0f ? energy / maxEnergy : 0f;
+    // Normalized resource values (0-1)
+    public float Health01 => MaxHealth > 0f ? health / MaxHealth : 0f;
+    public float Mana01 => MaxMana > 0f ? mana / MaxMana : 0f;
+    public float Energy01 => MaxEnergy > 0f ? energy / MaxEnergy : 0f;
+
+    // Legacy property names (for compatibility)
+    public float maxHealth => MaxHealth;
+    public float maxMana => MaxMana;
+    public float maxEnergy => MaxEnergy;
 
     private void Awake()
     {
         statusEffects = GetComponent<EnemyStatusEffects>();
-        health = maxHealth;
-        mana = maxMana;
-        energy = maxEnergy;
+
+        if (randomizeOnSpawn)
+            RandomizeAttributes();
+
+        // Initialize resources to max
+        health = MaxHealth;
+        mana = MaxMana;
+        energy = MaxEnergy;
     }
 
-    private void Update()
+    /// <summary>
+    /// Randomizes all attributes within their variance ranges
+    /// </summary>
+    public void RandomizeAttributes()
     {
-        if (isDead)
+        intelligence = RollAttribute(intelligence, intelligenceVariance);
+        strength = RollAttribute(strength, strengthVariance);
+        stamina = RollAttribute(stamina, staminaVariance);
+        agility = RollAttribute(agility, agilityVariance);
+    }
+
+    /// <summary>
+    /// Spawns death drop prefabs at this enemy's position
+    /// </summary>
+    public void SpawnDeathDrops()
+    {
+        if (deathDropPrefabs == null || deathDropPrefabs.Length == 0)
             return;
 
-        if (health <= 0f)
+        foreach (GameObject prefab in deathDropPrefabs)
         {
-            Die();
-            return;
+            if (prefab == null)
+                continue;
+
+            Vector3 dropPosition = transform.position;
+
+            if (dropScatterRadius > 0f)
+            {
+                Vector2 randomCircle = Random.insideUnitCircle * dropScatterRadius;
+                dropPosition += new Vector3(randomCircle.x, 0f, randomCircle.y);
+            }
+
+            Instantiate(prefab, dropPosition, Quaternion.identity);
         }
-
-        if (health < maxHealth)
-            Heal(healthRegenPerSecond * Time.deltaTime);
-
-        if (maxMana > 0f && mana < maxMana)
-            RestoreMana(manaRegenPerSecond * Time.deltaTime);
-
-        if (energy < maxEnergy)
-            RestoreEnergy(energyRegenPerSecond * Time.deltaTime);
     }
 
-    public void TakeDamage(float amount)
-    {
-        if (isDead || amount <= 0f)
-            return;
-
-        health = Mathf.Clamp(health - amount, 0f, maxHealth);
-        if (health <= 0f)
-            Die();
-    }
+    // ===== Resource Management Methods (Used by EnemyStatusEffects) =====
 
     public void Heal(float amount)
     {
-        if (isDead)
-            return;
-
-        health = Mathf.Clamp(health + amount, 0f, maxHealth);
-        if (health <= 0f)
-            Die();
-    }
-
-    public bool TrySpendMana(float amount)
-    {
-        if (mana < amount)
-            return false;
-
-        mana = Mathf.Clamp(mana - amount, 0f, maxMana);
-        return true;
+        // if (amount <= 0f)
+        //     return;
+        health = Mathf.Clamp(health + amount, 0f, MaxHealth);
     }
 
     public void RestoreMana(float amount)
     {
-        mana = Mathf.Clamp(mana + amount, 0f, maxMana);
-    }
+        if (amount <= 0f)
+            return;
 
-    public bool TrySpendEnergy(float amount)
-    {
-        if (energy < amount)
-            return false;
-
-        energy = Mathf.Clamp(energy - amount, 0f, maxEnergy);
-        return true;
+        mana = Mathf.Clamp(mana + amount, 0f, MaxMana);
     }
 
     public void RestoreEnergy(float amount)
     {
-        energy = Mathf.Clamp(energy + amount, 0f, maxEnergy);
+        if (amount <= 0f)
+            return;
+
+        energy = Mathf.Clamp(energy + amount, 0f, MaxEnergy);
+    }
+
+    public bool TrySpendMana(float amount)
+    {
+        if (amount <= 0f)
+            return true;
+
+        if (mana < amount)
+            return false;
+
+        mana = Mathf.Clamp(mana - amount, 0f, MaxMana);
+        return true;
+    }
+
+    public bool TrySpendEnergy(float amount)
+    {
+        if (amount <= 0f)
+            return true;
+
+        if (energy < amount)
+            return false;
+
+        energy = Mathf.Clamp(energy - amount, 0f, MaxEnergy);
+        return true;
     }
 
     public void ClampResourcesToMax()
     {
-        health = Mathf.Clamp(health, 0f, maxHealth);
-        mana = Mathf.Clamp(mana, 0f, maxMana);
-        energy = Mathf.Clamp(energy, 0f, maxEnergy);
+        health = Mathf.Clamp(health, 0f, MaxHealth);
+        mana = Mathf.Clamp(mana, 0f, MaxMana);
+        energy = Mathf.Clamp(energy, 0f, MaxEnergy);
     }
 
-    public void Kill()
+    // ===== Private Helper Methods =====
+
+    private float RollAttribute(float baseValue, float variance)
     {
-        if (!isDead)
-            Die();
+        if (variance <= 0f)
+            return baseValue;
+
+        return Mathf.Max(0.1f, baseValue + Random.Range(-variance, variance));
     }
 
-    private void Die()
+    private float GetStatusEffectAttributeAdd(string attributeName)
     {
-        if (isDead)
-            return;
+        if (statusEffects == null)
+            return 0f;
 
-        isDead = true;
-
-        if (statusEffects != null)
+        return attributeName switch
         {
-            statusEffects.ClearAllEffects();
-            statusEffects.enabled = false;
-        }
+            "intelligence" => statusEffects.GetIntelligenceAdd(),
+            "strength" => statusEffects.GetStrengthAdd(),
+            "stamina" => statusEffects.GetStaminaAttrAdd(),
+            "agility" => statusEffects.GetAgilityAdd(),
+            _ => 0f
+        };
+    }
 
-        if (onDeathEffects != null)
-        {
-            foreach (EffectCarrier carrier in onDeathEffects)
-            {
-                if (carrier != null)
-                    carrier.Apply(gameObject);
-            }
-        }
+    private float GetHealthRegenMultiplier()
+    {
+        return statusEffects != null ? statusEffects.GetHealthRegenMultiplier() : 1f;
+    }
 
-        if (destroyOnDeath)
-            Destroy(gameObject, destroyDelay);
+    private float GetManaRegenMultiplier()
+    {
+        return statusEffects != null ? statusEffects.GetManaRegenMultiplier() : 1f;
+    }
+
+    private float GetEnergyRegenMultiplier()
+    {
+        return statusEffects != null ? statusEffects.GetEnergyRegenMultiplier() : 1f;
     }
 }

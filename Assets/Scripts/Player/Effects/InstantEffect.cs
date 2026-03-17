@@ -13,6 +13,10 @@ public class InstantEffect : PlayerEffect
     [Tooltip("Amount of energy / sprint to restore (+) or drain (-). Applied immediately.")]
     public float energyAmount = 0f;
 
+    [Header("Cast Interaction")]
+    [Tooltip("If true, applying this effect to the player will interrupt any active spell cast.")]
+    public bool breaksCast = false;
+
     public override void Apply(GameObject user, EffectCarrier carrier = null)
     {
         if (user == null) return;
@@ -20,7 +24,7 @@ public class InstantEffect : PlayerEffect
         PlayerStatusEffects playerStatus = user.GetComponent<PlayerStatusEffects>();
         if (playerStatus != null)
         {
-            ApplyToPlayer(playerStatus, carrier);
+            ApplyToPlayer(user, playerStatus, carrier);
             return;
         }
 
@@ -34,7 +38,7 @@ public class InstantEffect : PlayerEffect
         Debug.LogWarning($"InstantEffect '{displayName}' cannot be applied: no compatible status effects component found on {user.name}");
     }
 
-    private void ApplyToPlayer(PlayerStatusEffects status, EffectCarrier carrier)
+    private void ApplyToPlayer(GameObject user, PlayerStatusEffects status, EffectCarrier carrier)
     {
         if (healthAmount != 0f)
         {
@@ -67,6 +71,13 @@ public class InstantEffect : PlayerEffect
                 energyAmount = energyAmount
             };
             status.AddEffect(effect);
+        }
+
+        if (breaksCast)
+        {
+            PlayerCast playerCast = user.GetComponent<PlayerCast>();
+            if (playerCast != null)
+                playerCast.OnDamageTaken();
         }
     }
 

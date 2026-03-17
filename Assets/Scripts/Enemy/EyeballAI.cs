@@ -2,16 +2,21 @@ using System.Linq;
 using UnityEngine;
 
 [RequireComponent(typeof(EnemyStats))]
-[RequireComponent(typeof(AudioSource))]
 [DisallowMultipleComponent]
 public class EyeballAI : MonoBehaviour
 {
+    [Header("Health & Resources")]
+    [Tooltip("Base health before strength multiplier")]
+    public float baseMaxHealth = 100f;
+    [Tooltip("Health regeneration per second before strength multiplier")]
+    public float baseHealthRegen = 0.5f;
+
     [Header("Targeting")]
     public string playerTag = "Player";
     public float detectionRadius = 22f;
     public float loseTargetRadius = 30f;
 
-    [Header("Weeping Angel")]
+    [Header("Weeping Angel Behavior")]
     public bool freezeWhenSeen = true;
     public float seenDotThreshold = 0.6f;
     public LayerMask lineOfSightMask = ~0;
@@ -21,6 +26,7 @@ public class EyeballAI : MonoBehaviour
     public float hoverHeight = 2f;
     public float hoverCorrectionSpeed = 4f;
     public float hoverMaxVerticalSpeed = 3f;
+    [Tooltip("Base movement speed multiplier before stamina scaling")]
     public float baseChargeSpeedMultiplier = 1.1f;
     public float maxChargeSpeedMultiplier = 2.8f;
     public float accelerationPerSecond = 0.75f;
@@ -30,14 +36,24 @@ public class EyeballAI : MonoBehaviour
     public float groundProbeHeight = 3f;
     public float groundProbeDistance = 12f;
 
-    [Header("Explosion")]
+    [Header("Explosion Attack")]
+    [Tooltip("Distance required to start the explosion attack")]
     public float explodeRange = 1.5f;
-    public float explosionDamageMultiplier = 1.5f;
+    [Tooltip("Delay between starting the attack and applying explosion effects")]
+    public float attackDelay = 0f;
     public KnockbackImpactBehaviour knockbackBehaviour;
     public EffectCarrier[] onExplodeEffects;
     public GameObject explosionVFX;
 
-    [Header("Audio")]
+    [Header("Audio Sources")]
+    [Tooltip("Audio source for spotted sound (one-shot)")]
+    public AudioSource spottedAudioSource;
+    [Tooltip("Audio source for approach loop")]
+    public AudioSource approachAudioSource;
+    [Tooltip("Audio source for death sound")]
+    public AudioSource deathAudioSource;
+
+    [Header("Audio Clips")]
     public AudioClip spottedSound;
     public AudioClip approachLoopSound;
     public AudioClip deathSound;
@@ -45,25 +61,36 @@ public class EyeballAI : MonoBehaviour
     [Header("Knockback Recovery")]
     public float knockbackRecoveryDelay = 0.6f;
 
+    [Header("Death Settings")]
+    public bool destroyOnDeath = true;
+    public float destroyDelay = 0f;
+
     private EnemyStats stats;
+    private EnemyStatusEffects statusEffects;
     private Rigidbody rb;
-    private AudioSource audioSource;
     private Transform target;
+    private Collider[] ownColliders;
+
     private float currentSpeedMultiplier;
+    private float knockbackRecoveryTimer;
+    private float pendingExplosionTime = -1f;
     private bool hasPlayedSpottedSound;
     private bool isApproaching;
-    private float knockbackRecoveryTimer;
     private bool isSeen;
+    private bool isExploding;
+    private bool isDead;
 
-    // Cached colliders on this enemy to exclude from LOS raycast
-    private Collider[] ownColliders;
+    public bool IsDead => isDead;
+
+    // Calculated properties based on stats
+    public float Health01 => stats != null ? stats.Health01 : 0f;
 
     private void Awake()
     {
         stats = GetComponent<EnemyStats>();
+        statusEffects = GetComponent<EnemyStatusEffects>();
         rb = GetComponent<Rigidbody>();
-        audioSource = GetComponent<AudioSource>();
-        ownColliders = GetComponentsInChildren<Collider>().Append(GetComponent<Collider>()).ToArray();
+        ownColliders = GetComponentsInChildren<Collider>().Append(GetComponent<Collider>()).Where(c => c != null).ToArray();
 
         currentSpeedMultiplier = baseChargeSpeedMultiplier;
 
@@ -74,47 +101,51 @@ public class EyeballAI : MonoBehaviour
             rb.constraints = RigidbodyConstraints.FreezeRotation;
         }
 
-        if (audioSource != null)
-        {
-            audioSource.loop = false;
-            audioSource.playOnAwake = false;
-        }
+        SetupAudioSources();
     }
 
     private void Update()
     {
-        if (stats.IsDead) return;
+        if (isDead)
+            return;
+
+        // Check for death
+        if (stats != null && stats.health <= 0f)
+        {
+            Die();
+            return;
+        }
 
         AcquireTarget();
         isSeen = freezeWhenSeen && target != null && IsSeenByTarget();
-        HandleAudio();
 
         if (knockbackRecoveryTimer > 0f)
             knockbackRecoveryTimer -= Time.deltaTime;
+
+        if (pendingExplosionTime >= 0f && Time.time >= pendingExplosionTime)
+        {
+            pendingExplosionTime = -1f;
+            ApplyExplosion();
+        }
+
+        HandleAudio();
     }
 
     private void FixedUpdate()
     {
-        if (stats.IsDead) return;
+        if (isDead)
+            return;
 
         if (isSeen)
         {
-            // Fully kill all velocity while frozen — prevents any accumulated vertical drift
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-            currentSpeedMultiplier = baseChargeSpeedMultiplier;
-            SetApproaching(false);
-
-            // Still face the target while frozen
-            if (target != null)
-                FaceTarget(target.position);
-
+            FreezeInPlace();
             return;
         }
 
         MaintainHover();
 
-        if (target == null) return;
+        if (target == null || isExploding)
+            return;
 
         FaceTarget(target.position);
         SetApproaching(true);
@@ -122,66 +153,156 @@ public class EyeballAI : MonoBehaviour
         currentSpeedMultiplier = Mathf.MoveTowards(
             currentSpeedMultiplier,
             maxChargeSpeedMultiplier,
-            accelerationPerSecond * Time.fixedDeltaTime
-        );
+            accelerationPerSecond * Time.fixedDeltaTime);
 
         MoveTowardsTarget();
 
         if (Vector3.Distance(transform.position, target.position) <= explodeRange)
-            Explode();
+            StartExplosionAttack();
+    }
+
+    private void StartExplosionAttack()
+    {
+        if (isExploding || isDead)
+            return;
+
+        isExploding = true;
+        SetApproaching(false);
+        rb.linearVelocity = Vector3.zero;
+        pendingExplosionTime = Time.time + Mathf.Max(0f, attackDelay);
+    }
+
+    private void ApplyExplosion()
+    {
+        if (isDead)
+            return;
+
+        // Apply knockback
+        if (knockbackBehaviour != null)
+        {
+            Collider[] hits = Physics.OverlapSphere(transform.position, knockbackBehaviour.radius);
+            knockbackBehaviour.Apply(gameObject, transform.position, hits, knockbackBehaviour.radius);
+        }
+
+        // Apply effects to target (NO damage multipliers, only EffectCarrier)
+        if (target != null && onExplodeEffects != null)
+        {
+            foreach (EffectCarrier carrier in onExplodeEffects)
+            {
+                if (carrier != null)
+                    carrier.Apply(target.gameObject);
+            }
+        }
+
+        PlayDeathEffects();
+        Die();
+    }
+
+    public void TakeDamage(float amount)
+    {
+        if (isDead || amount <= 0f || stats == null)
+            return;
+
+        stats.health = Mathf.Clamp(stats.health - amount, 0f, stats.MaxHealth);
+
+        if (stats.health <= 0f)
+            Die();
+    }
+
+    public void Heal(float amount)
+    {
+        if (isDead || amount <= 0f || stats == null)
+            return;
+
+        stats.Heal(amount);
+    }
+
+    public void Kill()
+    {
+        if (!isDead)
+            Die();
+    }
+
+    private void Die()
+    {
+        if (isDead)
+            return;
+
+        isDead = true;
+
+        if (statusEffects != null)
+        {
+            statusEffects.ClearAllEffects();
+            statusEffects.enabled = false;
+        }
+
+        // Spawn death drops
+        if (stats != null)
+            stats.SpawnDeathDrops();
+
+        if (destroyOnDeath)
+            Destroy(gameObject, destroyDelay);
+    }
+
+    private void FreezeInPlace()
+    {
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        currentSpeedMultiplier = baseChargeSpeedMultiplier;
+        SetApproaching(false);
+
+        if (target != null)
+            FaceTarget(target.position);
     }
 
     private void MaintainHover()
     {
-        if (rb == null) return;
+        if (rb == null)
+            return;
 
         Vector3 origin = transform.position + Vector3.up * groundProbeHeight;
-        float targetY;
 
-        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit,
-                groundProbeHeight + groundProbeDistance, groundMask,
+        if (!Physics.Raycast(
+                origin,
+                Vector3.down,
+                out RaycastHit hit,
+                groundProbeHeight + groundProbeDistance,
+                groundMask,
                 QueryTriggerInteraction.Ignore))
         {
-            targetY = hit.point.y + hoverHeight;
-        }
-        else
-        {
-            Vector3 vel = rb.linearVelocity;
-            rb.linearVelocity = new Vector3(vel.x, 0f, vel.z);
+            Vector3 velocity = rb.linearVelocity;
+            rb.linearVelocity = new Vector3(velocity.x, 0f, velocity.z);
             return;
         }
 
         if (knockbackRecoveryTimer > 0f)
         {
-            // Only suppress upward velocity during recovery
             if (rb.linearVelocity.y > 0f)
             {
-                Vector3 v = rb.linearVelocity;
-                rb.linearVelocity = new Vector3(v.x, 0f, v.z);
+                Vector3 recoveryVelocity = rb.linearVelocity;
+                rb.linearVelocity = new Vector3(recoveryVelocity.x, 0f, recoveryVelocity.z);
             }
             return;
         }
 
+        float targetY = hit.point.y + hoverHeight;
         float error = targetY - transform.position.y;
-        float desiredVerticalVelocity = Mathf.Clamp(
-            error * hoverCorrectionSpeed,
-            -hoverMaxVerticalSpeed,
-            hoverMaxVerticalSpeed
-        );
+        float desiredVerticalVelocity = Mathf.Clamp(error * hoverCorrectionSpeed, -hoverMaxVerticalSpeed, hoverMaxVerticalSpeed);
 
-        Vector3 vel2 = rb.linearVelocity;
-        rb.linearVelocity = new Vector3(vel2.x, desiredVerticalVelocity, vel2.z);
+        Vector3 currentVelocity = rb.linearVelocity;
+        rb.linearVelocity = new Vector3(currentVelocity.x, desiredVerticalVelocity, currentVelocity.z);
     }
 
     private void MoveTowardsTarget()
     {
         Vector3 targetPosition = target.position;
         targetPosition.y = transform.position.y;
-        Vector3 moveDir = (targetPosition - transform.position).normalized;
+        Vector3 moveDirection = (targetPosition - transform.position).normalized;
 
-        float moveSpeed = stats.sprintSpeed * currentSpeedMultiplier;
+        float baseSpeed = (stats.EffectiveStamina / 10f) * baseChargeSpeedMultiplier;
+        float moveSpeed = baseSpeed * currentSpeedMultiplier * GetSpeedMultiplier();
         Vector3 currentVelocity = rb.linearVelocity;
-        rb.linearVelocity = new Vector3(moveDir.x * moveSpeed, currentVelocity.y, moveDir.z * moveSpeed);
+        rb.linearVelocity = new Vector3(moveDirection.x * moveSpeed, currentVelocity.y, moveDirection.z * moveSpeed);
     }
 
     public void NotifyKnockback()
@@ -190,79 +311,112 @@ public class EyeballAI : MonoBehaviour
         SetApproaching(false);
     }
 
+    private void SetupAudioSources()
+    {
+        // Create AudioSource components if not assigned
+        AudioSource[] sources = GetComponents<AudioSource>();
+
+        if (spottedAudioSource == null)
+        {
+            spottedAudioSource = gameObject.AddComponent<AudioSource>();
+            spottedAudioSource.playOnAwake = false;
+        }
+
+        if (approachAudioSource == null)
+        {
+            approachAudioSource = gameObject.AddComponent<AudioSource>();
+            approachAudioSource.playOnAwake = false;
+        }
+
+        if (deathAudioSource == null)
+        {
+            deathAudioSource = gameObject.AddComponent<AudioSource>();
+            deathAudioSource.playOnAwake = false;
+        }
+    }
+
     private void HandleAudio()
     {
         if (isSeen)
         {
-            if (!hasPlayedSpottedSound && spottedSound != null)
+            if (!hasPlayedSpottedSound && spottedSound != null && spottedAudioSource != null)
             {
-                audioSource.PlayOneShot(spottedSound);
+                spottedAudioSource.PlayOneShot(spottedSound);
                 hasPlayedSpottedSound = true;
             }
+            return;
         }
-        else
-        {
-            hasPlayedSpottedSound = false;
-        }
+
+        hasPlayedSpottedSound = false;
     }
 
     private void SetApproaching(bool approaching)
     {
-        if (approaching == isApproaching) return;
+        if (approaching == isApproaching)
+            return;
+
         isApproaching = approaching;
+
+        if (approachAudioSource == null)
+            return;
 
         if (approaching)
         {
             if (approachLoopSound != null)
             {
-                audioSource.clip = approachLoopSound;
-                audioSource.loop = true;
-                audioSource.Play();
+                approachAudioSource.clip = approachLoopSound;
+                approachAudioSource.loop = true;
+                approachAudioSource.Play();
             }
+            return;
         }
-        else
-        {
-            audioSource.Stop();
-        }
+
+        approachAudioSource.Stop();
     }
 
     private void AcquireTarget()
     {
-        if (target != null)
-        {
-            if (Vector3.Distance(transform.position, target.position) <= loseTargetRadius)
-                return;
-            target = null;
-        }
+        if (target != null && Vector3.Distance(transform.position, target.position) <= loseTargetRadius)
+            return;
 
+        target = FindClosestPlayer();
+    }
+
+    private Transform FindClosestPlayer()
+    {
         PlayerStats[] players = FindObjectsByType<PlayerStats>(FindObjectsSortMode.None);
-        float bestSqr = detectionRadius * detectionRadius;
-        Transform best = null;
+        float bestSqrDistance = detectionRadius * detectionRadius;
+        Transform bestTarget = null;
 
         foreach (PlayerStats player in players)
         {
-            if (player == null) continue;
-            float sqr = (player.transform.position - transform.position).sqrMagnitude;
-            if (sqr < bestSqr) { bestSqr = sqr; best = player.transform; }
+            if (player == null)
+                continue;
+
+            float sqrDistance = (player.transform.position - transform.position).sqrMagnitude;
+            if (sqrDistance >= bestSqrDistance)
+                continue;
+
+            bestSqrDistance = sqrDistance;
+            bestTarget = player.transform;
         }
 
-        if (best == null && !string.IsNullOrEmpty(playerTag))
-        {
-            GameObject tagged = GameObject.FindGameObjectWithTag(playerTag);
-            if (tagged != null)
-            {
-                float sqr = (tagged.transform.position - transform.position).sqrMagnitude;
-                if (sqr <= bestSqr) best = tagged.transform;
-            }
-        }
+        if (bestTarget != null || string.IsNullOrEmpty(playerTag))
+            return bestTarget;
 
-        target = best;
+        GameObject tagged = GameObject.FindGameObjectWithTag(playerTag);
+        if (tagged == null)
+            return null;
+
+        float taggedDistance = (tagged.transform.position - transform.position).sqrMagnitude;
+        return taggedDistance <= bestSqrDistance ? tagged.transform : null;
     }
 
     private void FaceTarget(Vector3 worldPosition)
     {
         Vector3 direction = worldPosition - transform.position;
-        if (direction.sqrMagnitude <= 0.0001f) return;
+        if (direction.sqrMagnitude <= 0.0001f)
+            return;
 
         Quaternion targetRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
         rb.MoveRotation(Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime));
@@ -270,76 +424,44 @@ public class EyeballAI : MonoBehaviour
 
     private bool IsSeenByTarget()
     {
-        if (target == null) return false;
+        if (target == null)
+            return false;
 
         Camera playerCamera = target.GetComponentInChildren<Camera>();
         Transform observer = playerCamera != null ? playerCamera.transform : target;
 
         Vector3 toEyeball = transform.position - observer.position;
         float distance = toEyeball.magnitude;
-        if (distance <= 0.001f) return true;
+        if (distance <= 0.001f)
+            return true;
 
         Vector3 direction = toEyeball / distance;
-        if (Vector3.Dot(observer.forward, direction) < seenDotThreshold) return false;
+        if (Vector3.Dot(observer.forward, direction) < seenDotThreshold)
+            return false;
 
-        // Use QueryHitColliders to skip the player's own colliders and our own,
-        // so being point-blank doesn't cause the raycast to hit the player and return false
-        RaycastHit[] hits = Physics.RaycastAll(
-            observer.position, direction, distance,
-            lineOfSightMask, QueryTriggerInteraction.Ignore
-        );
-
+        RaycastHit[] hits = Physics.RaycastAll(observer.position, direction, distance, lineOfSightMask, QueryTriggerInteraction.Ignore);
         Collider[] targetColliders = target.GetComponentsInChildren<Collider>();
 
         foreach (RaycastHit hit in hits)
         {
-            // Skip the player's own colliders
-            bool isTargetCollider = false;
-            foreach (Collider c in targetColliders)
-            {
-                if (hit.collider == c) { isTargetCollider = true; break; }
-            }
-            if (isTargetCollider) continue;
+            if (IsColliderInSet(hit.collider, targetColliders) || IsColliderInSet(hit.collider, ownColliders))
+                continue;
 
-            // Skip our own colliders
-            bool isOwnCollider = false;
-            foreach (Collider c in ownColliders)
-            {
-                if (hit.collider == c) { isOwnCollider = true; break; }
-            }
-            if (isOwnCollider) continue;
-
-            // A solid object is between observer and eyeball — not seen
             return false;
         }
 
         return true;
     }
 
-    public void Explode()
+    private static bool IsColliderInSet(Collider colliderToFind, Collider[] colliders)
     {
-        if (stats.IsDead) return;
-
-        if (target != null)
+        foreach (Collider collider in colliders)
         {
-            PlayerStats playerStats = target.GetComponent<PlayerStats>();
-            if (playerStats != null)
-                playerStats.TakeDamage(stats.contactDamage * explosionDamageMultiplier);
+            if (collider == colliderToFind)
+                return true;
         }
 
-        if (knockbackBehaviour != null)
-        {
-            Collider[] hits = Physics.OverlapSphere(transform.position, knockbackBehaviour.radius);
-            knockbackBehaviour.Apply(gameObject, transform.position, hits, knockbackBehaviour.radius);
-        }
-
-        if (onExplodeEffects != null)
-            foreach (EffectCarrier carrier in onExplodeEffects)
-                if (carrier != null && target != null)
-                    carrier.Apply(target.gameObject);
-
-        PlayDeathEffects();
-        stats.Kill();
+        return false;
     }
 
     private void PlayDeathEffects()
@@ -347,7 +469,7 @@ public class EyeballAI : MonoBehaviour
         if (explosionVFX != null)
             Instantiate(explosionVFX, transform.position, Quaternion.identity);
 
-        if (deathSound != null)
+        if (deathSound != null && deathAudioSource != null)
         {
             GameObject soundObject = new GameObject("EyeballDeathSound");
             soundObject.transform.position = transform.position;
@@ -357,16 +479,25 @@ public class EyeballAI : MonoBehaviour
             Destroy(soundObject, deathSound.length + 0.1f);
         }
 
-        foreach (Renderer r in GetComponentsInChildren<Renderer>())
-            r.enabled = false;
+        foreach (Renderer rendererRef in GetComponentsInChildren<Renderer>())
+            rendererRef.enabled = false;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (stats.IsDead) return;
+        if (isDead || isExploding)
+            return;
+
         if (target != null && other.transform == target)
-            Explode();
+            StartExplosionAttack();
     }
 
-    public void OnKilledExternally() => Explode();
+    private float GetSpeedMultiplier()
+    {
+        return statusEffects != null ? statusEffects.GetSpeedMultiplier() : 1f;
+    }
+
+    // Public methods for external systems
+    public void Explode() => StartExplosionAttack();
+    public void OnKilledExternally() => StartExplosionAttack();
 }

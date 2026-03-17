@@ -1,7 +1,5 @@
 using UnityEngine;
 
-// EffectCarrier is a small ScriptableObject that groups PlayerEffect assets and provides
-// display metadata (title, icon). One EffectCarrier maps to a single UI entry when active.
 [CreateAssetMenu(menuName = "DungeonBroker/EffectCarrier", fileName = "NewEffectCarrier")]
 public class EffectCarrier : ScriptableObject
 {
@@ -18,6 +16,10 @@ public class EffectCarrier : ScriptableObject
     [Tooltip("Optional: Particle prefab to spawn on the player while this effect is active (duration effects only)")]
     public GameObject particlePrefab;
 
+    [Header("Cast Interaction")]
+    [Tooltip("If true, applying this carrier to the player will interrupt any active spell cast, regardless of individual effect settings.")]
+    public bool breaksCast = false;
+
     public float GetLongestDuration()
     {
         float longest = 0f;
@@ -26,9 +28,7 @@ public class EffectCarrier : ScriptableObject
         foreach (var effect in effects)
         {
             if (effect is DurationEffect durationEffect)
-            {
                 longest = Mathf.Max(longest, Mathf.Abs(durationEffect.duration));
-            }
         }
 
         return longest;
@@ -42,6 +42,16 @@ public class EffectCarrier : ScriptableObject
         {
             if (effect == null) continue;
             effect.Apply(user, this);
+        }
+
+        // Carrier-level cast break: fires after all effects are applied.
+        // Also catches cases where the carrier has no InstantEffect with breaksCast
+        // but the carrier itself is flagged (e.g. a DurationEffect-only carrier).
+        if (breaksCast)
+        {
+            PlayerCast playerCast = user.GetComponent<PlayerCast>();
+            if (playerCast != null)
+                playerCast.OnDamageTaken();
         }
     }
 }

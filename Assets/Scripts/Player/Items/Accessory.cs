@@ -8,6 +8,13 @@ public class Accessory : ItemPickup
     [Header("Effects (applied while equipped)")]
     public PassiveEffect[] passiveEffects;
 
+    [Header("Casting Abilities")]
+    [Tooltip("If true, the player can cast spells while moving.")]
+    public bool canCastWhileMoving = false;
+
+    [Tooltip("If true, taking damage will not interrupt an active cast.")]
+    public bool canCastWhileHit = false;
+
     [Header("Presentation")]
     public Sprite inventoryIcon;
     public string title;

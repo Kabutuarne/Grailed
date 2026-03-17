@@ -231,36 +231,7 @@ public class PlayerInteractor : MonoBehaviour
     void ToggleItemGlow(ItemPickup item, bool state)
     {
         if (item == null) return;
-
-        GameObject glowObj = FindGlowObject(item.gameObject);
-        if (glowObj != null)
-            glowObj.SetActive(state);
     }
-
-    GameObject FindGlowObject(GameObject root)
-    {
-        if (root == null) return null;
-
-        if (!string.IsNullOrWhiteSpace(glowChildName))
-        {
-            Transform child = FindChildRecursive(root.transform, glowChildName);
-            if (child != null)
-                return child.gameObject;
-        }
-
-        if (!string.IsNullOrWhiteSpace(glowTag))
-        {
-            Transform[] allChildren = root.GetComponentsInChildren<Transform>(true);
-            for (int i = 0; i < allChildren.Length; i++)
-            {
-                if (allChildren[i].CompareTag(glowTag))
-                    return allChildren[i].gameObject;
-            }
-        }
-
-        return null;
-    }
-
     Transform FindChildRecursive(Transform parent, string childName)
     {
         foreach (Transform child in parent)

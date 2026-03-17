@@ -1,107 +1,133 @@
 using UnityEngine;
 
 [RequireComponent(typeof(EnemyStats))]
-[RequireComponent(typeof(EnemyStatusEffects))]
+[RequireComponent(typeof(Rigidbody))]
 [DisallowMultipleComponent]
 public class ButlerAI : MonoBehaviour
 {
-    public enum AIState { Roaming, Chasing, Dead }
+    public enum AIState
+    {
+        Idle,
+        Chasing,
+        Dead
+    }
 
-    // ── Targeting ────────────────────────────────────────────────────────────
+    [Header("Health & Resources")]
+    [Tooltip("Base health before strength multiplier")]
+    public float baseMaxHealth = 100f;
+    [Tooltip("Health regeneration per second before strength multiplier")]
+    public float baseHealthRegen = 0.5f;
+
     [Header("Targeting")]
-    public Transform explicitTarget;
     public string playerTag = "Player";
-    public float hearingRadius = 10f;
-    public float visionRadius = 16f;
-    public float visionAngle = 60f;
-    public float loseTargetRadius = 22f;
-    public float attackRange = 1.9f;
-    public LayerMask losIgnoreLayers;
+    public float detectionRadius = 15f;
+    public float loseTargetRadius = 25f;
+    [Tooltip("Optional explicit target that overrides automatic acquisition")]
+    public Transform explicitTarget;
 
-    // ── Movement ─────────────────────────────────────────────────────────────
     [Header("Movement")]
-    public float chaseSpeedMultiplier = 1.8f;
-    [Tooltip("Higher = snappier turning. 10-15 is natural, 20+ is instant.")]
+    [Tooltip("Base walk speed before stamina multiplier")]
+    public float baseWalkSpeed = 2.5f;
+    [Tooltip("Base sprint speed before stamina multiplier")]
+    public float baseSprintSpeed = 4f;
+    [Tooltip("Higher = snappier turning. 10-15 is natural, 20+ is very fast.")]
     public float rotationSpeed = 12f;
+    [Tooltip("Pitch multiplier base for movement audio")]
+    public float movementAudioBasePitch = 1f;
 
-    // ── Roaming ──────────────────────────────────────────────────────────────
-    [Header("Roaming")]
-    public float roamRadius = 10f;
-    public float roamWaitTime = 2.5f;
-    public Vector2 groanInterval = new Vector2(6f, 14f);
-
-    // ── Combat ───────────────────────────────────────────────────────────────
     [Header("Combat")]
-    public float meleeDamageMultiplier = 1f;
-    public EffectCarrier onHitEffect;
-    public GameObject hitSpawnPrefab;
-    public Vector3 hitSpawnOffset = new Vector3(0f, 1f, 0.5f);
+    [Tooltip("Distance to start attacking")]
+    public float attackRange = 2f;
+    [Tooltip("Base time between attacks before agility scaling")]
+    public float baseAttackInterval = 1.5f;
+    [Tooltip("Effects applied on successful attack (NO damage multipliers)")]
+    public EffectCarrier[] attackEffects;
+    public GameObject attackVFX;
+    public Vector3 attackVFXOffset = new Vector3(0f, 1f, 0.5f);
 
-    // ── Death / Drops ────────────────────────────────────────────────────────
-    [Header("Death")]
-    public Rigidbody[] ragdollBodies;
-    public Collider[] ragdollColliders;
-    public Collider aliveCollider;
-    public GameObject[] dropPrefabs;
-    [Range(0f, 1f)]
-    public float dropChance = 0.4f;
+    [Header("Audio Sources")]
+    [Tooltip("Audio source for spotted/alert sound")]
+    public AudioSource alertAudioSource;
+    [Tooltip("Audio source for attack sounds")]
+    public AudioSource attackAudioSource;
+    [Tooltip("Audio source for movement sounds")]
+    public AudioSource movementAudioSource;
+    [Tooltip("Audio source for death sound")]
+    public AudioSource deathAudioSource;
 
-    // ── Audio ────────────────────────────────────────────────────────────────
-    [Header("Audio")]
-    public AudioSource footstepSource;
-    public AudioSource oneShotSource;
-    public AudioClip groanClip;
-    public AudioClip alertClip;
-    public AudioClip attackHitClip;
-    public AudioClip deathClip;
-    public float footstepBasePitch = 1f;
+    [Header("Audio Clips")]
+    public AudioClip alertSound;
+    public AudioClip attackSound;
+    public AudioClip deathSound;
 
-    // ── Animation ────────────────────────────────────────────────────────────
     [Header("Animation")]
     public Animator animator;
     public string animWalkSpeed = "WalkSpeed";
     public string animAttackTrig = "Attack";
     public string animMirrorBool = "MirrorAttack";
+    [Tooltip("How fast the animation speed blend responds")]
+    public float animationBlendSpeed = 4f;
 
-    // ── Head IK ──────────────────────────────────────────────────────────────
-    [Header("Head IK")]
-    [Tooltip("Butler starts looking at the player when closer than this distance while chasing.")]
+    [Header("IK Settings")]
+    [Tooltip("Enable head look-at IK to track target")]
+    public bool enableLookIK = true;
+    [Tooltip("Butler starts looking at the player when closer than this distance while chasing")]
     public float headLookRange = 6f;
-    [Tooltip("How quickly the head IK weight blends in and out.")]
+    [Tooltip("How quickly the head IK weight blends in and out")]
+    public float headLookYOffset = 1.7f;
+    [Tooltip("To adjust the height of the look target so it looks right into the camera")]
     public float headLookSpeed = 3f;
-    [Tooltip("How much the head turns toward the target (0-1).")]
-    [Range(0f, 1f)]
-    public float headWeight = 0.85f;
-    [Tooltip("How much the body follows the head turn (0-1). Keep low so the body doesn't fight the animation.")]
-    [Range(0f, 1f)]
-    public float bodyWeight = 0.15f;
+    [Tooltip("Master weight of head look-at")]
+    [Range(0f, 1f)] public float lookIKWeight = 1f;
+    [Tooltip("How much the head turns toward the target")]
+    [Range(0f, 1f)] public float headWeight = 0.85f;
+    [Tooltip("How much the body follows the head turn")]
+    [Range(0f, 1f)] public float bodyWeight = 0.15f;
 
-    private float currentLookWeight; // smoothly lerped each frame
+    [Header("Ragdoll / Death")]
+    public Rigidbody[] ragdollBodies;
+    public Collider[] ragdollColliders;
+    [Tooltip("Main collider used while alive")]
+    public GameObject aliveBody;
+    public float destroyDelay = 8f;
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Private
-    // ─────────────────────────────────────────────────────────────────────────
     private EnemyStats stats;
     private EnemyStatusEffects statusEffects;
     private Rigidbody rb;
-
-    private AIState state = AIState.Roaming;
     private Transform target;
-    private float nextAttackTime;
+
+    private AIState state = AIState.Idle;
+    private float attackTimer;
+    private bool isDead;
+    private bool hasAlerted;
     private int attackCount;
+    private float currentLookWeight;
 
-    // These are written in Update and consumed in FixedUpdate
-    // so physics and logic stay on their correct loops
-    private Vector3 desiredVelocity;   // world-space XZ movement this frame
-    private Vector3 desiredFacing;     // world-space direction to rotate toward
+    // Written in Update, applied in FixedUpdate
+    private Vector3 desiredVelocity;
+    private Vector3 desiredFacing;
 
-    // Roaming
-    private Vector3 roamDestination;
-    private bool waitingAtWaypoint;
-    private float roamWaitTimer;
-    private float nextGroanTime;
+    public bool IsDead => isDead;
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // Calculated properties based on stats
+    public float WalkSpeed =>
+        stats != null
+            ? Mathf.Max(0f, (stats.EffectiveStamina / 10f) * baseWalkSpeed * GetSpeedMultiplier())
+            : 0f;
+
+    public float SprintSpeed =>
+        stats != null
+            ? Mathf.Max(0f, (stats.EffectiveStamina / 10f) * baseSprintSpeed * GetSpeedMultiplier())
+            : 0f;
+
+    public float AttackSpeed =>
+        stats != null
+            ? Mathf.Max(0.1f, (stats.EffectiveAgility / 10f))
+            : 1f;
+
+    public float AttackInterval => Mathf.Max(0.1f, baseAttackInterval / AttackSpeed);
+    public float Health01 => stats != null ? stats.Health01 : 0f;
+
     private void Awake()
     {
         stats = GetComponent<EnemyStats>();
@@ -111,369 +137,431 @@ public class ButlerAI : MonoBehaviour
         if (animator == null)
             animator = GetComponentInChildren<Animator>();
 
-        // Safety — make sure the rigidbody never tips over
-        rb.freezeRotation = true;
-
-        SetRagdoll(false);
-        ScheduleGroan();
-        PickRoamDestination();
-
+        attackTimer = 0f;
         desiredFacing = transform.forward;
+
+        SetupAudioSources();
+
+        rb.freezeRotation = true;
+        SetRagdoll(false);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Update — pure logic, no physics writes
-    // ─────────────────────────────────────────────────────────────────────────
     private void Update()
     {
-        if (state == AIState.Dead) return;
-        if (stats.IsDead) { EnterDead(); return; }
+        if (isDead)
+            return;
 
-        // Reset each frame; TickX will fill them if movement is needed
+        if (stats != null && stats.health <= 0f)
+        {
+            Die();
+            return;
+        }
+
+        if (attackTimer > 0f)
+            attackTimer -= Time.deltaTime;
+
         desiredVelocity = Vector3.zero;
 
-        switch (state)
+        AcquireTarget();
+
+        if (target == null)
         {
-            case AIState.Roaming: TickRoaming(); break;
-            case AIState.Chasing: TickChasing(); break;
+            TickIdle();
+        }
+        else
+        {
+            TickChase();
         }
 
         UpdateAnimator();
-        TickFootsteps();
+        TickMovementAudio();
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  FixedUpdate — all rigidbody writes happen here
-    // ─────────────────────────────────────────────────────────────────────────
     private void FixedUpdate()
     {
-        if (state == AIState.Dead) return;
+        if (isDead)
+            return;
 
-        // Position
         if (desiredVelocity.sqrMagnitude > 0.0001f)
         {
             Vector3 next = rb.position + desiredVelocity * Time.fixedDeltaTime;
-            // Preserve current Y so gravity/ground contact isn't disrupted
             next.y = rb.position.y;
             rb.MovePosition(next);
         }
 
-        // Rotation — always runs so the butler keeps facing the target while attacking
         if (desiredFacing.sqrMagnitude > 0.0001f)
         {
-            Quaternion target = Quaternion.LookRotation(desiredFacing, Vector3.up);
-            Quaternion current = rb.rotation;
-            // Use RotateTowards for a degrees-per-second cap — never flips
-            float maxDeg = rotationSpeed * 45f * Time.fixedDeltaTime;
-            rb.MoveRotation(Quaternion.RotateTowards(current, target, maxDeg));
+            Quaternion targetRotation = Quaternion.LookRotation(desiredFacing, Vector3.up);
+            float maxDegrees = rotationSpeed * 45f * Time.fixedDeltaTime;
+            rb.MoveRotation(Quaternion.RotateTowards(rb.rotation, targetRotation, maxDegrees));
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Roaming
-    // ─────────────────────────────────────────────────────────────────────────
-    private void TickRoaming()
+    private void TickIdle()
     {
-        if (TryAcquireTarget())
-        {
-            PlayOneShot(alertClip);
-            state = AIState.Chasing;
-            return;
-        }
-
-        if (Time.time >= nextGroanTime)
-        {
-            PlayOneShot(groanClip);
-            ScheduleGroan();
-        }
-
-        if (waitingAtWaypoint)
-        {
-            roamWaitTimer -= Time.deltaTime;
-            if (roamWaitTimer <= 0f) { waitingAtWaypoint = false; PickRoamDestination(); }
-            return;
-        }
-
-        Vector3 toDestination = roamDestination - transform.position;
-        toDestination.y = 0f;
-
-        if (toDestination.magnitude < 0.3f)
-        {
-            waitingAtWaypoint = true;
-            roamWaitTimer = roamWaitTime;
-            return;
-        }
-
-        Vector3 dir = toDestination.normalized;
-        desiredVelocity = dir * stats.walkSpeed;
-        desiredFacing = dir;
+        state = AIState.Idle;
+        hasAlerted = false;
+        desiredVelocity = Vector3.zero;
     }
 
-    private void PickRoamDestination()
+    private void TickChase()
     {
-        Vector2 rand = Random.insideUnitCircle * roamRadius;
-        roamDestination = transform.position + new Vector3(rand.x, 0f, rand.y);
-    }
+        state = AIState.Chasing;
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Chasing
-    // ─────────────────────────────────────────────────────────────────────────
-    private void TickChasing()
-    {
-        if (target == null || FlatDistance(transform.position, target.position) > loseTargetRadius)
+        if (!hasAlerted)
         {
-            target = null;
-            state = AIState.Roaming;
-            PickRoamDestination();
-            ScheduleGroan();
-            return;
+            PlayOneShot(alertAudioSource, alertSound);
+            hasAlerted = true;
         }
 
         Vector3 toTarget = target.position - transform.position;
         toTarget.y = 0f;
-        float dist = toTarget.magnitude;
 
-        // Always face the target — even while standing still attacking
-        if (dist > 0.05f)
+        float distanceToTarget = toTarget.magnitude;
+
+        if (distanceToTarget > 0.05f)
             desiredFacing = toTarget.normalized;
 
-        if (dist > attackRange)
+        if (distanceToTarget > attackRange)
         {
-            desiredVelocity = toTarget.normalized * stats.walkSpeed * chaseSpeedMultiplier;
+            desiredVelocity = toTarget.normalized * SprintSpeed;
         }
         else
         {
-            // In attack range — stop moving, keep facing
             desiredVelocity = Vector3.zero;
-
-            if (Time.time >= nextAttackTime)
-                PerformAttack();
+            TryAttack();
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Animator
-    // ─────────────────────────────────────────────────────────────────────────
-    private void UpdateAnimator()
+    private void TryAttack()
     {
-        if (animator == null) return;
+        if (attackTimer > 0f)
+            return;
 
-        float blend = 0f;
-
-        if (state == AIState.Chasing && desiredVelocity.sqrMagnitude > 0.001f)
-            blend = chaseSpeedMultiplier;
-        else if (state == AIState.Roaming && desiredVelocity.sqrMagnitude > 0.001f)
-            blend = 1f;
-
-        // Smooth the blend so the transition in/out of walk looks natural
-        float current = animator.GetFloat(animWalkSpeed);
-        animator.SetFloat(animWalkSpeed, Mathf.MoveTowards(current, blend, Time.deltaTime * 4f));
+        attackTimer = AttackInterval;
+        PerformAttack();
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Attack
-    // ─────────────────────────────────────────────────────────────────────────
     private void PerformAttack()
     {
-        nextAttackTime = Time.time + Mathf.Max(0.01f, stats.attackCooldown);
-
         bool mirror = (attackCount % 2) == 1;
         attackCount++;
 
         if (animator != null)
         {
-            animator.SetBool(animMirrorBool, mirror);
-            animator.SetTrigger(animAttackTrig);
+            if (!string.IsNullOrEmpty(animMirrorBool))
+                animator.SetBool(animMirrorBool, mirror);
+
+            if (!string.IsNullOrEmpty(animAttackTrig))
+                animator.SetTrigger(animAttackTrig);
         }
 
-        if (target == null) return;
+        PlayOneShot(attackAudioSource, attackSound);
 
-        PlayerStats ps = target.GetComponent<PlayerStats>();
-        if (ps != null) ps.TakeDamage(stats.contactDamage * meleeDamageMultiplier);
+        if (attackVFX != null)
+        {
+            Vector3 spawnPos = transform.position + transform.TransformDirection(attackVFXOffset);
+            Instantiate(attackVFX, spawnPos, transform.rotation);
+        }
 
-        PlayOneShot(attackHitClip);
-
-        if (onHitEffect != null) onHitEffect.Apply(target.gameObject);
-
-        if (hitSpawnPrefab != null)
-            Instantiate(hitSpawnPrefab,
-                transform.position + transform.TransformDirection(hitSpawnOffset),
-                transform.rotation);
+        if (target != null && attackEffects != null)
+        {
+            foreach (EffectCarrier carrier in attackEffects)
+            {
+                if (carrier != null)
+                    carrier.Apply(target.gameObject);
+            }
+        }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Death
-    // ─────────────────────────────────────────────────────────────────────────
-    private void EnterDead()
+    private void AcquireTarget()
     {
-        if (state == AIState.Dead) return;
-        state = AIState.Dead;
+        if (explicitTarget != null)
+        {
+            target = explicitTarget;
+            return;
+        }
 
-        desiredVelocity = Vector3.zero;
-        rb.linearVelocity = Vector3.zero;
+        if (target != null)
+        {
+            if (FlatDistance(transform.position, target.position) <= loseTargetRadius)
+                return;
 
-        if (footstepSource != null) footstepSource.Stop();
-        if (animator != null) animator.enabled = false;
-        if (aliveCollider != null) aliveCollider.enabled = false;
+            target = null;
+        }
 
-        PlayOneShot(deathClip);
-        SetRagdoll(true);
-        TrySpawnDrop();
+        target = FindClosestPlayer();
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Target acquisition
-    // ─────────────────────────────────────────────────────────────────────────
-    private bool TryAcquireTarget()
+    private Transform FindClosestPlayer()
     {
-        if (explicitTarget != null) { target = explicitTarget; return true; }
+        PlayerStats[] players = FindObjectsByType<PlayerStats>(FindObjectsSortMode.None);
 
-        PlayerStats[] all = FindObjectsByType<PlayerStats>(FindObjectsSortMode.None);
+        float bestSqrDistance = detectionRadius * detectionRadius;
+        Transform bestTarget = null;
 
-        foreach (PlayerStats ps in all)
+        foreach (PlayerStats player in players)
         {
-            if (ps == null) continue;
-            if ((ps.transform.position - transform.position).sqrMagnitude < hearingRadius * hearingRadius)
-            { target = ps.transform; return true; }
+            if (player == null)
+                continue;
+
+            float sqrDistance = (player.transform.position - transform.position).sqrMagnitude;
+            if (sqrDistance >= bestSqrDistance)
+                continue;
+
+            bestSqrDistance = sqrDistance;
+            bestTarget = player.transform;
         }
 
-        foreach (PlayerStats ps in all)
-        {
-            if (ps == null) continue;
-            Vector3 toPlayer = ps.transform.position - transform.position;
-            if (toPlayer.sqrMagnitude > visionRadius * visionRadius) continue;
-            if (Vector3.Angle(transform.forward, toPlayer) > visionAngle) continue;
-            if (!HasLOS(ps.transform.position)) continue;
-            target = ps.transform;
-            return true;
-        }
+        if (bestTarget != null || string.IsNullOrEmpty(playerTag))
+            return bestTarget;
 
         GameObject tagged = GameObject.FindGameObjectWithTag(playerTag);
-        if (tagged != null && (tagged.transform.position - transform.position).sqrMagnitude <= visionRadius * visionRadius)
-        { target = tagged.transform; return true; }
+        if (tagged == null)
+            return null;
 
-        return false;
+        float taggedDistance = (tagged.transform.position - transform.position).sqrMagnitude;
+        return taggedDistance <= bestSqrDistance ? tagged.transform : null;
     }
 
-    private bool HasLOS(Vector3 worldPos)
+    private void UpdateAnimator()
     {
-        Vector3 origin = transform.position + Vector3.up * 1.5f;
-        Vector3 dir = (worldPos + Vector3.up) - origin;
-        LayerMask mask = ~losIgnoreLayers;
-        if (Physics.Raycast(origin, dir.normalized, out RaycastHit hit, dir.magnitude, mask, QueryTriggerInteraction.Ignore))
-            if (!hit.collider.CompareTag(playerTag)) return false;
-        return true;
+        if (animator == null || string.IsNullOrEmpty(animWalkSpeed))
+            return;
+
+        float blend = 0f;
+
+        if (desiredVelocity.sqrMagnitude > 0.001f)
+        {
+            float speed = desiredVelocity.magnitude;
+            float divisor = Mathf.Max(0.01f, WalkSpeed);
+            blend = speed / divisor;
+        }
+
+        float current = animator.GetFloat(animWalkSpeed);
+        float next = Mathf.MoveTowards(current, blend, Time.deltaTime * animationBlendSpeed);
+        animator.SetFloat(animWalkSpeed, next);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Helpers
-    // ─────────────────────────────────────────────────────────────────────────
-    private float FlatDistance(Vector3 a, Vector3 b)
+    private void TickMovementAudio()
     {
-        a.y = 0f; b.y = 0f;
-        return Vector3.Distance(a, b);
-    }
-
-    private void TickFootsteps()
-    {
-        if (footstepSource == null) return;
+        if (movementAudioSource == null)
+            return;
 
         bool moving = desiredVelocity.sqrMagnitude > 0.01f;
 
         if (moving)
         {
-            float speed = desiredVelocity.magnitude;
-            footstepSource.pitch = footstepBasePitch * (speed / Mathf.Max(0.01f, stats.walkSpeed));
-            if (!footstepSource.isPlaying) footstepSource.Play();
+            float maxReferenceSpeed = Mathf.Max(0.01f, SprintSpeed);
+            float normalized = desiredVelocity.magnitude / maxReferenceSpeed;
+            movementAudioSource.pitch = movementAudioBasePitch * (0.85f + 0.3f * normalized);
+
+            if (!movementAudioSource.isPlaying)
+                movementAudioSource.Play();
         }
-        else if (footstepSource.isPlaying)
+        else if (movementAudioSource.isPlaying)
         {
-            footstepSource.Stop();
+            movementAudioSource.Stop();
         }
     }
 
-    private void PlayOneShot(AudioClip clip)
+    public void TakeDamage(float amount)
     {
-        if (oneShotSource != null && clip != null)
-            oneShotSource.PlayOneShot(clip);
+        if (isDead || amount <= 0f || stats == null)
+            return;
+
+        stats.health = Mathf.Clamp(stats.health - amount, 0f, stats.MaxHealth);
+
+        if (stats.health <= 0f)
+            Die();
     }
 
-    private void ScheduleGroan()
+    public void Heal(float amount)
     {
-        nextGroanTime = Time.time + Random.Range(groanInterval.x, groanInterval.y);
+        if (isDead || amount <= 0f || stats == null)
+            return;
+
+        stats.Heal(amount);
+    }
+
+    public void AlertTo(Transform newTarget)
+    {
+        if (isDead || newTarget == null)
+            return;
+
+        target = newTarget;
+        hasAlerted = false;
+    }
+
+    private void Die()
+    {
+        if (isDead)
+            return;
+
+        isDead = true;
+        state = AIState.Dead;
+        desiredVelocity = Vector3.zero;
+        rb.linearVelocity = Vector3.zero;
+
+        if (statusEffects != null)
+        {
+            statusEffects.ClearAllEffects();
+            statusEffects.enabled = false;
+        }
+
+        if (movementAudioSource != null)
+            movementAudioSource.Stop();
+
+        if (animator != null)
+            animator.enabled = false;
+
+        PlayDetachedDeathSound();
+
+        SetRagdoll(true);
+
+        if (stats != null)
+            stats.SpawnDeathDrops();
+
+        //After enabling ragdoll, disables mostly everything leaving an empty entity
+        if (aliveBody != null)
+        {
+            aliveBody.GetComponent<Collider>().enabled = false;
+            Destroy(aliveBody.GetComponent<EnemyStats>());
+            Destroy(aliveBody.GetComponent<ButlerAI>()); //must be removed in order to get rid of RB, which causes physics problems
+            Destroy(aliveBody.GetComponent<Rigidbody>());
+        }
+    }
+
+    private void SetupAudioSources()
+    {
+        if (alertAudioSource == null)
+        {
+            alertAudioSource = gameObject.AddComponent<AudioSource>();
+            alertAudioSource.playOnAwake = false;
+        }
+
+        if (attackAudioSource == null)
+        {
+            attackAudioSource = gameObject.AddComponent<AudioSource>();
+            attackAudioSource.playOnAwake = false;
+        }
+
+        if (movementAudioSource == null)
+        {
+            movementAudioSource = gameObject.AddComponent<AudioSource>();
+            movementAudioSource.playOnAwake = false;
+            movementAudioSource.loop = true;
+        }
+
+        if (deathAudioSource == null)
+        {
+            deathAudioSource = gameObject.AddComponent<AudioSource>();
+            deathAudioSource.playOnAwake = false;
+        }
+    }
+
+    private void PlayOneShot(AudioSource source, AudioClip clip)
+    {
+        if (source != null && clip != null)
+            source.PlayOneShot(clip);
+    }
+
+    private void PlayDetachedDeathSound()
+    {
+        if (deathSound == null)
+            return;
+
+        GameObject soundObject = new GameObject("ButlerDeathSound");
+        soundObject.transform.position = transform.position;
+
+        AudioSource tempAudio = soundObject.AddComponent<AudioSource>();
+        tempAudio.playOnAwake = false;
+        tempAudio.clip = deathSound;
+        tempAudio.Play();
+
+        Destroy(soundObject, deathSound.length + 0.1f);
     }
 
     private void SetRagdoll(bool on)
     {
         if (ragdollBodies != null)
-            foreach (var r in ragdollBodies)
-                if (r != null) { r.isKinematic = !on; r.detectCollisions = on; }
-
-        if (ragdollColliders != null)
-            foreach (var col in ragdollColliders)
-                if (col != null) col.enabled = on;
-    }
-
-    private void TrySpawnDrop()
-    {
-        if (dropPrefabs == null || dropPrefabs.Length == 0 || Random.value > dropChance) return;
-        GameObject drop = dropPrefabs[Random.Range(0, dropPrefabs.Length)];
-        if (drop != null)
-            Instantiate(drop, transform.position + Vector3.up * 0.2f, Quaternion.identity);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Public API
-    // ─────────────────────────────────────────────────────────────────────────
-    public void AlertTo(Transform newTarget)
-    {
-        if (state == AIState.Dead) return;
-        target = newTarget;
-        PlayOneShot(alertClip);
-        state = AIState.Chasing;
-    }
-
-    // Head IK — called by ButlerIKBridge on the ModelRoot child
-    public void OnAnimatorIK_Forward(int layerIndex)
-    {
-        if (animator == null)
         {
-            Debug.LogWarning("[ButlerAI] OnAnimatorIK fired but animator is null.");
-            return;
+            foreach (Rigidbody body in ragdollBodies)
+            {
+                if (body == null)
+                    continue;
+
+                body.isKinematic = !on;
+                body.detectCollisions = on;
+            }
         }
 
-        // Find the look target — prefer the chasing target, fall back to any Player tag
+        if (ragdollColliders != null)
+        {
+            foreach (Collider col in ragdollColliders)
+            {
+                if (col != null)
+                    col.enabled = on;
+            }
+        }
+
+        if (!on)
+        {
+            if (rb != null)
+            {
+                rb.isKinematic = false;
+                rb.detectCollisions = true;
+            }
+        }
+    }
+
+    private float FlatDistance(Vector3 a, Vector3 b)
+    {
+        a.y = 0f;
+        b.y = 0f;
+        return Vector3.Distance(a, b);
+    }
+
+    private float GetSpeedMultiplier()
+    {
+        return statusEffects != null ? statusEffects.GetSpeedMultiplier() : 1f;
+    }
+
+    /// <summary>
+    /// Called by ButlerIKBridge to handle IK positioning.
+    /// </summary>
+    public void OnAnimatorIK(int layerIndex)
+    {
+        if (isDead || animator == null)
+            return;
+
         Transform lookTarget = null;
-        if (state == AIState.Chasing && target != null)
+
+        if (enableLookIK && state == AIState.Chasing && target != null)
         {
             float dist = FlatDistance(transform.position, target.position);
             if (dist <= headLookRange)
                 lookTarget = target;
         }
 
-        float desiredWeight = lookTarget != null ? 1f : 0f;
-        currentLookWeight = Mathf.MoveTowards(
-            currentLookWeight, desiredWeight, Time.deltaTime * headLookSpeed);
+        float desiredWeight = lookTarget != null ? lookIKWeight : 0f;
+        currentLookWeight = Mathf.MoveTowards(currentLookWeight, desiredWeight, Time.deltaTime * headLookSpeed);
 
-        if (currentLookWeight <= 0.001f)
+        if (currentLookWeight > 0.001f && lookTarget != null)
+        {
+            Vector3 lookPoint = lookTarget.position + Vector3.up * headLookYOffset;
+            animator.SetLookAtPosition(lookPoint);
+            animator.SetLookAtWeight(
+                currentLookWeight,
+                bodyWeight,
+                headWeight,
+                0f,
+                0.5f
+            );
+        }
+        else
         {
             animator.SetLookAtWeight(0f);
-            return;
         }
-
-        // Aim at eye level of the look target
-        Vector3 lookPoint = lookTarget.position + Vector3.up * 1.6f;
-        animator.SetLookAtPosition(lookPoint);
-        animator.SetLookAtWeight(
-            currentLookWeight,  // master weight
-            bodyWeight,         // body
-            headWeight,         // head
-            0f,                 // eyes
-            0.5f                // clamp — stops neck snapping past ~90 deg
-        );
-
-        Debug.DrawLine(transform.position + Vector3.up * 1.6f, lookPoint, Color.cyan);
     }
 }
-
-// IK appended

@@ -8,6 +8,7 @@ public class PlayerCast : MonoBehaviour
     private PlayerInventory inventory;
     private PlayerStats stats;
     private CharacterController controller;
+    private PlayerStatusEffects statusEffects;
 
     [Header("UI")]
     public CastUI castUI;
@@ -29,6 +30,7 @@ public class PlayerCast : MonoBehaviour
         inventory = GetComponent<PlayerInventory>();
         stats = GetComponent<PlayerStats>();
         controller = GetComponent<CharacterController>();
+        statusEffects = GetComponent<PlayerStatusEffects>();
 
         if (playerUI == null)
             playerUI = Object.FindFirstObjectByType<PlayerUI>();
@@ -44,6 +46,33 @@ public class PlayerCast : MonoBehaviour
     {
         if (input != null) input.Disable();
     }
+    // Returns true if any equipped accessory has canCastWhileMoving set.
+    private bool CanCastWhileMoving()
+    {
+        if (inventory == null) return false;
+        foreach (var slot in inventory.accessories)
+        {
+            if (slot == null) continue;
+            var acc = slot.GetComponent<Accessory>();
+            if (acc != null && acc.canCastWhileMoving)
+                return true;
+        }
+        return false;
+    }
+
+    // Returns true if any equipped accessory has canCastWhileHit set.
+    private bool CanCastWhileHit()
+    {
+        if (inventory == null) return false;
+        foreach (var slot in inventory.accessories)
+        {
+            if (slot == null) continue;
+            var acc = slot.GetComponent<Accessory>();
+            if (acc != null && acc.canCastWhileHit)
+                return true;
+        }
+        return false;
+    }
 
     void Update()
     {
@@ -56,25 +85,20 @@ public class PlayerCast : MonoBehaviour
         // Disallow casting when backpack is open
         bool backpackOpen = (playerUI != null && playerUI.IsBackpackOpen);
 
-        // Consider moving if move input has magnitude; fall back to controller velocity if available
+        // Movement only blocks casting if no accessory grants the override
         Vector2 moveVec = Vector2.zero;
         try { moveVec = input.Player.Move.ReadValue<Vector2>(); } catch { moveVec = Vector2.zero; }
-        bool moving = moveVec.sqrMagnitude > 0.0001f;
+        bool moving = moveVec.sqrMagnitude > 0.0001f && !CanCastWhileMoving();
 
         if (hold && !backpackOpen && !moving)
         {
             if (!isCasting)
-            {
                 TryBeginCastFromHand();
-            }
             else
-            {
                 ContinueCasting();
-            }
         }
         else
         {
-            // Cancel if releasing, backpack opened, or movement started mid-cast
             if (isCasting)
                 CancelCast();
         }
@@ -94,10 +118,9 @@ public class PlayerCast : MonoBehaviour
         }
         if (scroll == null || !scroll.CanCast()) return;
 
-        // Double-check gating (backpack or movement) at start
         if (playerUI != null && playerUI.IsBackpackOpen) return;
         Vector2 mv = Vector2.zero; try { mv = input.Player.Move.ReadValue<Vector2>(); } catch { }
-        if (mv.sqrMagnitude > 0.0001f) return;
+        if (mv.sqrMagnitude > 0.0001f && !CanCastWhileMoving()) return;
 
         currentScroll = scroll;
         currentAOE = scroll.aoeSpell;
@@ -106,42 +129,29 @@ public class PlayerCast : MonoBehaviour
         currentChanneledAOE = scroll.channeledAOESpell;
         currentChannelRuntime = null;
 
-        // Compute actual cast time using speed multiplier: time = baseTime / speed
         float speed = stats != null ? stats.castSpeedMultiplier : 1f;
         if (currentAOE != null)
-        {
             castTimeActual = Mathf.Max(0.01f, currentAOE.castTime / Mathf.Max(0.01f, speed));
-        }
         else if (currentProjectile != null)
-        {
             castTimeActual = Mathf.Max(0.01f, currentProjectile.castTime / Mathf.Max(0.01f, speed));
-        }
         else if (currentChanneledProjectile != null)
-        {
             castTimeActual = Mathf.Max(0.01f, currentChanneledProjectile.castTime / Mathf.Max(0.01f, speed));
-        }
         else if (currentChanneledAOE != null)
-        {
             castTimeActual = Mathf.Max(0.01f, currentChanneledAOE.castTime / Mathf.Max(0.01f, speed));
-        }
 
         elapsed = 0f;
         isCasting = true;
 
         if (castUI != null)
-        {
             castUI.Show(castTimeActual, castTimeActual - elapsed);
-        }
     }
 
     void ContinueCasting()
     {
-        // Cancel if backpack opened or player started moving
         bool backpackOpen = (playerUI != null && playerUI.IsBackpackOpen);
         Vector2 mv = Vector2.zero; try { mv = input.Player.Move.ReadValue<Vector2>(); } catch { }
-        bool moving = mv.sqrMagnitude > 0.0001f;
+        bool moving = mv.sqrMagnitude > 0.0001f && !CanCastWhileMoving();
 
-        // For channeled spells, stop channeling if any condition fails
         if ((currentChanneledProjectile != null || currentChanneledAOE != null) && currentChannelRuntime != null)
         {
             if (!InputIsCasting() || backpackOpen || moving)
@@ -177,7 +187,6 @@ public class PlayerCast : MonoBehaviour
                 if (castUI != null)
                     castUI.ShowCasting();
 
-                // Start channeling immediately after cast time
                 if (currentChanneledProjectile != null && currentChannelRuntime == null)
                     currentChannelRuntime = currentChanneledProjectile.StartCast(gameObject);
                 else if (currentChanneledAOE != null && currentChannelRuntime == null)
@@ -217,7 +226,17 @@ public class PlayerCast : MonoBehaviour
         }
     }
 
-    // Helper to check if cast input is still held (for channeled spells)
+    /// <summary>
+    /// Called by InstantEffect whenever a negative healthAmount is applied to the player.
+    /// Cancels the active cast unless an accessory grants the canCastWhileHit flag.
+    /// </summary>
+    public void OnDamageTaken()
+    {
+        if (!isCasting) return;
+        if (CanCastWhileHit()) return;
+        CancelCast();
+    }
+
     private bool InputIsCasting()
     {
         if (input == null) return false;
@@ -235,7 +254,6 @@ public class PlayerCast : MonoBehaviour
         elapsed = 0f;
         castTimeActual = 0f;
 
-        // Stop channel runtime if active
         if (currentChannelRuntime != null)
         {
             var stopMethod = currentChannelRuntime.GetType().GetMethod("StopChannel");
@@ -259,7 +277,6 @@ public class PlayerCast : MonoBehaviour
         elapsed = 0f;
         castTimeActual = 0f;
 
-        // Stop channel runtime if active
         if (currentChannelRuntime != null)
         {
             var stopMethod = currentChannelRuntime.GetType().GetMethod("StopChannel");
