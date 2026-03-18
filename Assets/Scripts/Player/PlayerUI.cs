@@ -50,13 +50,30 @@ public class PlayerUI : MonoBehaviour
 
     [Header("Backpack Root Panel")]
     public GameObject backpackRoot;
+
     [Header("Item Tooltip")]
-    public GameObject itemTooltipPrefab; // prefab with ItemTooltip component
+    public GameObject itemTooltipPrefab;
 
     [Header("Wand Slots Panel")]
-    public WandSlotsPanel wandSlotsPanelPrefab; // assign a prefab with a slot template
+    public WandSlotsPanel wandSlotsPanelPrefab;
     private WandSlotsPanel wandPanelInstance;
-    private InventorySlotUI wandSourceSlot; // the InventorySlotUI representing the wand item
+    private InventorySlotUI wandSourceSlot;
+
+    [Header("Sound Effects")]
+    [Tooltip("Sound played when the backpack is opened.")]
+    [SerializeField] private AudioSource backpackOpenSound;
+
+    [Tooltip("Sound played when the backpack is closed.")]
+    [SerializeField] private AudioSource backpackCloseSound;
+
+    [Tooltip("Sound played when starting to drag an item, or toggling the wand slot panel.")]
+    [SerializeField] private AudioSource clickSound;
+
+    [Tooltip("Sound played when a drag ends with a successful item placement.")]
+    [SerializeField] private AudioSource dropSuccessSound;
+
+    [Tooltip("Sound played when trying to drop an item into an incompatible slot.")]
+    [SerializeField] private AudioSource dropInvalidSound;
 
     public bool IsBackpackOpen => backpackRoot != null && backpackRoot.activeSelf;
 
@@ -81,7 +98,6 @@ public class PlayerUI : MonoBehaviour
         if (uiCanvas == null)
             uiCanvas = FindFirstObjectByType<Canvas>();
 
-        // instantiate tooltip (hidden) if prefab provided
         if (itemTooltipPrefab != null && uiCanvas != null)
         {
             tooltipGO = Instantiate(itemTooltipPrefab, uiCanvas.transform, false);
@@ -120,13 +136,11 @@ public class PlayerUI : MonoBehaviour
         }
         UpdateTooltip();
 
-        // If wand panel is visible, keep its layout synced and hide on click-away
         if (IsBackpackOpen && wandPanelInstance != null && wandPanelInstance.IsShowing)
         {
             wandPanelInstance.UpdateLayout();
 
             var mouse = UnityEngine.InputSystem.Mouse.current;
-            // Hide on release if not dragging; avoids hiding during drag start
             bool clickReleased = mouse != null && mouse.leftButton.wasReleasedThisFrame;
             var hovered = InventorySlotUI.HoveredSlot;
             if (clickReleased && currentlyDraggedItem == null)
@@ -167,7 +181,6 @@ public class PlayerUI : MonoBehaviour
 
             if (item != null)
             {
-                // gather display info from ScrollItem or ConsumableItem
                 string title = item.name;
                 Color titleColor = Color.white;
                 string desc = "";
@@ -198,7 +211,6 @@ public class PlayerUI : MonoBehaviour
                         {
                             title = !string.IsNullOrEmpty(acc.title) ? acc.title : item.name;
                             titleColor = acc.titleColor;
-                            // Build tooltip rows
                             if (acc.descriptionRows != null && acc.descriptionRows.Count > 0)
                             {
                                 var rows = new List<ItemTooltip.TooltipLine>(acc.descriptionRows.Count);
@@ -214,7 +226,6 @@ public class PlayerUI : MonoBehaviour
                                 tooltipController.SetData(title, titleColor, "", Color.white);
                             }
 
-                            // Position and show then return (use distinct variable names to avoid shadowing)
                             Vector2 accScreenPos = UnityEngine.InputSystem.Mouse.current != null
                                 ? (Vector2)UnityEngine.InputSystem.Mouse.current.position.ReadValue()
                                 : (Vector2)Input.mousePosition;
@@ -239,7 +250,6 @@ public class PlayerUI : MonoBehaviour
                         }
                         else
                         {
-                            // DecorationItem support for tooltip
                             var decor = item.GetComponent<DecorationItem>();
                             if (decor != null)
                             {
@@ -254,7 +264,6 @@ public class PlayerUI : MonoBehaviour
 
                 tooltipController.SetData(title, titleColor, desc, descColor);
 
-                // Position tooltip near mouse
                 Vector2 screenPos = UnityEngine.InputSystem.Mouse.current != null
                     ? (Vector2)UnityEngine.InputSystem.Mouse.current.position.ReadValue()
                     : (Vector2)Input.mousePosition;
@@ -264,7 +273,6 @@ public class PlayerUI : MonoBehaviour
                 Camera cam = uiCanvas.renderMode == RenderMode.ScreenSpaceCamera ? uiCanvas.worldCamera : null;
                 Vector2 localPos;
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screenPos, cam, out localPos);
-                // Position tooltip with top-left at mouse cursor plus small offset.
                 tooltipRect.localPosition = localPos + new Vector2(10f, -10f);
 
                 tooltipGO.SetActive(true);
@@ -309,16 +317,13 @@ public class PlayerUI : MonoBehaviour
 
         foreach (var e in statusEffects.activeEffects)
         {
-            // Skip effects that request to be hidden (e.g., accessories)
             if (e.hideInUI)
                 continue;
             if (e.carrier != null)
             {
                 float current = entries.ContainsKey(e.carrier) ? entries[e.carrier] : 0f;
                 if (e.duration < 0f)
-                {
                     entries[e.carrier] = -1f;
-                }
                 else
                 {
                     float val = e.timer;
@@ -339,7 +344,6 @@ public class PlayerUI : MonoBehaviour
 
             if (kv.Key is EffectCarrier carrierKey)
             {
-                // Only Icon + Description for carrier-based entries
                 Image iconImage = null;
                 var iconTransform = go.transform.Find("Icon");
                 if (iconTransform != null)
@@ -349,7 +353,6 @@ public class PlayerUI : MonoBehaviour
                 if (iconImage != null && carrierKey.icon != null)
                     iconImage.sprite = carrierKey.icon;
 
-                // Set description to provided text, and append duration if timed
                 var descTransform = go.transform.Find("Description");
                 if (descTransform != null)
                 {
@@ -365,7 +368,6 @@ public class PlayerUI : MonoBehaviour
             }
             else
             {
-                // Non-carrier entries: keep legacy title/time in first Text
                 Text t = go.GetComponentInChildren<Text>();
                 string titleText;
                 if (timeVal < 0f)
@@ -390,16 +392,13 @@ public class PlayerUI : MonoBehaviour
 
         foreach (var e in statusEffects.activeEffects)
         {
-            // Skip effects that request to be hidden (e.g., accessories)
             if (e.hideInUI)
                 continue;
             if (e.carrier != null)
             {
                 float current = entries.ContainsKey(e.carrier) ? entries[e.carrier] : 0f;
                 if (e.duration < 0f)
-                {
                     entries[e.carrier] = -1f;
-                }
                 else
                 {
                     float val = e.timer;
@@ -548,6 +547,9 @@ public class PlayerUI : MonoBehaviour
         Sprite s = icon ?? GetIconFromItem(item);
         CreateDragIcon(s);
 
+        // Play click sound when drag begins
+        PlaySound(clickSound);
+
         Vector2 pos = UnityEngine.InputSystem.Mouse.current != null
             ? (Vector2)UnityEngine.InputSystem.Mouse.current.position.ReadValue()
             : (Vector2)Input.mousePosition;
@@ -673,14 +675,17 @@ public class PlayerUI : MonoBehaviour
         if (srcType == InventorySlotUI.SlotType.Backpack && dstType == InventorySlotUI.SlotType.Backpack)
         {
             inventory.SwapBackpackSlots(srcIndex, dstIndex);
+            PlaySound(dropSuccessSound);
         }
         else if (srcType == InventorySlotUI.SlotType.Backpack && dstType == InventorySlotUI.SlotType.RightHand)
         {
             inventory.SwapRightHandWithBackpack(srcIndex);
+            PlaySound(dropSuccessSound);
         }
         else if (srcType == InventorySlotUI.SlotType.RightHand && dstType == InventorySlotUI.SlotType.Backpack)
         {
             inventory.SwapRightHandWithBackpack(dstIndex);
+            PlaySound(dropSuccessSound);
         }
         else if (dstType == InventorySlotUI.SlotType.WandInternal)
         {
@@ -689,6 +694,7 @@ public class PlayerUI : MonoBehaviour
             if (scroll == null)
             {
                 Debug.Log("Only spell ScrollItems can be placed into wand slots.");
+                PlaySound(dropInvalidSound);
                 EndDrag();
                 return;
             }
@@ -697,6 +703,7 @@ public class PlayerUI : MonoBehaviour
             int wandIndex = targetSlot.wandSlotIndex;
             if (wandOwner == null || wandIndex < 0)
             {
+                PlaySound(dropInvalidSound);
                 EndDrag();
                 return;
             }
@@ -705,62 +712,59 @@ public class PlayerUI : MonoBehaviour
             {
                 if (srcIndex >= 0 && srcIndex < inventory.backpack.Length)
                 {
-                    // If wand slot already contains a scroll, swap it back into the source backpack slot.
                     GameObject prev = wandOwner.GetSlotItem(wandIndex);
                     if (prev != null)
-                    {
                         prev = wandOwner.RemoveSlotItem(wandIndex);
-                    }
 
-                    // Place dragged scroll into wand slot
                     bool ok = wandOwner.SetSlotItem(wandIndex, currentlyDraggedItem);
                     if (!ok)
                     {
-                        // restore previous occupant if any
                         if (prev != null)
                             wandOwner.SetSlotItem(wandIndex, prev);
-                        // keep backpack unchanged
+                        PlaySound(dropInvalidSound);
                     }
                     else
                     {
-                        // Put previous occupant (if any) into source backpack slot
                         inventory.backpack[srcIndex] = prev;
                         if (prev != null)
                             prev.SetActive(false);
 
-                        // refresh UI for wand slot and source backpack slot
                         targetSlot.SetItem(wandOwner.GetSlotItem(wandIndex), wandIndex, inventory);
                         if (srcIndex >= 0 && srcIndex < backpackSlots.Length && backpackSlots[srcIndex] != null)
                             backpackSlots[srcIndex].SetItem(inventory.backpack[srcIndex], srcIndex, inventory);
+
+                        PlaySound(dropSuccessSound);
                     }
                 }
             }
             else if (srcType == InventorySlotUI.SlotType.RightHand)
             {
-                // remove from hand and place into wand
                 inventory.rightHandItem = null;
                 wandOwner.SetSlotItem(wandIndex, currentlyDraggedItem);
                 targetSlot.SetItem(wandOwner.GetSlotItem(wandIndex), wandIndex, inventory);
                 if (rightHandSlot != null)
                     rightHandSlot.SetItem(inventory.rightHandItem, -1, inventory);
+                PlaySound(dropSuccessSound);
             }
             else if (srcType == InventorySlotUI.SlotType.WandInternal)
             {
-                // swap between wand slots
                 var srcWand = dragSourceSlot.wandOwner;
                 int srcWandIndex = dragSourceSlot.wandSlotIndex;
                 if (srcWand != null && srcWand == wandOwner)
                 {
                     srcWand.SwapInternal(srcWandIndex, wandIndex);
-                    // refresh both UI slots
                     targetSlot.SetItem(wandOwner.GetSlotItem(wandIndex), wandIndex, inventory);
                     dragSourceSlot.SetItem(srcWand.GetSlotItem(srcWandIndex), srcWandIndex, inventory);
+                    PlaySound(dropSuccessSound);
+                }
+                else
+                {
+                    PlaySound(dropInvalidSound);
                 }
             }
         }
         else if (srcType == InventorySlotUI.SlotType.WandInternal)
         {
-            // Drag from wand to backpack/right hand
             var srcWand = dragSourceSlot.wandOwner;
             int srcWandIndex = dragSourceSlot.wandSlotIndex;
             if (srcWand != null && srcWandIndex >= 0)
@@ -770,52 +774,52 @@ public class PlayerUI : MonoBehaviour
                 {
                     if (dstType == InventorySlotUI.SlotType.Backpack)
                     {
-                        // place into specified backpack index
                         if (dstIndex >= 0 && dstIndex < inventory.backpack.Length)
                         {
                             inventory.backpack[dstIndex] = item;
                             item.SetActive(false);
-                            // refresh UI: backpack target and emptied wand source
                             if (dstIndex >= 0 && dstIndex < backpackSlots.Length && backpackSlots[dstIndex] != null)
                                 backpackSlots[dstIndex].SetItem(inventory.backpack[dstIndex], dstIndex, inventory);
                             dragSourceSlot.SetItem(srcWand.GetSlotItem(srcWandIndex), srcWandIndex, inventory);
+                            PlaySound(dropSuccessSound);
                         }
                     }
                     else if (dstType == InventorySlotUI.SlotType.RightHand)
                     {
                         inventory.EquipRight(item);
-                        // refresh UI: right hand and emptied wand source
                         if (rightHandSlot != null)
                             rightHandSlot.SetItem(inventory.rightHandItem, -1, inventory);
                         dragSourceSlot.SetItem(srcWand.GetSlotItem(srcWandIndex), srcWandIndex, inventory);
+                        PlaySound(dropSuccessSound);
+                    }
+                    else
+                    {
+                        PlaySound(dropInvalidSound);
                     }
                 }
             }
         }
         else if (dstType == InventorySlotUI.SlotType.Accessory)
         {
-            // Only accept Accessory items into accessory slots
             var accComp = currentlyDraggedItem.GetComponent<Accessory>();
             if (accComp == null)
             {
                 Debug.Log("Only Accessory items can be placed into accessory slots.");
+                PlaySound(dropInvalidSound);
                 EndDrag();
                 return;
             }
 
             if (srcType == InventorySlotUI.SlotType.Backpack)
             {
-                // Swap backpack[srcIndex] with accessories[dstIndex]
                 if (srcIndex >= 0 && srcIndex < inventory.backpack.Length && dstIndex >= 0 && dstIndex < inventory.accessories.Length)
                 {
                     GameObject prevAcc = inventory.accessories[dstIndex];
 
-                    // Place dragged accessory into accessory slot
                     inventory.accessories[dstIndex] = currentlyDraggedItem;
                     accComp.OnEquipped(inventory.gameObject);
                     currentlyDraggedItem.SetActive(false);
 
-                    // Move previous accessory (if any) back into the source backpack slot
                     inventory.backpack[srcIndex] = prevAcc;
                     if (prevAcc != null)
                     {
@@ -825,16 +829,16 @@ public class PlayerUI : MonoBehaviour
                         prevAcc.SetActive(false);
                     }
 
-                    // refresh UI
                     if (dstIndex >= 0 && dstIndex < accessorySlots.Length && accessorySlots[dstIndex] != null)
                         accessorySlots[dstIndex].SetItem(inventory.accessories[dstIndex], dstIndex, inventory);
                     if (srcIndex >= 0 && srcIndex < backpackSlots.Length && backpackSlots[srcIndex] != null)
                         backpackSlots[srcIndex].SetItem(inventory.backpack[srcIndex], srcIndex, inventory);
+
+                    PlaySound(dropSuccessSound);
                 }
             }
             else if (srcType == InventorySlotUI.SlotType.Accessory)
             {
-                // Move or swap between accessory slots
                 int srcAccIndex = dragSourceIndex;
                 if (srcAccIndex >= 0 && srcAccIndex < inventory.accessories.Length && dstIndex >= 0 && dstIndex < inventory.accessories.Length)
                 {
@@ -844,12 +848,9 @@ public class PlayerUI : MonoBehaviour
                     var fromAcc = from != null ? from.GetComponent<Accessory>() : null;
                     var toAcc = to != null ? to.GetComponent<Accessory>() : null;
 
-                    if (fromAcc != null)
-                        fromAcc.OnUnequipped();
-                    if (toAcc != null)
-                        toAcc.OnUnequipped();
+                    if (fromAcc != null) fromAcc.OnUnequipped();
+                    if (toAcc != null) toAcc.OnUnequipped();
 
-                    // swap
                     inventory.accessories[srcAccIndex] = to;
                     inventory.accessories[dstIndex] = from;
 
@@ -866,16 +867,16 @@ public class PlayerUI : MonoBehaviour
                         inventory.accessories[dstIndex].SetActive(false);
                     }
 
-                    // refresh UI for both slots
                     if (dstIndex >= 0 && dstIndex < accessorySlots.Length && accessorySlots[dstIndex] != null)
                         accessorySlots[dstIndex].SetItem(inventory.accessories[dstIndex], dstIndex, inventory);
                     if (srcAccIndex >= 0 && srcAccIndex < accessorySlots.Length && accessorySlots[srcAccIndex] != null)
                         accessorySlots[srcAccIndex].SetItem(inventory.accessories[srcAccIndex], srcAccIndex, inventory);
+
+                    PlaySound(dropSuccessSound);
                 }
             }
             else if (srcType == InventorySlotUI.SlotType.RightHand)
             {
-                // From hand to accessory slot
                 if (dstIndex >= 0 && dstIndex < inventory.accessories.Length)
                 {
                     GameObject prevAcc = inventory.accessories[dstIndex];
@@ -884,12 +885,10 @@ public class PlayerUI : MonoBehaviour
                     accComp.OnEquipped(inventory.gameObject);
                     inventory.accessories[dstIndex].SetActive(false);
 
-                    // Clear hand
                     inventory.rightHandItem = null;
                     if (rightHandSlot != null)
                         rightHandSlot.SetItem(inventory.rightHandItem, -1, inventory);
 
-                    // previous accessory goes nowhere (cannot auto-place); destroy or leave in null
                     if (prevAcc != null)
                     {
                         var prevAccComp = prevAcc.GetComponent<Accessory>();
@@ -899,23 +898,26 @@ public class PlayerUI : MonoBehaviour
 
                     if (dstIndex >= 0 && dstIndex < accessorySlots.Length && accessorySlots[dstIndex] != null)
                         accessorySlots[dstIndex].SetItem(inventory.accessories[dstIndex], dstIndex, inventory);
+
+                    PlaySound(dropSuccessSound);
                 }
+            }
+            else
+            {
+                PlaySound(dropInvalidSound);
             }
         }
         else if (srcType == InventorySlotUI.SlotType.Accessory && dstType == InventorySlotUI.SlotType.Backpack)
         {
-            // Move accessory into backpack slot
             int srcAccIndex = dragSourceIndex;
             if (srcAccIndex >= 0 && srcAccIndex < inventory.accessories.Length && dstIndex >= 0 && dstIndex < inventory.backpack.Length)
             {
                 GameObject moving = inventory.accessories[srcAccIndex];
                 GameObject prevBackpack = inventory.backpack[dstIndex];
 
-                // Unequip moving accessory effects
                 var movingAcc = moving != null ? moving.GetComponent<Accessory>() : null;
                 if (movingAcc != null) movingAcc.OnUnequipped();
 
-                // swap
                 inventory.accessories[srcAccIndex] = prevBackpack;
                 inventory.backpack[dstIndex] = moving;
 
@@ -926,26 +928,26 @@ public class PlayerUI : MonoBehaviour
                     inventory.accessories[srcAccIndex].SetActive(false);
                 }
                 if (inventory.backpack[dstIndex] != null)
-                {
                     inventory.backpack[dstIndex].SetActive(false);
-                }
 
-                // refresh UI
                 if (dstIndex >= 0 && dstIndex < backpackSlots.Length && backpackSlots[dstIndex] != null)
                     backpackSlots[dstIndex].SetItem(inventory.backpack[dstIndex], dstIndex, inventory);
                 if (srcAccIndex >= 0 && srcAccIndex < accessorySlots.Length && accessorySlots[srcAccIndex] != null)
                     accessorySlots[srcAccIndex].SetItem(inventory.accessories[srcAccIndex], srcAccIndex, inventory);
+
+                PlaySound(dropSuccessSound);
             }
         }
         else
         {
             Debug.Log("PlayerUI: Drop combination not handled.");
+            PlaySound(dropInvalidSound);
         }
 
         EndDrag();
     }
 
-    // ----- NEW: helpers for PlayerController -----
+    // ----- Helpers for PlayerController -----
 
     public bool TryConsumeHoveredBackpackItem(GameObject user)
     {
@@ -977,7 +979,6 @@ public class PlayerUI : MonoBehaviour
         return inventory.DropFromBackpack(slot.slotIndex, dropOrigin);
     }
 
-    // NEW: Drop accessory from accessory slot while hovering
     public bool TryDropHoveredAccessoryItem(Transform dropOrigin)
     {
         if (!IsBackpackOpen || inventory == null)
@@ -1009,6 +1010,9 @@ public class PlayerUI : MonoBehaviour
 
         if (!newState)
             HideWandPanel();
+
+        // Play the appropriate open or close sound
+        PlaySound(newState ? backpackOpenSound : backpackCloseSound);
     }
 
     // ----- Wand panel toggle -----
@@ -1018,7 +1022,6 @@ public class PlayerUI : MonoBehaviour
         if (!IsBackpackOpen)
             return;
 
-        // Determine if clicked slot contains a wand
         GameObject item = null;
         switch (slot.slotType)
         {
@@ -1030,7 +1033,6 @@ public class PlayerUI : MonoBehaviour
                 item = inventory.rightHandItem;
                 break;
             default:
-                // clicking outside wand carriers hides panel
                 HideWandPanel();
                 return;
         }
@@ -1049,6 +1051,8 @@ public class PlayerUI : MonoBehaviour
         }
         else
         {
+            // Play click sound when opening the wand slot panel
+            PlaySound(clickSound);
             ShowWandPanel(wand, slot);
         }
     }
@@ -1075,5 +1079,13 @@ public class PlayerUI : MonoBehaviour
             wandPanelInstance = null;
         }
         wandSourceSlot = null;
+    }
+
+    // ----- Sound helper -----
+
+    private void PlaySound(AudioSource source)
+    {
+        if (source != null)
+            source.Play();
     }
 }

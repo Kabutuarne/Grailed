@@ -32,6 +32,25 @@ public class PlayerController : MonoBehaviour
     [Header("UI")]
     public PlayerUI playerUI;
 
+    [Header("Movement Sounds")]
+    [Tooltip("AudioSource for left-foot footstep sounds.")]
+    [SerializeField] private AudioSource footstepLeft;
+
+    [Tooltip("AudioSource for right-foot footstep sounds.")]
+    [SerializeField] private AudioSource footstepRight;
+
+    [Tooltip("Distance traveled (in units) between each footstep at walk speed.")]
+    [SerializeField] private float footstepDistance = 2.0f;
+
+    [Tooltip("Sound played when the player jumps.")]
+    [SerializeField] private AudioSource jumpSound;
+
+    [Tooltip("Sound played when the player lands after falling far enough.")]
+    [SerializeField] private AudioSource landSound;
+
+    [Tooltip("Minimum fall distance (in units) before the land sound plays.")]
+    [SerializeField] private float landSoundMinHeight = 1.5f;
+
     private CharacterController controller;
     private PlayerInputActions input;
 
@@ -50,6 +69,12 @@ public class PlayerController : MonoBehaviour
 
     private Vector3 externalVelocity;
     public float knockbackDecay = 8f;
+
+    // ---- footstep state ----
+    private float footstepAccum;      // distance traveled since last step
+    private int footstepIndex;      // toggles 0/1 to alternate pitch
+    private bool wasGrounded;        // grounded state last frame
+    private float fallOriginY;        // Y position when the player left the ground
 
     void Awake()
     {
@@ -100,6 +125,9 @@ public class PlayerController : MonoBehaviour
 
         controller.height = standingHeight;
         controller.center = new Vector3(0, standingHeight / 2f, 0);
+
+        wasGrounded = controller.isGrounded;
+        fallOriginY = transform.position.y;
     }
 
     void Update()
@@ -109,7 +137,7 @@ public class PlayerController : MonoBehaviour
         UpdateCrouch();
     }
 
-    // ----------------- INPUT -----------------
+    // ─────────────────────── INPUT ───────────────────────
 
     void OnConsumeInput()
     {
@@ -141,17 +169,14 @@ public class PlayerController : MonoBehaviour
 
         if (playerUI != null && playerUI.IsBackpackOpen)
         {
-            if (playerUI.TryDropHoveredAccessoryItem(dropOrigin))
-                return;
-
-            if (playerUI.TryDropHoveredBackpackItem(dropOrigin))
-                return;
+            if (playerUI.TryDropHoveredAccessoryItem(dropOrigin)) return;
+            if (playerUI.TryDropHoveredBackpackItem(dropOrigin)) return;
         }
 
         inventory.DropFromHand(dropOrigin);
     }
 
-    // ----------------- LOOK -----------------
+    // ─────────────────────── LOOK ────────────────────────
 
     void HandleLook()
     {
@@ -170,12 +195,30 @@ public class PlayerController : MonoBehaviour
             playerCamera.localRotation = Quaternion.Euler(cameraPitch, 0f, 0f);
     }
 
-    // ----------------- MOVEMENT -----------------
+    // ─────────────────────── MOVEMENT ────────────────────
 
     void HandleMovement()
     {
         bool grounded = controller.isGrounded;
 
+        // ── Landing detection ──────────────────────────────────────────────
+        if (!wasGrounded && grounded)
+        {
+            float fallDistance = fallOriginY - transform.position.y;
+            if (fallDistance >= landSoundMinHeight)
+                PlaySound(landSound);
+
+            // reset footstep accumulator on landing to avoid a burst of steps
+            footstepAccum = 0f;
+        }
+
+        // Track the Y position at which the player leaves the ground
+        if (wasGrounded && !grounded)
+            fallOriginY = transform.position.y;
+
+        wasGrounded = grounded;
+
+        // ── Backpack open – minimal movement, no footsteps ─────────────────
         if (playerUI != null && playerUI.IsBackpackOpen)
         {
             if (grounded && verticalVelocity < 0)
@@ -220,7 +263,6 @@ public class PlayerController : MonoBehaviour
         float speedMult = statusEffects != null ? statusEffects.GetSpeedMultiplier() : 1f;
 
         float speed;
-
         if (crouchHeld)
             speed = crouchSpeed * speedMult;
         else if (sprinting)
@@ -233,17 +275,24 @@ public class PlayerController : MonoBehaviour
         if (grounded && verticalVelocity < 0)
             verticalVelocity = -1f;
 
+        // ── Jump ───────────────────────────────────────────────────────────
         if (grounded && !crouchHeld && input.Player.Jump.WasPressedThisFrame())
+        {
             verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            fallOriginY = transform.position.y;   // record jump origin for landing height
+            PlaySound(jumpSound);
+        }
 
         verticalVelocity += gravity * Time.deltaTime;
         move.y = verticalVelocity;
 
-        controller.Move((move * speed + externalVelocity) * Time.deltaTime);
+        // ── Actual move ────────────────────────────────────────────────────
+        Vector3 horizontalMove = new Vector3(move.x, 0f, move.z) * speed;
+        controller.Move((horizontalMove + new Vector3(0f, move.y * speed, 0f) + externalVelocity) * Time.deltaTime);
 
         if (stats != null)
         {
-            if (sprinting && new Vector3(move.x, 0, move.z).sqrMagnitude > 0.001f)
+            if (sprinting && horizontalMove.sqrMagnitude > 0.001f)
                 stats.ConsumeStamina(staminaUsePerSecond * Time.deltaTime);
             else if (grounded && !sprintHeld)
                 stats.RegenStamina(stats.staminaRegenPerSecond * Time.deltaTime);
@@ -254,9 +303,52 @@ public class PlayerController : MonoBehaviour
             Vector3.zero,
             knockbackDecay * Time.deltaTime
         );
+
+        // ── Footsteps ──────────────────────────────────────────────────────
+        if (grounded && inputDir.sqrMagnitude > 0.001f)
+        {
+            // Horizontal distance actually covered this frame
+            float frameDist = new Vector3(move.x, 0f, move.z).magnitude * speed * Time.deltaTime;
+            footstepAccum += frameDist;
+
+            // Base interval is footstepDistance; at higher speeds the interval
+            // shrinks proportionally so steps feel faster without sounding wrong.
+            float referenceSpeed = stats != null ? stats.walkSpeed : walkSpeed;
+            float speedRatio = Mathf.Max(speed / referenceSpeed, 0.1f);
+            float adjustedInterval = footstepDistance / speedRatio;
+
+            if (footstepAccum >= adjustedInterval)
+            {
+                footstepAccum -= adjustedInterval;
+                PlayFootstep();
+            }
+        }
+        else
+        {
+            // Reset accumulator when standing still so the first step after
+            // resuming movement feels immediate.
+            footstepAccum = 0f;
+        }
     }
 
-    // ----------------- CROUCH -----------------
+    // ─────────────────────── FOOTSTEP HELPER ─────────────────────────────
+
+    void PlayFootstep()
+    {
+        // Pick left or right source based on step index
+        AudioSource source = (footstepIndex % 2 == 0) ? footstepLeft : footstepRight;
+
+        if (source != null)
+        {
+            // Only playback speed is adjusted in code — pitch is set per-AudioSource in the Inspector
+            // source.pitch = currentSpeed / referenceSpeed;
+            source.Play();
+        }
+
+        footstepIndex++;
+    }
+
+    // ─────────────────────── CROUCH ──────────────────────
 
     void UpdateCrouch()
     {
@@ -274,18 +366,12 @@ public class PlayerController : MonoBehaviour
         if (cameraPivot != null)
         {
             Vector3 pos = cameraPivot.localPosition;
-
-            pos.y = Mathf.Lerp(
-                pos.y,
-                targetCamY,
-                crouchLerpSpeed * Time.deltaTime
-            );
-
+            pos.y = Mathf.Lerp(pos.y, targetCamY, crouchLerpSpeed * Time.deltaTime);
             cameraPivot.localPosition = pos;
         }
     }
 
-    // ----------------- BACKPACK -----------------
+    // ─────────────────────── BACKPACK ────────────────────
 
     void ToggleBackpack()
     {
@@ -306,7 +392,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // ----------------- EXPLOSION -----------------
+    // ─────────────────────── EXPLOSION ───────────────────
 
     public void ApplyExplosionKnockback(
         Vector3 origin,
@@ -319,7 +405,6 @@ public class PlayerController : MonoBehaviour
             : transform.position;
 
         Vector3 dir = center - origin;
-
         float dist = dir.magnitude;
 
         if (dist <= 0.0001f || radius <= 0.0001f)
@@ -328,15 +413,21 @@ public class PlayerController : MonoBehaviour
         dir /= dist;
 
         float atten = Mathf.Clamp01(1f - (dist / radius));
-
         Vector3 impulse = dir * force * atten;
 
         if (upwardsModifier != 0)
             impulse += Vector3.up * upwardsModifier;
 
         Vector3 horiz = new Vector3(impulse.x, 0, impulse.z);
-
         externalVelocity += horiz;
         verticalVelocity += impulse.y;
+    }
+
+    // ─────────────────────── SOUND HELPER ────────────────
+
+    private void PlaySound(AudioSource source)
+    {
+        if (source != null)
+            source.Play();
     }
 }

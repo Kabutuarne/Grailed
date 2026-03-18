@@ -15,6 +15,13 @@ public class PlayerInventory : MonoBehaviour
     [Header("Accessories (4 slots)")]
     public GameObject[] accessories = new GameObject[4];
 
+    [Header("Sound Effects")]
+    [Tooltip("Sound played when an item is picked up into the hand or backpack.")]
+    [SerializeField] private AudioSource pickupSound;
+
+    [Tooltip("Sound played when an item is dropped into the world.")]
+    [SerializeField] private AudioSource dropSound;
+
     // UI can subscribe to this
     public event Action OnInventoryChanged;
 
@@ -44,6 +51,7 @@ public class PlayerInventory : MonoBehaviour
 
             item.SetActive(true);
             rightHandItem = item;
+            PlaySound(pickupSound);
             OnInventoryChanged?.Invoke();
             return false;
         }
@@ -54,6 +62,7 @@ public class PlayerInventory : MonoBehaviour
             {
                 backpack[i] = item;
                 item.SetActive(false);
+                PlaySound(pickupSound);
                 OnInventoryChanged?.Invoke();
                 return true;
             }
@@ -144,6 +153,7 @@ public class PlayerInventory : MonoBehaviour
 
         item.SetActive(true);
         rightHandItem = item;
+        PlaySound(pickupSound);
         OnInventoryChanged?.Invoke();
     }
 
@@ -221,7 +231,7 @@ public class PlayerInventory : MonoBehaviour
         OnInventoryChanged?.Invoke();
     }
 
-    // ----------------- NEW: CONSUME / DROP API -----------------
+    // ----------------- CONSUME / DROP API -----------------
 
     public bool ConsumeFromHand(GameObject user)
     {
@@ -286,7 +296,7 @@ public class PlayerInventory : MonoBehaviour
         return DropWorldItem(item, dropOrigin);
     }
 
-    // NEW: Drop an accessory from an accessory slot into the world
+    // Drop an accessory from an accessory slot into the world
     public bool DropFromAccessory(int index, Transform dropOrigin)
     {
         if (index < 0 || index >= accessories.Length)
@@ -333,6 +343,7 @@ public class PlayerInventory : MonoBehaviour
             col.enabled = true;
 
         item.SetActive(true);
+        PlaySound(dropSound);
         return true;
     }
 
@@ -372,5 +383,13 @@ public class PlayerInventory : MonoBehaviour
             OnInventoryChanged?.Invoke();
             DropWorldItem(item, dropOrigin);
         }
+    }
+
+    // ----------------- HELPERS -----------------
+
+    private void PlaySound(AudioSource source)
+    {
+        if (source != null)
+            source.Play();
     }
 }
