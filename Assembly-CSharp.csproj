@@ -50,10 +50,8 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Player\Spells\ProjectileSpell.cs" />
     <Compile Include="Assets\Scripts\World\Chest.cs" />
-    <Compile Include="Assets\Scripts\Player\ItemTooltip.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\PassiveEffect.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\KnockbackImpactBehaviour.cs" />
-    <Compile Include="Assets\Scripts\Player\CastUI.cs" />
     <Compile Include="Assets\Scripts\Player\Items\ItemLookPrompt.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerConsume.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\RandomRoomSpawner.cs" />
@@ -61,10 +59,12 @@
     <Compile Include="Assets\Scripts\Player\ConsumableItem.cs" />
     <Compile Include="Assets\Scripts\Player\Items\DecorationItem.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCast.cs" />
+    <Compile Include="Assets\Scripts\Dialog\DialogueData.cs" />
     <Compile Include="Assets\Scripts\World\Door.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\InstantEffect.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\KartographPlayerPlacer.cs" />
     <Compile Include="Assets\Scripts\Enemy\ButlerAI.cs" />
+    <Compile Include="Assets\Scripts\Dialog\IInteractable.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInteractor.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInventory.cs" />
     <Compile Include="Assets\Scripts\World\KartographGeneratorInteract.cs" />
@@ -72,26 +72,30 @@
     <Compile Include="Assets\Scripts\Player\Items\Accessory.cs" />
     <Compile Include="Assets\Scripts\Player\ItemPickup.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyStatusEffects.cs" />
-    <Compile Include="Assets\Scripts\Player\PlayerUI.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\AOESpell.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\DurationEffect.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\PlayerEffect.cs" />
+    <Compile Include="Assets\Scripts\Player\UI\ItemTooltip.cs" />
     <Compile Include="Assets\PlayerInputActions.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyStats.cs" />
     <Compile Include="Assets\Scripts\Enemy\EyeballAI.cs" />
     <Compile Include="Assets\Scripts\Enemy\ButlerIKBridge.cs" />
-    <Compile Include="Assets\Scripts\Player\InventorySlotUI.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\ScrollItem.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\ChanneledProjectileSpell.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerStats.cs" />
+    <Compile Include="Assets\Scripts\Dialog\DoorDialogSequence.cs" />
     <Compile Include="Assets\Scripts\Player\UI\WandSlotsPanel.cs" />
     <Compile Include="Assets\Scripts\Player\Items\WandItem.cs" />
+    <Compile Include="Assets\Scripts\Player\UI\PlayerUI.cs" />
+    <Compile Include="Assets\Scripts\Dialog\DialogueUI.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\StartRoomSpawner.cs" />
     <Compile Include="Assets\Scripts\Player\UI\EquippedItemTitleHUD.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerStatusEffects.cs" />
+    <Compile Include="Assets\Scripts\Player\UI\CastUI.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerDecorationPlacer.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\ProjectileImpactBehaviour.cs" />
+    <Compile Include="Assets\Scripts\Player\UI\InventorySlotUI.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
@@ -1165,6 +1169,10 @@
       <HintPath>Library\ScriptAssemblies\Unity.VisualScripting.SettingsProvider.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Unity.Splines.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.Splines.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Unity.RenderPipelines.Universal.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Editor.dll</HintPath>
       <Private>False</Private>
@@ -1215,6 +1223,14 @@
     </Reference>
     <Reference Include="Unity.Mathematics.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.Mathematics.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.Cinemachine.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.Cinemachine.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.Cinemachine">
+      <HintPath>Library\ScriptAssemblies\Unity.Cinemachine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.Rendering.LightTransport.Editor">
@@ -1359,6 +1375,10 @@
     </Reference>
     <Reference Include="Unity.Settings.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.Settings.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.Splines">
+      <HintPath>Library\ScriptAssemblies\Unity.Splines.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEditor.UI">

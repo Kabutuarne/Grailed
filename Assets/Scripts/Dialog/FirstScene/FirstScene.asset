@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63fc6a8dcf668964590f30a42d177eb8, type: 3}
+  m_Name: FirstScene
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueData
+  lines:
+  - speakerId: DebtGoon
+    speakerName: Debt Goon
+    text: YOU DONT CLOSE THAT! You owe my boss A LOT of money, buddy.
+    lettersPerSecond: 20
+    talkingLoopClip: {fileID: 8300000, guid: ff3be4751973814409316a39a9e804dc, type: 3}
+    headLookWeight: 0.8
+    headBlendInSpeed: 6
+    headBlendOutSpeed: 5
+    bobAmplitude: 0.03
+    bobFrequency: 2.4
+    lookAheadDistance: 2
+    verticalBobMultiplier: 0.6
+  - speakerId: DebtGoon
+    speakerName: Debt Goon
+    text: We have been patient and want what is owed. Either you give me what is
+      owed now or i break your legs!
+    lettersPerSecond: 20
+    talkingLoopClip: {fileID: 8300000, guid: c9c0703d9ac8d464fa69cf7b57a91779, type: 3}
+    headLookWeight: 0.8
+    headBlendInSpeed: 6
+    headBlendOutSpeed: 5
+    bobAmplitude: 0.03
+    bobFrequency: 2.4
+    lookAheadDistance: 2
+    verticalBobMultiplier: 0.6
+  - speakerId: DebtGoon
+    speakerName: Debt Goon
+    text: Oh... You umm... Live like this?
+    lettersPerSecond: 15
+    talkingLoopClip: {fileID: 8300000, guid: 7e4fb32d10aff234b910c1506f88e592, type: 3}
+    headLookWeight: 0.8
+    headBlendInSpeed: 6
+    headBlendOutSpeed: 5
+    bobAmplitude: 0.03
+    bobFrequency: 2.4
+    lookAheadDistance: 2
+    verticalBobMultiplier: 0.6
+  - speakerId: DebtGoon
+    speakerName: Debt Goon
+    text: Thats kind of... sad...
+    lettersPerSecond: 14
+    talkingLoopClip: {fileID: 8300000, guid: 7e4fb32d10aff234b910c1506f88e592, type: 3}
+    headLookWeight: 0.8
+    headBlendInSpeed: 6
+    headBlendOutSpeed: 5
+    bobAmplitude: 0.03
+    bobFrequency: 2.4
+    lookAheadDistance: 2
+    verticalBobMultiplier: 0.6

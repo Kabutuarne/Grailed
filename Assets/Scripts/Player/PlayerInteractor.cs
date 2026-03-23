@@ -37,6 +37,7 @@ public class PlayerInteractor : MonoBehaviour
     private PlayerInventory inventory;
     private ItemPickup lookedAtItem;
     private bool lastBackpackOpen;
+    private bool interactionLocked;
 
     private GameObject worldTextObject;
     private TextMeshPro worldText;
@@ -82,8 +83,11 @@ public class PlayerInteractor : MonoBehaviour
             }
         }
 
-        if (backpackOpen)
+        if (backpackOpen || interactionLocked)
+        {
+            ClearCurrentItemVisuals();
             return;
+        }
 
         if (uiPointerSafe && EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
         {
@@ -110,6 +114,13 @@ public class PlayerInteractor : MonoBehaviour
         }
     }
 
+    public void SetInteractionLocked(bool locked)
+    {
+        interactionLocked = locked;
+        if (locked)
+            ClearCurrentItemVisuals();
+    }
+
     void ApplyInputState(bool backpackOpen)
     {
         if (input == null) return;
@@ -129,6 +140,17 @@ public class PlayerInteractor : MonoBehaviour
 
         if (!Physics.Raycast(origin, direction, out RaycastHit hit, interactRange, interactMask))
             return;
+
+        // Generic interactables first
+        MonoBehaviour[] behaviours = hit.collider.GetComponentsInParent<MonoBehaviour>(true);
+        for (int i = 0; i < behaviours.Length; i++)
+        {
+            if (behaviours[i] is IInteractable interactable && interactable.CanInteract(gameObject))
+            {
+                interactable.Interact(gameObject);
+                return;
+            }
+        }
 
         Door door = hit.collider.GetComponentInParent<Door>();
         Chest chest = hit.collider.GetComponentInParent<Chest>();
@@ -232,6 +254,7 @@ public class PlayerInteractor : MonoBehaviour
     {
         if (item == null) return;
     }
+
     Transform FindChildRecursive(Transform parent, string childName)
     {
         foreach (Transform child in parent)
