@@ -1,34 +1,90 @@
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 // Represents a scroll item that holds spell configuration and inventory metadata.
-public class ScrollItem : ItemPickup
+public class ScrollItem : ItemPickup, IInventoryIconProvider
 {
     [Header("Scroll Data")]
-    public AOESpell aoeSpell;              // optional AOE spell
-    public ProjectileSpell projectileSpell; // optional projectile spell
-    public ChanneledProjectileSpell channeledProjectileSpell; // optional channeled projectile
-    public ChanneledAOESpell channeledAOESpell; // optional channeled AOE
+    public AOESpell aoeSpell;
+    public ProjectileSpell projectileSpell;
+    public ChanneledProjectileSpell channeledProjectileSpell;
+    public ChanneledAOESpell channeledAOESpell;
 
     [Header("Presentation")]
-    public GameObject renderModel;       // model to show when held
+    public GameObject renderModel;
     public Sprite inventoryIcon;
     public string title;
     public Color titleColor = Color.white;
-    [TextArea]
-    public string description;
-    public Color descriptionColor = Color.white;
+
+    [Header("Tooltip Rows")]
+    public List<ItemTooltipRowData> descriptionRows = new List<ItemTooltipRowData>();
 
     [Header("Behavior")]
-    public bool destroyOnCast = false; // do not destroy scroll on use by default
+    public bool destroyOnCast = false;
 
-    // Helper: returns true if this scroll can be cast
+    public Sprite InventoryIcon => inventoryIcon;
+
+    public override string DisplayName
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(title))
+                return title;
+
+            return base.DisplayName;
+        }
+    }
+
+    public override string TooltipTitle => DisplayName;
+    public override Color TooltipTitleColor => titleColor;
+
+    public override IReadOnlyList<ItemTooltipRowData> GetTooltipRows()
+    {
+        return descriptionRows;
+    }
+
     public bool CanCast()
     {
-        if (aoeSpell != null && aoeSpell.castTime > 0f) return true;
-        if (projectileSpell != null && projectileSpell.castTime > 0f) return true;
-        if (channeledProjectileSpell != null && channeledProjectileSpell.castTime > 0f) return true;
-        if (channeledAOESpell != null && channeledAOESpell.castTime > 0f) return true;
+        return TryGetSpell(out _, out _, out _);
+    }
+
+    public bool TryGetSpell(
+        out ISpellCastDefinition spell,
+        out IInstantCastSpell instantSpell,
+        out IChanneledCastSpell channeledSpell)
+    {
+        spell = null;
+        instantSpell = null;
+        channeledSpell = null;
+
+        if (aoeSpell != null)
+        {
+            instantSpell = aoeSpell;
+            spell = aoeSpell;
+            return true;
+        }
+
+        if (projectileSpell != null)
+        {
+            instantSpell = projectileSpell;
+            spell = projectileSpell;
+            return true;
+        }
+
+        if (channeledProjectileSpell != null)
+        {
+            channeledSpell = channeledProjectileSpell;
+            spell = channeledProjectileSpell;
+            return true;
+        }
+
+        if (channeledAOESpell != null)
+        {
+            channeledSpell = channeledAOESpell;
+            spell = channeledAOESpell;
+            return true;
+        }
+
         return false;
     }
 }

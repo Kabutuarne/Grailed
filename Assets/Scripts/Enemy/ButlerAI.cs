@@ -92,7 +92,7 @@ public class ButlerAI : MonoBehaviour
     public float destroyDelay = 8f;
 
     private EnemyStats stats;
-    private EnemyStatusEffects statusEffects;
+    private StatusEffects statusEffects;
     private Rigidbody rb;
     private Transform target;
 
@@ -131,7 +131,7 @@ public class ButlerAI : MonoBehaviour
     private void Awake()
     {
         stats = GetComponent<EnemyStats>();
-        statusEffects = GetComponent<EnemyStatusEffects>();
+        statusEffects = GetComponent<StatusEffects>();
         rb = GetComponent<Rigidbody>();
 
         if (animator == null)

@@ -66,7 +66,7 @@ public class EyeballAI : MonoBehaviour
     public float destroyDelay = 0f;
 
     private EnemyStats stats;
-    private EnemyStatusEffects statusEffects;
+    private StatusEffects statusEffects;
     private Rigidbody rb;
     private Transform target;
     private Collider[] ownColliders;
@@ -88,7 +88,7 @@ public class EyeballAI : MonoBehaviour
     private void Awake()
     {
         stats = GetComponent<EnemyStats>();
-        statusEffects = GetComponent<EnemyStatusEffects>();
+        statusEffects = GetComponent<StatusEffects>();
         rb = GetComponent<Rigidbody>();
         ownColliders = GetComponentsInChildren<Collider>().Append(GetComponent<Collider>()).Where(c => c != null).ToArray();
 

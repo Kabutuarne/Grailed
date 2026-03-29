@@ -9,12 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 35100bd2f69716c46be3f8f4b84b702b, type: 3}
-  m_Name: CyanideEffectCarrier
+  m_Script: {fileID: 11500000, guid: 5a4141841c4d1274d91ea76a8247cb42, type: 3}
+  m_Name: CyanideCarrier
   m_EditorClassIdentifier: Assembly-CSharp::EffectCarrier
   effects:
   - {fileID: 11400000, guid: f84781d78cdffb14190f4bf8d2ff4e69, type: 2}
-  title: Cyanide Poisioning
+  title: Cyanide
   icon: {fileID: 21300000, guid: 8fee31ec1958e1d4d96696e119d88cd5, type: 3}
-  description: Cyanide Poisioning
+  description: You will die soon
   particlePrefab: {fileID: 6823200998282874702, guid: 6d33c13e5c5161e4daef09c8ceb3d4d0, type: 3}
+  breaksCast: 0

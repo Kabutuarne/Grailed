@@ -61,7 +61,7 @@ public class PlayerController : MonoBehaviour
     private float cameraPitch;
 
     private PlayerStats stats;
-    private PlayerStatusEffects statusEffects;
+    private StatusEffects statusEffects;
     private PlayerInventory inventory;
     private PlayerConsume consumer;
 
@@ -83,7 +83,7 @@ public class PlayerController : MonoBehaviour
         controller = GetComponent<CharacterController>();
 
         stats = GetComponent<PlayerStats>();
-        statusEffects = GetComponent<PlayerStatusEffects>();
+        statusEffects = GetComponent<StatusEffects>();
         inventory = GetComponent<PlayerInventory>();
         consumer = GetComponent<PlayerConsume>();
 

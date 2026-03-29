@@ -1,57 +1,60 @@
 using UnityEngine;
+using System.Collections.Generic;
 
-[CreateAssetMenu(menuName = "DungeonBroker/EffectCarrier", fileName = "NewEffectCarrier")]
-public class EffectCarrier : ScriptableObject
+public class ConsumableItem : ItemPickup, IInventoryIconProvider
 {
-    [Header("Effects composed by this carrier")]
-    public PlayerEffect[] effects;
+    [Header("Data")]
+    public EffectCarrier carrier;
 
-    [Header("Display / metadata")]
-    public string title = "Effect";
-    public Sprite icon;
-    [TextArea]
-    public string description;
+    [Tooltip("Base time in seconds to consume this item (before agility speed).")]
+    public float baseConsumeTime = 1.0f;
 
-    [Header("Visuals")]
-    [Tooltip("Optional: Particle prefab to spawn on the player while this effect is active (duration effects only)")]
-    public GameObject particlePrefab;
+    [Header("Presentation")]
+    public GameObject renderModel;
 
-    [Header("Cast Interaction")]
-    [Tooltip("If true, applying this carrier to the player will interrupt any active spell cast, regardless of individual effect settings.")]
-    public bool breaksCast = false;
+    [Header("Inventory UI")]
+    public Sprite inventoryIcon;
+    public string title;
+    public Color titleColor = Color.white;
+    public List<ItemTooltipRowData> descriptionRows = new List<ItemTooltipRowData>();
 
-    public float GetLongestDuration()
+    [Header("Behavior")]
+    public bool destroyOnConsume = true;
+
+    public Sprite InventoryIcon => inventoryIcon;
+
+    public override string DisplayName
     {
-        float longest = 0f;
-        if (effects == null) return longest;
-
-        foreach (var effect in effects)
+        get
         {
-            if (effect is DurationEffect durationEffect)
-                longest = Mathf.Max(longest, Mathf.Abs(durationEffect.duration));
-        }
+            if (!string.IsNullOrWhiteSpace(title))
+                return title;
 
-        return longest;
+            return base.DisplayName;
+        }
     }
 
-    public void Apply(GameObject user)
+    public override string TooltipTitle => DisplayName;
+    public override Color TooltipTitleColor => titleColor;
+
+    public override IReadOnlyList<ItemTooltipRowData> GetTooltipRows()
     {
-        if (user == null || effects == null) return;
+        return descriptionRows;
+    }
 
-        foreach (var effect in effects)
+    public void Consume(GameObject user)
+    {
+        if (carrier == null)
         {
-            if (effect == null) continue;
-            effect.Apply(user, this);
+            Debug.LogWarning($"ConsumableItem on {gameObject.name} missing EffectCarrier");
+            return;
         }
 
-        // Carrier-level cast break: fires after all effects are applied.
-        // Also catches cases where the carrier has no InstantEffect with breaksCast
-        // but the carrier itself is flagged (e.g. a DurationEffect-only carrier).
-        if (breaksCast)
-        {
-            PlayerCast playerCast = user.GetComponent<PlayerCast>();
-            if (playerCast != null)
-                playerCast.OnDamageTaken();
-        }
+        carrier.Apply(user);
+
+        if (destroyOnConsume)
+            Destroy(gameObject);
+        else
+            gameObject.SetActive(false);
     }
 }

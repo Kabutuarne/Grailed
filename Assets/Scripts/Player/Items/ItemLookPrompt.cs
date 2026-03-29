@@ -9,7 +9,6 @@ public class ItemLookPrompt : MonoBehaviour
     [SerializeField] private Transform lookTarget;
 
     [Header("Visuals")]
-    [SerializeField] private GameObject glowObject;
     [SerializeField] private Vector3 textOffset = new Vector3(0f, 1.5f, 0f);
 
     [Header("Text")]
@@ -28,7 +27,6 @@ public class ItemLookPrompt : MonoBehaviour
             lookTarget = transform;
 
         CreateWorldText();
-
         SetVisualState(false);
     }
 
@@ -37,7 +35,8 @@ public class ItemLookPrompt : MonoBehaviour
         if (mainCam == null)
         {
             mainCam = Camera.main;
-            if (mainCam == null) return;
+            if (mainCam == null)
+                return;
         }
 
         bool inRange = Vector3.Distance(mainCam.transform.position, transform.position) <= pickupRange;
@@ -59,17 +58,12 @@ public class ItemLookPrompt : MonoBehaviour
             textInstance.transform.position = transform.position + textOffset;
 
             if (billboardToCamera && mainCam != null)
-            {
                 textInstance.transform.forward = textInstance.transform.position - mainCam.transform.position;
-            }
         }
     }
 
     private void SetVisualState(bool active)
     {
-        if (glowObject != null)
-            glowObject.SetActive(active);
-
         if (textInstance != null)
             textInstance.SetActive(active);
     }
@@ -93,25 +87,22 @@ public class ItemLookPrompt : MonoBehaviour
 
     private string GetItemTitle()
     {
-        ScrollItem scrollItem = GetComponent<ScrollItem>();
-        if (scrollItem != null)
-            return scrollItem.title;
+        MonoBehaviour[] behaviours = GetComponentsInParent<MonoBehaviour>(true);
+        foreach (MonoBehaviour behaviour in behaviours)
+        {
+            if (behaviour is IItemDisplayName named &&
+                !string.IsNullOrWhiteSpace(named.DisplayName))
+            {
+                return named.DisplayName;
+            }
+        }
 
-        Accessory accessory = GetComponent<Accessory>();
-        if (accessory != null)
-            return accessory.title;
+        ItemPickup pickup = GetComponent<ItemPickup>();
+        if (pickup == null)
+            pickup = GetComponentInParent<ItemPickup>();
 
-        DecorationItem decoration = GetComponent<DecorationItem>();
-        if (decoration != null)
-            return decoration.title;
-
-        WandItem wand = GetComponent<WandItem>();
-        if (wand != null)
-            return wand.title;
-
-        ConsumableItem consumable = GetComponent<ConsumableItem>();
-        if (consumable != null)
-            return consumable.title;
+        if (pickup != null && !string.IsNullOrWhiteSpace(pickup.itemName))
+            return pickup.itemName;
 
         return "Item";
     }

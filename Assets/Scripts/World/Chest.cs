@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Collider))]
-public class Chest : MonoBehaviour
+public class Chest : MonoBehaviour, IInteractable
 {
     [Header("Lid Rotation")]
     [Tooltip("The child transform that rotates (the lid).")]
@@ -37,6 +37,7 @@ public class Chest : MonoBehaviour
 
         if (audioSource == null)
             audioSource = GetComponent<AudioSource>();
+
         if (audioSource == null)
             audioSource = gameObject.AddComponent<AudioSource>();
 
@@ -47,13 +48,22 @@ public class Chest : MonoBehaviour
         }
     }
 
-    // Call this from your interactor (same pattern as Door: chest.Interact(cam.transform);)
+    public bool CanInteract(GameObject interactor)
+    {
+        return !isOpen && !isMoving && lid != null;
+    }
+
+    public void Interact(GameObject interactor)
+    {
+        Interact();
+    }
+
+    // Kept for backward compatibility with any existing direct calls.
     public void Interact()
     {
-        if (isOpen || isMoving) return;
-        if (lid == null) return;
+        if (!CanInteract(null))
+            return;
 
-        // sound plays once on interact
         PlayOneShot(soundOnInteract);
 
         if (openRoutine != null)
@@ -76,7 +86,6 @@ public class Chest : MonoBehaviour
         {
             t += Time.deltaTime / dur;
 
-            // smooth slope (slow -> fast -> slow)
             float eased = EaseInOutCubic(Mathf.Clamp01(t));
             lid.localRotation = Quaternion.Slerp(startRot, endRot, eased);
 
@@ -92,7 +101,9 @@ public class Chest : MonoBehaviour
 
     void PlayOneShot(AudioClip clip)
     {
-        if (clip == null || audioSource == null) return;
+        if (clip == null || audioSource == null)
+            return;
+
         audioSource.PlayOneShot(clip);
     }
 
@@ -106,10 +117,6 @@ public class Chest : MonoBehaviour
     void OnValidate()
     {
         if (lid != null)
-        {
-            // If already open in editor, don't force-close; just keep endpoints consistent
-            // (Awake will finalize at runtime anyway)
             openLidLocalRot = lid.localRotation * Quaternion.Euler(openEulerOffset);
-        }
     }
 }

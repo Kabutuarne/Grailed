@@ -34,7 +34,6 @@ public class InventorySlotUI : MonoBehaviour,
     static InventorySlotUI hoveredSlot;
     static InventorySlotUI draggingSlot;
 
-    // NEW: expose hovered slot
     public static InventorySlotUI HoveredSlot => hoveredSlot;
 
     private PlayerUI playerUI;
@@ -50,7 +49,7 @@ public class InventorySlotUI : MonoBehaviour,
         inventory = inv;
 
         if (label != null)
-            label.text = item != null ? item.name : "";
+            label.text = item != null ? ItemTooltipDataUtility.GetDisplayName(item) : string.Empty;
 
         if (icon != null)
         {
@@ -58,55 +57,9 @@ public class InventorySlotUI : MonoBehaviour,
 
             if (item != null)
             {
-                // Check common item types for explicit inventory icons
-                var wand = item.GetComponent<WandItem>();
-                if (wand != null && wand.inventoryIcon != null)
-                {
-                    s = wand.inventoryIcon;
-                }
-                else
-                {
-                    var consumable = item.GetComponent<ConsumableItem>();
-                    if (consumable != null && consumable.inventoryIcon != null)
-                    {
-                        s = consumable.inventoryIcon;
-                    }
-                    else
-                    {
-                        var accessory = item.GetComponent<Accessory>();
-                        if (accessory != null && accessory.inventoryIcon != null)
-                        {
-                            s = accessory.inventoryIcon;
-                        }
-                        else
-                        {
-                            var scroll = item.GetComponent<ScrollItem>();
-                            if (scroll != null && scroll.inventoryIcon != null)
-                                s = scroll.inventoryIcon;
-                            else
-                            {
-                                // DecorationItem support: use its inventoryIcon if present
-                                var decor = item.GetComponent<DecorationItem>();
-                                if (decor != null && decor.inventoryIcon != null)
-                                {
-                                    s = decor.inventoryIcon;
-                                }
-                                else
-                                {
-                                    var sr = item.GetComponentInChildren<SpriteRenderer>();
-                                    if (sr != null && sr.sprite != null)
-                                        s = sr.sprite;
-                                    else
-                                    {
-                                        var uiImg = item.GetComponentInChildren<Image>();
-                                        if (uiImg != null && uiImg.sprite != null)
-                                            s = uiImg.sprite;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                Sprite resolved = ItemTooltipDataUtility.GetInventoryIcon(item);
+                if (resolved != null)
+                    s = resolved;
             }
 
             icon.sprite = s;
@@ -193,19 +146,16 @@ public class InventorySlotUI : MonoBehaviour,
         }
 
         if (hoveredSlot != null)
-        {
             playerUI.HandleDrop(hoveredSlot);
-        }
         else
-        {
             playerUI.EndDrag();
-        }
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
         if (playerUI == null)
             return;
+
         playerUI.NotifySlotClicked(this);
     }
 }

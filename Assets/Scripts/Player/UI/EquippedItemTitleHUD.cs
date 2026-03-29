@@ -1,10 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// Displays the title of the currently equipped (right-hand) item
-// when the player closes the backpack, holds it for a few seconds,
-// then fades it away. Uses an existing Text component rather than
-// creating a new one.
 public class EquippedItemTitleHUD : MonoBehaviour
 {
     [Header("Timing")]
@@ -13,35 +9,25 @@ public class EquippedItemTitleHUD : MonoBehaviour
 
     private PlayerUI playerUI;
     private CanvasGroup canvasGroup;
+
     [Header("Target Text")]
-    public Text targetText; // Assign an existing Text via Inspector (preferred)
-    public string targetTextName = "EquippedItemTitle"; // Fallback: find by name under hudRoot
+    public Text targetText;
+    public string targetTextName = "EquippedItemTitle";
 
     private bool prevBackpackOpen;
     private float elapsed = -1f;
     private GameObject prevRightHandItem;
 
-#if UNITY_2023_1_OR_NEWER
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
     {
         var ui = Object.FindFirstObjectByType<PlayerUI>();
         if (ui == null) return;
+
         var hud = ui.GetComponent<EquippedItemTitleHUD>();
         if (hud == null) hud = ui.gameObject.AddComponent<EquippedItemTitleHUD>();
         hud.Initialize(ui);
     }
-#else
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void Bootstrap()
-    {
-        var ui = Object.FindObjectOfType<PlayerUI>();
-        if (ui == null) return;
-        var hud = ui.GetComponent<EquippedItemTitleHUD>();
-        if (hud == null) hud = ui.gameObject.AddComponent<EquippedItemTitleHUD>();
-        hud.Initialize(ui);
-    }
-#endif
 
     public void Initialize(PlayerUI ui)
     {
@@ -57,33 +43,25 @@ public class EquippedItemTitleHUD : MonoBehaviour
     {
         if (playerUI == null)
         {
-#if UNITY_2023_1_OR_NEWER
             var ui = Object.FindFirstObjectByType<PlayerUI>();
-#else
-            var ui = Object.FindObjectOfType<PlayerUI>();
-#endif
-            if (ui != null) Initialize(ui); else return;
+            if (ui != null) Initialize(ui);
+            else return;
         }
 
         bool nowOpen = playerUI.IsBackpackOpen;
         if (prevBackpackOpen && !nowOpen)
-        {
             ShowCurrentEquippedTitle();
-        }
+
         prevBackpackOpen = nowOpen;
 
-        // If backpack is closed and equipped item changed, show title
         var currentRightHand = (playerUI.inventory != null) ? playerUI.inventory.rightHandItem : null;
         if (!playerUI.IsBackpackOpen && currentRightHand != prevRightHandItem)
         {
             prevRightHandItem = currentRightHand;
             if (currentRightHand != null)
-            {
                 ShowCurrentEquippedTitle();
-            }
         }
 
-        // Handle hold + fade
         if (elapsed >= 0f)
         {
             elapsed += Time.deltaTime;
@@ -105,13 +83,16 @@ public class EquippedItemTitleHUD : MonoBehaviour
 
     private void ShowCurrentEquippedTitle()
     {
-        if (playerUI == null || playerUI.inventory == null) return;
-        var item = playerUI.inventory.rightHandItem;
-        if (item == null) return;
+        if (playerUI == null || playerUI.inventory == null)
+            return;
 
-        string title; Color color;
-        GetItemTitleAndColor(item, out title, out color);
-        if (string.IsNullOrEmpty(title)) return;
+        var item = playerUI.inventory.rightHandItem;
+        if (item == null)
+            return;
+
+        string title = BuildEquippedTitle(item, out Color color);
+        if (string.IsNullOrWhiteSpace(title))
+            return;
 
         FindTargetTextIfNeeded();
         if (targetText == null)
@@ -119,16 +100,52 @@ public class EquippedItemTitleHUD : MonoBehaviour
             Debug.LogWarning("EquippedItemTitleHUD: No target Text found to display title.");
             return;
         }
+
         targetText.text = title;
         targetText.color = color;
         SetAlpha(1f);
         elapsed = 0f;
     }
 
-    // Public trigger from external systems (e.g., WandItem on selection change)
     public void ShowEquippedTitle()
     {
         ShowCurrentEquippedTitle();
+    }
+
+    private string BuildEquippedTitle(GameObject item, out Color color)
+    {
+        color = Color.white;
+        if (item == null)
+            return null;
+
+        WandItem wand = item.GetComponent<WandItem>();
+        if (wand != null)
+        {
+            string wandTitle = wand.DisplayName;
+            ScrollItem selectedScroll = wand.GetSelectedScroll();
+            if (selectedScroll != null)
+            {
+                color = wand.titleColor;
+                return $"{wandTitle} [{selectedScroll.DisplayName}]";
+            }
+
+            color = wand.titleColor;
+            return wandTitle;
+        }
+
+        MonoBehaviour[] behaviours = item.GetComponents<MonoBehaviour>();
+        for (int i = 0; i < behaviours.Length; i++)
+        {
+            if (behaviours[i] is IItemTooltipData tooltipData)
+            {
+                color = tooltipData.TooltipTitleColor;
+                return string.IsNullOrWhiteSpace(tooltipData.TooltipTitle)
+                    ? ItemTooltipDataUtility.GetDisplayName(item)
+                    : tooltipData.TooltipTitle;
+            }
+        }
+
+        return ItemTooltipDataUtility.GetDisplayName(item);
     }
 
     private void HideImmediate()
@@ -146,7 +163,9 @@ public class EquippedItemTitleHUD : MonoBehaviour
         }
         else if (targetText != null)
         {
-            var c = targetText.color; c.a = a; targetText.color = c;
+            var c = targetText.color;
+            c.a = a;
+            targetText.color = c;
         }
     }
 
@@ -154,7 +173,6 @@ public class EquippedItemTitleHUD : MonoBehaviour
     {
         if (targetText != null)
         {
-            // Prefer a CanvasGroup on the same object or its parent to control fade
             canvasGroup = targetText.GetComponent<CanvasGroup>();
             if (canvasGroup == null) canvasGroup = targetText.transform.GetComponentInParent<CanvasGroup>();
             return;
@@ -166,7 +184,6 @@ public class EquippedItemTitleHUD : MonoBehaviour
 
         if (searchRoot == null) return;
 
-        // Try find by name under the HUD root
         var t = searchRoot.Find(targetTextName);
         if (t != null)
         {
@@ -184,7 +201,6 @@ public class EquippedItemTitleHUD : MonoBehaviour
     {
         if (playerUI != null && playerUI.inventory != null)
         {
-            // Ensure we don't double-subscribe
             UnsubscribeInventoryEvents();
             playerUI.inventory.OnInventoryChanged += OnInventoryChanged;
         }
@@ -193,9 +209,7 @@ public class EquippedItemTitleHUD : MonoBehaviour
     private void UnsubscribeInventoryEvents()
     {
         if (playerUI != null && playerUI.inventory != null)
-        {
             playerUI.inventory.OnInventoryChanged -= OnInventoryChanged;
-        }
     }
 
     private void OnDestroy()
@@ -205,53 +219,14 @@ public class EquippedItemTitleHUD : MonoBehaviour
 
     private void OnInventoryChanged()
     {
-        if (playerUI == null || playerUI.inventory == null) return;
+        if (playerUI == null || playerUI.inventory == null)
+            return;
+
         var currentRight = playerUI.inventory.rightHandItem;
         bool changed = currentRight != prevRightHandItem;
         prevRightHandItem = currentRight;
 
-        // Only trigger when backpack is closed and the equipped item changed
         if (!playerUI.IsBackpackOpen && changed && currentRight != null)
-        {
             ShowCurrentEquippedTitle();
-        }
-    }
-
-    private void GetItemTitleAndColor(GameObject item, out string title, out Color color)
-    {
-        title = null; color = Color.white;
-        if (item == null) return;
-
-        var scroll = item.GetComponent<ScrollItem>();
-        if (scroll != null)
-        {
-            title = scroll.title;
-            color = scroll.titleColor;
-            return;
-        }
-
-        var wand = item.GetComponent<WandItem>();
-        if (wand != null)
-        {
-            // Compose "WandTitle [SpellTitle]" if a selected scroll exists
-            string wandTitle = wand.title;
-            string spellTitle = null;
-            var sel = wand.GetSelectedScroll();
-            if (sel != null && !string.IsNullOrEmpty(sel.title)) spellTitle = sel.title;
-            title = !string.IsNullOrEmpty(spellTitle) ? ($"{wandTitle} [{spellTitle}]") : wandTitle;
-            color = wand.titleColor;
-            return;
-        }
-
-        var cons = item.GetComponent<ConsumableItem>();
-        if (cons != null)
-        {
-            title = cons.title;
-            color = cons.titleColor;
-            return;
-        }
-
-        // Fallback to object name
-        title = item.name;
     }
 }

@@ -1,11 +1,11 @@
 using UnityEngine;
 
-// Represents a decorative world object that can be carried, placed, and shown in inventory.
+// Currently do not use
 public class DecorationItem : ItemPickup
 {
     [Header("Presentation")]
-    public GameObject renderModel; // 3D model to show when held / preview
-    public Rigidbody rb;           // optional rigidbody on the world object
+    public GameObject renderModel;
+    public Rigidbody rb;
 
     [Header("Inventory UI")]
     public Sprite inventoryIcon;

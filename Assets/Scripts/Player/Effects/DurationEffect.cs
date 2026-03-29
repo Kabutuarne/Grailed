@@ -1,84 +1,40 @@
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "DungeonBroker/Effects/DurationEffect", fileName = "NewDurationEffect")]
+[CreateAssetMenu(menuName = "DungeonBroker/Effects/DurationEffect")]
 public class DurationEffect : PlayerEffect
 {
-    [Header("Duration")]
-    [Tooltip("> 0 = timed effect, < 0 = toggle / infinite effect")]
     public float duration = 5f;
 
-    [Header("Multipliers")]
     public float speedMultiplier = 1f;
     public float healthRegenMultiplier = 1f;
     public float manaRegenMultiplier = 1f;
     public float energyRegenMultiplier = 1f;
 
-    [Header("Per-second values")]
-    [Tooltip("Health added every second while active (positive = heal, negative = damage).")]
-    public float healthPerSecond = 0f;
+    public float healthPerSecond;
+    public float manaPerSecond;
+    public float energyPerSecond;
 
-    [Tooltip("Mana added every second while active (positive = restore, negative = drain).")]
-    public float manaPerSecond = 0f;
+    public float addStrength;
+    public float addIntelligence;
+    public float addStaminaAttr;
+    public float addAgility;
 
-    [Tooltip("Energy / sprint added every second while active (positive = restore, negative = drain).")]
-    public float energyPerSecond = 0f;
-
-    [Header("Temporary attribute adds (applied only while active)")]
-    public float addStrength = 0f;
-    public float addIntelligence = 0f;
-    public float addStaminaAttr = 0f;
-    public float addAgility = 0f;
-
-    public override void Apply(GameObject user, EffectCarrier carrier = null)
+    public override StatusEffectData CreateEffect(EffectCarrier carrier)
     {
-        if (user == null) return;
-
-        var playerStatus = user.GetComponent<PlayerStatusEffects>();
-        if (playerStatus != null)
+        return new StatusEffectData(EffectTitle, duration)
         {
-            var effect = new PlayerStatusEffects.Effect(effectId, duration)
-            {
-                carrier = carrier,
-                speedMultiplier = speedMultiplier,
-                healthRegenMultiplier = healthRegenMultiplier,
-                manaRegenMultiplier = manaRegenMultiplier,
-                energyRegenMultiplier = energyRegenMultiplier,
-                healthPerSecond = healthPerSecond,
-                manaPerSecond = manaPerSecond,
-                energyPerSecond = energyPerSecond,
-                addStrength = addStrength,
-                addIntelligence = addIntelligence,
-                addStaminaAttr = addStaminaAttr,
-                addAgility = addAgility
-            };
-
-            playerStatus.AddEffect(effect);
-            return;
-        }
-
-        var enemyStatus = user.GetComponent<EnemyStatusEffects>();
-        if (enemyStatus != null)
-        {
-            var effect = new EnemyStatusEffects.Effect(effectId, duration)
-            {
-                carrier = carrier,
-                speedMultiplier = speedMultiplier,
-                healthRegenMultiplier = healthRegenMultiplier,
-                manaRegenMultiplier = manaRegenMultiplier,
-                energyRegenMultiplier = energyRegenMultiplier,
-                healthPerSecond = healthPerSecond,
-                manaPerSecond = manaPerSecond,
-                energyPerSecond = energyPerSecond,
-                addStrength = addStrength,
-                addIntelligence = addIntelligence,
-                addStaminaAttr = addStaminaAttr,
-                addAgility = addAgility
-            };
-
-            enemyStatus.AddEffect(effect);
-            return;
-        }
-
-        Debug.LogWarning($"DurationEffect '{displayName}' cannot be applied: no compatible status effects found on {user.name}");
+            carrier = carrier,
+            speedMultiplier = speedMultiplier,
+            healthRegenMultiplier = healthRegenMultiplier,
+            manaRegenMultiplier = manaRegenMultiplier,
+            energyRegenMultiplier = energyRegenMultiplier,
+            healthPerSecond = healthPerSecond,
+            manaPerSecond = manaPerSecond,
+            energyPerSecond = energyPerSecond,
+            addStrength = addStrength,
+            addIntelligence = addIntelligence,
+            addStaminaAttr = addStaminaAttr,
+            addAgility = addAgility
+        };
     }
 }

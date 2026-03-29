@@ -7,30 +7,25 @@ public class PlayerCast : MonoBehaviour
     private PlayerInputActions input;
     private PlayerInventory inventory;
     private PlayerStats stats;
-    private CharacterController controller;
-    private PlayerStatusEffects statusEffects;
 
     [Header("UI")]
     public CastUI castUI;
-    public PlayerUI playerUI; // used to gate casting when backpack is open
+    public PlayerUI playerUI;
 
-    bool isCasting = false;
-    ScrollItem currentScroll = null;
-    AOESpell currentAOE = null;
-    ProjectileSpell currentProjectile = null;
-    ChanneledProjectileSpell currentChanneledProjectile = null;
-    ChanneledAOESpell currentChanneledAOE = null;
-    MonoBehaviour currentChannelRuntime = null;
-    float elapsed = 0f;
-    float castTimeActual = 0f;
+    private bool isCasting;
+    private ScrollItem currentScroll;
+    private ISpellCastDefinition currentSpell;
+    private IInstantCastSpell currentInstantSpell;
+    private IChanneledCastSpell currentChanneledSpell;
+    private IChannelCastRuntime currentChannelRuntime;
+    private float elapsed;
+    private float castTimeActual;
 
     void Awake()
     {
         input = new PlayerInputActions();
         inventory = GetComponent<PlayerInventory>();
         stats = GetComponent<PlayerStats>();
-        controller = GetComponent<CharacterController>();
-        statusEffects = GetComponent<PlayerStatusEffects>();
 
         if (playerUI == null)
             playerUI = Object.FindFirstObjectByType<PlayerUI>();
@@ -38,252 +33,250 @@ public class PlayerCast : MonoBehaviour
 
     void OnEnable()
     {
-        if (input == null) input = new PlayerInputActions();
+        if (input == null)
+            input = new PlayerInputActions();
+
         input.Enable();
     }
 
     void OnDisable()
     {
-        if (input != null) input.Disable();
-    }
-    // Returns true if any equipped accessory has canCastWhileMoving set.
-    private bool CanCastWhileMoving()
-    {
-        if (inventory == null) return false;
-        foreach (var slot in inventory.accessories)
-        {
-            if (slot == null) continue;
-            var acc = slot.GetComponent<Accessory>();
-            if (acc != null && acc.canCastWhileMoving)
-                return true;
-        }
-        return false;
-    }
-
-    // Returns true if any equipped accessory has canCastWhileHit set.
-    private bool CanCastWhileHit()
-    {
-        if (inventory == null) return false;
-        foreach (var slot in inventory.accessories)
-        {
-            if (slot == null) continue;
-            var acc = slot.GetComponent<Accessory>();
-            if (acc != null && acc.canCastWhileHit)
-                return true;
-        }
-        return false;
+        if (input != null)
+            input.Disable();
     }
 
     void Update()
     {
-        bool hold = false;
-        if (input != null)
-        {
-            try { hold = input.Player.Cast.ReadValue<float>() > 0f; } catch { hold = false; }
-        }
+        bool holdingCast = ReadButtonHeld();
+        bool backpackOpen = IsBackpackOpen();
+        bool movementBlocksCast = IsMovementBlockingCast();
 
-        // Disallow casting when backpack is open
-        bool backpackOpen = (playerUI != null && playerUI.IsBackpackOpen);
-
-        // Movement only blocks casting if no accessory grants the override
-        Vector2 moveVec = Vector2.zero;
-        try { moveVec = input.Player.Move.ReadValue<Vector2>(); } catch { moveVec = Vector2.zero; }
-        bool moving = moveVec.sqrMagnitude > 0.0001f && !CanCastWhileMoving();
-
-        if (hold && !backpackOpen && !moving)
+        if (holdingCast && !backpackOpen && !movementBlocksCast)
         {
             if (!isCasting)
                 TryBeginCastFromHand();
             else
                 ContinueCasting();
         }
-        else
+        else if (isCasting)
         {
-            if (isCasting)
-                CancelCast();
+            CancelCast();
         }
     }
 
-    void TryBeginCastFromHand()
+    public void OnDamageTaken()
     {
-        if (inventory == null || inventory.rightHandItem == null) return;
+        if (!isCasting)
+            return;
 
-        GameObject hand = inventory.rightHandItem;
-        ScrollItem scroll = hand.GetComponent<ScrollItem>();
+        if (HasCastPermission(provider => provider.CanCastWhileHit))
+            return;
+
+        CancelCast();
+    }
+
+    private void TryBeginCastFromHand()
+    {
+        ScrollItem scroll = GetCurrentHandScroll();
         if (scroll == null)
-        {
-            var wand = hand.GetComponent<WandItem>();
-            if (wand != null)
-                scroll = wand.GetSelectedScroll();
-        }
-        if (scroll == null || !scroll.CanCast()) return;
+            return;
 
-        if (playerUI != null && playerUI.IsBackpackOpen) return;
-        Vector2 mv = Vector2.zero; try { mv = input.Player.Move.ReadValue<Vector2>(); } catch { }
-        if (mv.sqrMagnitude > 0.0001f && !CanCastWhileMoving()) return;
+        if (!scroll.TryGetSpell(out currentSpell, out currentInstantSpell, out currentChanneledSpell))
+            return;
 
         currentScroll = scroll;
-        currentAOE = scroll.aoeSpell;
-        currentProjectile = scroll.projectileSpell;
-        currentChanneledProjectile = scroll.channeledProjectileSpell;
-        currentChanneledAOE = scroll.channeledAOESpell;
         currentChannelRuntime = null;
-
-        float speed = stats != null ? stats.castSpeedMultiplier : 1f;
-        if (currentAOE != null)
-            castTimeActual = Mathf.Max(0.01f, currentAOE.castTime / Mathf.Max(0.01f, speed));
-        else if (currentProjectile != null)
-            castTimeActual = Mathf.Max(0.01f, currentProjectile.castTime / Mathf.Max(0.01f, speed));
-        else if (currentChanneledProjectile != null)
-            castTimeActual = Mathf.Max(0.01f, currentChanneledProjectile.castTime / Mathf.Max(0.01f, speed));
-        else if (currentChanneledAOE != null)
-            castTimeActual = Mathf.Max(0.01f, currentChanneledAOE.castTime / Mathf.Max(0.01f, speed));
-
         elapsed = 0f;
+
+        float castSpeed = stats != null ? Mathf.Max(0.01f, stats.castSpeedMultiplier) : 1f;
+        castTimeActual = Mathf.Max(0.01f, currentSpell.CastTime / castSpeed);
+
         isCasting = true;
 
         if (castUI != null)
-            castUI.Show(castTimeActual, castTimeActual - elapsed);
+            castUI.Show(castTimeActual, castTimeActual);
     }
 
-    void ContinueCasting()
+    private void ContinueCasting()
     {
-        bool backpackOpen = (playerUI != null && playerUI.IsBackpackOpen);
-        Vector2 mv = Vector2.zero; try { mv = input.Player.Move.ReadValue<Vector2>(); } catch { }
-        bool moving = mv.sqrMagnitude > 0.0001f && !CanCastWhileMoving();
-
-        if ((currentChanneledProjectile != null || currentChanneledAOE != null) && currentChannelRuntime != null)
-        {
-            if (!InputIsCasting() || backpackOpen || moving)
-            {
-                var stopMethod = currentChannelRuntime.GetType().GetMethod("StopChannel");
-                if (stopMethod != null)
-                    stopMethod.Invoke(currentChannelRuntime, null);
-
-                currentChannelRuntime = null;
-                CancelCast();
-                return;
-            }
-        }
-
-        if ((currentAOE == null && currentProjectile == null && currentChanneledProjectile == null && currentChanneledAOE == null) || currentScroll == null || backpackOpen || moving)
+        if (ShouldCancelCurrentCast())
         {
             CancelCast();
+            return;
+        }
+
+        // Once a channel is running, PlayerCast only maintains the state and UI.
+        if (currentChannelRuntime != null)
+        {
+            if (castUI != null)
+                castUI.ShowCasting();
+
             return;
         }
 
         elapsed += Time.deltaTime;
         float remaining = castTimeActual - elapsed;
 
-        if (currentChanneledProjectile != null || currentChanneledAOE != null)
-        {
-            if (remaining > 0f)
-            {
-                if (castUI != null)
-                    castUI.UpdateRemaining(castTimeActual, remaining);
-            }
-            else
-            {
-                if (castUI != null)
-                    castUI.ShowCasting();
-
-                if (currentChanneledProjectile != null && currentChannelRuntime == null)
-                    currentChannelRuntime = currentChanneledProjectile.StartCast(gameObject);
-                else if (currentChanneledAOE != null && currentChannelRuntime == null)
-                    currentChannelRuntime = currentChanneledAOE.StartCast(gameObject);
-            }
-        }
-        else
+        if (remaining > 0f)
         {
             if (castUI != null)
                 castUI.UpdateRemaining(castTimeActual, remaining);
 
-            if (remaining <= 0f)
+            return;
+        }
+
+        if (currentChanneledSpell != null)
+        {
+            currentChannelRuntime = currentChanneledSpell.StartChannel(gameObject);
+
+            if (currentChannelRuntime == null)
             {
-                if (currentProjectile != null)
-                {
-                    bool fired = currentProjectile.TriggerOnce(gameObject);
-                    if (!fired)
-                    {
-                        Debug.Log("Not enough mana to cast projectile spell.");
-                        CancelCast();
-                        return;
-                    }
-                    EndCast();
-                }
-                else if (currentAOE != null)
-                {
-                    bool casted = currentAOE.TriggerCast(gameObject);
-                    if (!casted)
-                    {
-                        Debug.Log("Not enough mana to cast AOE spell.");
-                        CancelCast();
-                        return;
-                    }
-                    EndCast();
-                }
+                CancelCast();
+                return;
             }
+
+            if (castUI != null)
+                castUI.ShowCasting();
+
+            return;
+        }
+
+        if (currentInstantSpell != null)
+        {
+            bool castSucceeded = currentInstantSpell.TryCast(gameObject);
+            if (!castSucceeded)
+            {
+                CancelCast();
+                return;
+            }
+
+            EndCast();
         }
     }
 
-    /// <summary>
-    /// Called by InstantEffect whenever a negative healthAmount is applied to the player.
-    /// Cancels the active cast unless an accessory grants the canCastWhileHit flag.
-    /// </summary>
-    public void OnDamageTaken()
+    private bool ShouldCancelCurrentCast()
     {
-        if (!isCasting) return;
-        if (CanCastWhileHit()) return;
-        CancelCast();
+        if (!ReadButtonHeld())
+            return true;
+
+        if (IsBackpackOpen())
+            return true;
+
+        if (IsMovementBlockingCast())
+            return true;
+
+        if (currentScroll == null)
+            return true;
+
+        return GetCurrentHandScroll() != currentScroll;
     }
 
-    private bool InputIsCasting()
+    private ScrollItem GetCurrentHandScroll()
     {
-        if (input == null) return false;
-        try { return input.Player.Cast.ReadValue<float>() > 0f; } catch { return false; }
+        if (inventory == null || inventory.rightHandItem == null)
+            return null;
+
+        GameObject handItem = inventory.rightHandItem;
+
+        ScrollItem scroll = handItem.GetComponent<ScrollItem>();
+        if (scroll != null)
+            return scroll;
+
+        WandItem wand = handItem.GetComponent<WandItem>();
+        if (wand != null)
+            return wand.GetSelectedScroll();
+
+        return null;
     }
 
-    void CancelCast()
+    private bool IsMovementBlockingCast()
+    {
+        Vector2 moveInput = Vector2.zero;
+
+        try { moveInput = input.Player.Move.ReadValue<Vector2>(); }
+        catch { }
+
+        return moveInput.sqrMagnitude > 0.0001f &&
+               !HasCastPermission(provider => provider.CanCastWhileMoving);
+    }
+
+    private bool HasCastPermission(System.Func<ICastPermissionProvider, bool> predicate)
+    {
+        if (inventory == null || inventory.accessories == null)
+            return false;
+
+        foreach (GameObject accessoryObject in inventory.accessories)
+        {
+            if (accessoryObject == null)
+                continue;
+
+            ICastPermissionProvider provider = GetInterfaceFromObject<ICastPermissionProvider>(accessoryObject);
+            if (provider != null && predicate(provider))
+                return true;
+        }
+
+        return false;
+    }
+
+    private T GetInterfaceFromObject<T>(GameObject target) where T : class
+    {
+        if (target == null)
+            return null;
+
+        MonoBehaviour[] behaviours = target.GetComponents<MonoBehaviour>();
+        foreach (MonoBehaviour behaviour in behaviours)
+        {
+            if (behaviour is T typed)
+                return typed;
+        }
+
+        return null;
+    }
+
+    private bool ReadButtonHeld()
+    {
+        if (input == null)
+            return false;
+
+        try { return input.Player.Cast.ReadValue<float>() > 0f; }
+        catch { return false; }
+    }
+
+    private bool IsBackpackOpen()
+    {
+        return playerUI != null && playerUI.IsBackpackOpen;
+    }
+
+    private void CancelCast()
+    {
+        StopChannelRuntime();
+        ResetCastState();
+    }
+
+    private void EndCast()
+    {
+        StopChannelRuntime();
+        ResetCastState();
+    }
+
+    private void StopChannelRuntime()
+    {
+        if (currentChannelRuntime == null)
+            return;
+
+        currentChannelRuntime.StopChannel();
+        currentChannelRuntime = null;
+    }
+
+    private void ResetCastState()
     {
         isCasting = false;
-        currentAOE = null;
-        currentProjectile = null;
-        currentChanneledProjectile = null;
-        currentChanneledAOE = null;
         currentScroll = null;
+        currentSpell = null;
+        currentInstantSpell = null;
+        currentChanneledSpell = null;
         elapsed = 0f;
         castTimeActual = 0f;
-
-        if (currentChannelRuntime != null)
-        {
-            var stopMethod = currentChannelRuntime.GetType().GetMethod("StopChannel");
-            if (stopMethod != null)
-                stopMethod.Invoke(currentChannelRuntime, null);
-            currentChannelRuntime = null;
-        }
-
-        if (castUI != null)
-            castUI.Hide();
-    }
-
-    void EndCast()
-    {
-        isCasting = false;
-        currentScroll = null;
-        currentAOE = null;
-        currentProjectile = null;
-        currentChanneledProjectile = null;
-        currentChanneledAOE = null;
-        elapsed = 0f;
-        castTimeActual = 0f;
-
-        if (currentChannelRuntime != null)
-        {
-            var stopMethod = currentChannelRuntime.GetType().GetMethod("StopChannel");
-            if (stopMethod != null)
-                stopMethod.Invoke(currentChannelRuntime, null);
-            currentChannelRuntime = null;
-        }
 
         if (castUI != null)
             castUI.Hide();

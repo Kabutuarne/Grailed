@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Collider))]
-public class Door : MonoBehaviour
+public class Door : MonoBehaviour, IInteractable
 {
     [Header("Rotation")]
     [Tooltip("Degrees to rotate on local Y when opened.")]
@@ -52,17 +52,33 @@ public class Door : MonoBehaviour
 
         if (audioSource == null)
             audioSource = GetComponent<AudioSource>();
+
         if (audioSource == null)
             audioSource = gameObject.AddComponent<AudioSource>();
     }
 
-    // Called by PlayerInteractor (we ignore interactor; kept for compatibility)
+    public bool CanInteract(GameObject interactor)
+    {
+        if (isMoving)
+            return false;
+
+        if (!toggle && isOpen)
+            return false;
+
+        return true;
+    }
+
+    public void Interact(GameObject interactor)
+    {
+        Interact();
+    }
+
+    // Kept for backward compatibility with any existing direct calls.
     public void Interact()
     {
-        if (isMoving) return;
-        if (!toggle && isOpen) return;
+        if (!CanInteract(null))
+            return;
 
-        // Play "interact" sound immediately
         PlayOneShot(soundOnInteract);
 
         bool targetOpen = toggle ? !isOpen : true;
@@ -77,7 +93,6 @@ public class Door : MonoBehaviour
     {
         isMoving = true;
 
-        // Play "move start" sound once when movement begins
         PlayOneShot(soundOnDoorMoveStart);
 
         Quaternion startRot = transform.localRotation;
@@ -85,21 +100,17 @@ public class Door : MonoBehaviour
 
         float t = 0f;
         float dur = Mathf.Max(0.01f, duration);
-
-        // Track yaw so we can estimate angular velocity and push bodies in the swing direction
         float prevYaw = transform.localEulerAngles.y;
 
         while (t < 1f)
         {
             t += Time.deltaTime / dur;
 
-            // slow -> fast mid -> slow end
             float eased = EaseInOutCubic(Mathf.Clamp01(t));
-
             transform.localRotation = Quaternion.Slerp(startRot, endRot, eased);
 
             float newYaw = transform.localEulerAngles.y;
-            float deltaYaw = Mathf.DeltaAngle(prevYaw, newYaw); // degrees since last frame
+            float deltaYaw = Mathf.DeltaAngle(prevYaw, newYaw);
             prevYaw = newYaw;
 
             PushOverlappingRigidbodies(deltaYaw);
@@ -108,25 +119,22 @@ public class Door : MonoBehaviour
         }
 
         transform.localRotation = endRot;
-
-        // One last push pass at the end (helps if something barely intersects)
         PushOverlappingRigidbodies(0f);
 
         isOpen = targetOpen;
         isMoving = false;
         moveRoutine = null;
 
-        // Play "finished" sound (slam/thud)
         PlayOneShot(soundOnDoorFinished);
     }
 
     void PushOverlappingRigidbodies(float deltaYawDegrees)
     {
-        if (doorCollider == null) return;
+        if (doorCollider == null)
+            return;
 
         Bounds b = doorCollider.bounds;
 
-        // Conservative overlap volume: door collider AABB, queried as a box
         Collider[] hits = Physics.OverlapBox(
             b.center,
             b.extents,
@@ -135,37 +143,36 @@ public class Door : MonoBehaviour
             QueryTriggerInteraction.Ignore
         );
 
-        if (hits == null || hits.Length == 0) return;
+        if (hits == null || hits.Length == 0)
+            return;
 
         float dt = Mathf.Max(Time.deltaTime, 0.0001f);
-        float omegaRadPerSec = (deltaYawDegrees / dt) * Mathf.Deg2Rad; // angular velocity about Y
+        float omegaRadPerSec = (deltaYawDegrees / dt) * Mathf.Deg2Rad;
 
         Vector3 doorPos = transform.position;
 
         for (int i = 0; i < hits.Length; i++)
         {
             Collider c = hits[i];
-            if (c == null) continue;
-            if (c == doorCollider) continue;
+            if (c == null || c == doorCollider)
+                continue;
 
             Rigidbody rb = c.attachedRigidbody;
-            if (rb == null) continue;
-            if (rb.isKinematic) continue;
+            if (rb == null || rb.isKinematic)
+                continue;
 
-            // Vector from door to rigidbody (flattened to ground plane)
             Vector3 r = rb.worldCenterOfMass - doorPos;
             r.y = 0f;
-            if (r.sqrMagnitude < 0.0001f) continue;
 
-            // Tangential direction of a rotating door: v = omega x r
+            if (r.sqrMagnitude < 0.0001f)
+                continue;
+
             Vector3 omega = Vector3.up * omegaRadPerSec;
             Vector3 tangential = Vector3.Cross(omega, r);
 
-            // If we're at a frame with near-zero delta, still push outward a bit to prevent sticking
             if (tangential.sqrMagnitude < 0.000001f)
                 tangential = r.normalized;
 
-            // Strong, immediate nudge so bodies don't block the swing
             Vector3 impulse = tangential.normalized * pushStrength;
             rb.AddForce(impulse, ForceMode.VelocityChange);
         }
@@ -173,11 +180,12 @@ public class Door : MonoBehaviour
 
     void PlayOneShot(AudioClip clip)
     {
-        if (clip == null || audioSource == null) return;
+        if (clip == null || audioSource == null)
+            return;
+
         audioSource.PlayOneShot(clip);
     }
 
-    // Strong satisfying swing curve
     static float EaseInOutCubic(float x)
     {
         return x < 0.5f
@@ -186,7 +194,6 @@ public class Door : MonoBehaviour
     }
 
 #if UNITY_EDITOR
-    // Visualize the push overlap volume in editor while selected
     void OnDrawGizmosSelected()
     {
         Collider col = GetComponent<Collider>();

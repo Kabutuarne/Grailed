@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 using TMPro;
 
@@ -19,13 +18,6 @@ public class PlayerInteractor : MonoBehaviour
 
     [Tooltip("If true, prevents world interaction when the pointer is over any UI.")]
     public bool uiPointerSafe = true;
-
-    [Header("Item Hover Visuals")]
-    [Tooltip("Optional: child object name to toggle as glow/highlight, e.g. 'Glow'")]
-    public string glowChildName = "Glow";
-
-    [Tooltip("Optional: instead of child name, toggle the first child/object with this tag.")]
-    public string glowTag = "ItemGlow";
 
     [Header("World Text")]
     public Vector3 textOffset = new Vector3(0f, 1.5f, 0f);
@@ -51,26 +43,28 @@ public class PlayerInteractor : MonoBehaviour
 
     void OnEnable()
     {
-        if (input == null) input = new PlayerInputActions();
+        if (input == null)
+            input = new PlayerInputActions();
     }
 
     void OnDisable()
     {
-        if (input == null) return;
-        input.Player.Disable();
+        if (input != null)
+            input.Player.Disable();
+
         ClearCurrentItemVisuals();
     }
 
     void Start()
     {
-        lastBackpackOpen = (playerUI != null && playerUI.IsBackpackOpen);
+        lastBackpackOpen = playerUI != null && playerUI.IsBackpackOpen;
         ApplyInputState(lastBackpackOpen);
         HideWorldText();
     }
 
     void Update()
     {
-        bool backpackOpen = (playerUI != null && playerUI.IsBackpackOpen);
+        bool backpackOpen = playerUI != null && playerUI.IsBackpackOpen;
 
         if (backpackOpen != lastBackpackOpen)
         {
@@ -78,9 +72,7 @@ public class PlayerInteractor : MonoBehaviour
             ApplyInputState(backpackOpen);
 
             if (backpackOpen)
-            {
                 ClearCurrentItemVisuals();
-            }
         }
 
         if (backpackOpen || interactionLocked)
@@ -89,7 +81,9 @@ public class PlayerInteractor : MonoBehaviour
             return;
         }
 
-        if (uiPointerSafe && EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        if (uiPointerSafe &&
+            EventSystem.current != null &&
+            EventSystem.current.IsPointerOverGameObject())
         {
             ClearCurrentItemVisuals();
             return;
@@ -108,7 +102,9 @@ public class PlayerInteractor : MonoBehaviour
             }
         }
 
-        if (input != null && input.Player.enabled && input.Player.Interact.WasPressedThisFrame())
+        if (input != null &&
+            input.Player.enabled &&
+            input.Player.Interact.WasPressedThisFrame())
         {
             TryInteract();
         }
@@ -117,13 +113,15 @@ public class PlayerInteractor : MonoBehaviour
     public void SetInteractionLocked(bool locked)
     {
         interactionLocked = locked;
+
         if (locked)
             ClearCurrentItemVisuals();
     }
 
     void ApplyInputState(bool backpackOpen)
     {
-        if (input == null) return;
+        if (input == null)
+            return;
 
         if (backpackOpen)
             input.Player.Disable();
@@ -133,92 +131,80 @@ public class PlayerInteractor : MonoBehaviour
 
     void TryInteract()
     {
-        if (cam == null || inventory == null) return;
-
-        Vector3 origin = cam.transform.position;
-        Vector3 direction = cam.transform.forward;
-
-        if (!Physics.Raycast(origin, direction, out RaycastHit hit, interactRange, interactMask))
+        if (cam == null || inventory == null)
             return;
 
-        // Generic interactables first
-        MonoBehaviour[] behaviours = hit.collider.GetComponentsInParent<MonoBehaviour>(true);
-        for (int i = 0; i < behaviours.Length; i++)
-        {
-            if (behaviours[i] is IInteractable interactable && interactable.CanInteract(gameObject))
-            {
-                interactable.Interact(gameObject);
-                return;
-            }
-        }
+        if (!TryGetRaycastHit(out RaycastHit hit))
+            return;
 
-        Door door = hit.collider.GetComponentInParent<Door>();
-        Chest chest = hit.collider.GetComponentInParent<Chest>();
-        KartographGeneratorInteract kartographGen = hit.collider.GetComponent<KartographGeneratorInteract>();
-
-        ItemPickup item = hit.collider.GetComponent<ItemPickup>();
-        if (item == null)
-            item = hit.collider.GetComponentInParent<ItemPickup>();
+        ItemPickup item = GetItemPickupFromHit(hit);
+        IInteractable interactable = GetInteractableFromHit(hit);
 
         if (doorsTakePriority)
         {
-            if (door != null) { door.Interact(); return; }
-            if (chest != null) { chest.Interact(); return; }
-            if (kartographGen != null) { kartographGen.Interact(); return; }
-
-            if (item != null)
-            {
-                bool placedInBackpack = inventory.PickupToBackpack(item.gameObject);
-                if (placedInBackpack)
-                {
-                    item.OnPickedUp();
-
-                    if (item == lookedAtItem)
-                        ClearCurrentItemVisuals();
-                }
+            if (TryInteractWith(interactable))
                 return;
-            }
+
+            if (TryPickupItem(item))
+                return;
         }
         else
         {
-            if (item != null)
-            {
-                bool placedInBackpack = inventory.PickupToBackpack(item.gameObject);
-                if (placedInBackpack)
-                {
-                    item.OnPickedUp();
-
-                    if (item == lookedAtItem)
-                        ClearCurrentItemVisuals();
-                }
+            if (TryPickupItem(item))
                 return;
-            }
 
-            if (door != null) { door.Interact(); return; }
-            if (chest != null) { chest.Interact(); return; }
-            if (kartographGen != null) { kartographGen.Interact(); return; }
+            if (TryInteractWith(interactable))
+                return;
         }
+
+        KartographGeneratorInteract kartographGen = hit.collider.GetComponent<KartographGeneratorInteract>();
+        if (kartographGen != null)
+            kartographGen.Interact();
+    }
+
+    bool TryInteractWith(IInteractable interactable)
+    {
+        if (interactable == null)
+            return false;
+
+        if (!interactable.CanInteract(gameObject))
+            return false;
+
+        interactable.Interact(gameObject);
+        return true;
+    }
+
+    bool TryPickupItem(ItemPickup item)
+    {
+        if (item == null)
+            return false;
+
+        bool placedInBackpack = inventory.PickupToBackpack(item.gameObject);
+        if (!placedInBackpack)
+            return false;
+
+        item.OnPickedUp();
+
+        if (item == lookedAtItem)
+            ClearCurrentItemVisuals();
+
+        return true;
     }
 
     void CheckLookAtItem()
     {
-        if (cam == null) return;
+        if (cam == null)
+            return;
 
-        Vector3 origin = cam.transform.position;
-        Vector3 direction = cam.transform.forward;
-
-        if (Physics.Raycast(origin, direction, out RaycastHit hit, interactRange, interactMask))
+        if (TryGetRaycastHit(out RaycastHit hit))
         {
-            ItemPickup item = hit.collider.GetComponent<ItemPickup>();
-            if (item == null)
-                item = hit.collider.GetComponentInParent<ItemPickup>();
+            ItemPickup item = GetItemPickupFromHit(hit);
 
             if (item != null)
             {
                 if (item != lookedAtItem)
-                {
                     SetLookedAtItem(item);
-                }
+
                 return;
             }
         }
@@ -227,74 +213,67 @@ public class PlayerInteractor : MonoBehaviour
             ClearCurrentItemVisuals();
     }
 
-    void SetLookedAtItem(ItemPickup newItem)
+    bool TryGetRaycastHit(out RaycastHit hit)
     {
-        ClearCurrentItemVisuals();
+        Vector3 origin = cam.transform.position;
+        Vector3 direction = cam.transform.forward;
 
-        lookedAtItem = newItem;
-
-        ToggleItemGlow(lookedAtItem, true);
-        ShowWorldText(GetItemTitle(lookedAtItem), lookedAtItem.transform.position + textOffset);
-
-        Debug.Log($"Looking at item: {lookedAtItem.itemName} (gameobject {lookedAtItem.gameObject.name})");
+        return Physics.Raycast(origin, direction, out hit, interactRange, interactMask);
     }
 
-    void ClearCurrentItemVisuals()
+    IInteractable GetInteractableFromHit(RaycastHit hit)
     {
-        if (lookedAtItem != null)
+        MonoBehaviour[] behaviours = hit.collider.GetComponentsInParent<MonoBehaviour>(true);
+        for (int i = 0; i < behaviours.Length; i++)
         {
-            ToggleItemGlow(lookedAtItem, false);
-            lookedAtItem = null;
-        }
-
-        HideWorldText();
-    }
-
-    void ToggleItemGlow(ItemPickup item, bool state)
-    {
-        if (item == null) return;
-    }
-
-    Transform FindChildRecursive(Transform parent, string childName)
-    {
-        foreach (Transform child in parent)
-        {
-            if (child.name == childName)
-                return child;
-
-            Transform result = FindChildRecursive(child, childName);
-            if (result != null)
-                return result;
+            if (behaviours[i] is IInteractable interactable)
+                return interactable;
         }
 
         return null;
     }
 
+    ItemPickup GetItemPickupFromHit(RaycastHit hit)
+    {
+        ItemPickup item = hit.collider.GetComponent<ItemPickup>();
+        if (item == null)
+            item = hit.collider.GetComponentInParent<ItemPickup>();
+
+        return item;
+    }
+
+    void SetLookedAtItem(ItemPickup newItem)
+    {
+        ClearCurrentItemVisuals();
+
+        lookedAtItem = newItem;
+        ShowWorldText(GetItemTitle(lookedAtItem), lookedAtItem.transform.position + textOffset);
+    }
+
+    void ClearCurrentItemVisuals()
+    {
+        lookedAtItem = null;
+        HideWorldText();
+    }
+
     string GetItemTitle(ItemPickup itemPickup)
     {
-        if (itemPickup == null) return "Item";
+        if (itemPickup == null)
+            return "Item";
 
-        ScrollItem scrollItem = itemPickup.GetComponent<ScrollItem>();
-        if (scrollItem == null) scrollItem = itemPickup.GetComponentInParent<ScrollItem>();
-        if (scrollItem != null) return scrollItem.title;
+        MonoBehaviour[] behaviours = itemPickup.GetComponentsInParent<MonoBehaviour>(true);
+        for (int i = 0; i < behaviours.Length; i++)
+        {
+            if (behaviours[i] is IItemDisplayName named &&
+                !string.IsNullOrWhiteSpace(named.DisplayName))
+            {
+                return named.DisplayName;
+            }
+        }
 
-        Accessory accessory = itemPickup.GetComponent<Accessory>();
-        if (accessory == null) accessory = itemPickup.GetComponentInParent<Accessory>();
-        if (accessory != null) return accessory.title;
-
-        DecorationItem decoration = itemPickup.GetComponent<DecorationItem>();
-        if (decoration == null) decoration = itemPickup.GetComponentInParent<DecorationItem>();
-        if (decoration != null) return decoration.title;
-
-        WandItem wand = itemPickup.GetComponent<WandItem>();
-        if (wand == null) wand = itemPickup.GetComponentInParent<WandItem>();
-        if (wand != null) return wand.title;
-
-        ConsumableItem consumable = itemPickup.GetComponent<ConsumableItem>();
-        if (consumable == null) consumable = itemPickup.GetComponentInParent<ConsumableItem>();
-        if (consumable != null) return consumable.title;
-
-        return itemPickup.itemName;
+        return !string.IsNullOrWhiteSpace(itemPickup.itemName)
+            ? itemPickup.itemName
+            : itemPickup.gameObject.name;
     }
 
     void CreateWorldText()
@@ -315,7 +294,8 @@ public class PlayerInteractor : MonoBehaviour
 
     void ShowWorldText(string text, Vector3 position)
     {
-        if (worldTextObject == null || worldText == null) return;
+        if (worldTextObject == null || worldText == null)
+            return;
 
         worldText.text = text;
         worldTextObject.transform.position = position;
@@ -330,7 +310,9 @@ public class PlayerInteractor : MonoBehaviour
 
     void UpdateWorldTextPosition()
     {
-        if (lookedAtItem == null || worldTextObject == null) return;
+        if (lookedAtItem == null || worldTextObject == null)
+            return;
+
         worldTextObject.transform.position = lookedAtItem.transform.position + textOffset;
     }
 

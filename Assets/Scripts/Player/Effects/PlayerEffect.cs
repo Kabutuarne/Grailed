@@ -1,19 +1,44 @@
 using UnityEngine;
 
-// Base class for configurable player-affecting ScriptableObjects
-[CreateAssetMenu(menuName = "DungeonBroker/Effects/PlayerEffect", fileName = "NewPlayerEffect")]
 public abstract class PlayerEffect : ScriptableObject
 {
     [Header("Metadata")]
-    public string effectId = "effect"; // used to identify/remove effects
-    public string displayName = "Player Effect";
+    public string effectId = "effect";
 
-    // Apply the effect to the user GameObject. Implementations should call into
-    // PlayerStatusEffects on the user and/or PlayerStats for instant effects.
-    // Caller can provide an EffectCarrier (optional) so runtime Effect instances
-    // know which carrier (item) produced them for UI display.
-    public abstract void Apply(GameObject user, EffectCarrier carrier = null);
+    public string EffectTitle => string.IsNullOrWhiteSpace(effectId) ? name : effectId;
 
-    // Remove applied effect (used for passive / toggle effects)
-    public virtual void Remove(GameObject user) { }
+    protected virtual void OnValidate()
+    {
+        if (string.IsNullOrWhiteSpace(effectId))
+            effectId = name;
+    }
+
+    //unified runtime creation
+    public abstract StatusEffectData CreateEffect(EffectCarrier carrier);
+
+    // Centralized apply logic (NO duplication i hope)
+    public virtual void Apply(GameObject user, EffectCarrier carrier = null)
+    {
+        if (user == null)
+            return;
+
+        var status = user.GetComponent<StatusEffects>();
+        if (status == null)
+        {
+            Debug.LogWarning($"Effect '{EffectTitle}' cannot be applied: no StatusEffects on {user.name}");
+            return;
+        }
+
+        status.AddEffect(CreateEffect(carrier));
+    }
+
+    public virtual void Remove(GameObject user)
+    {
+        if (user == null)
+            return;
+
+        var status = user.GetComponent<StatusEffects>();
+        if (status != null)
+            status.RemoveEffect(EffectTitle);
+    }
 }

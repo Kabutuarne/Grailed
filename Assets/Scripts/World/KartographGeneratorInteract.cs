@@ -2,7 +2,7 @@ using UnityEngine;
 using Kartograph;
 using Kartograph.Entities;
 
-public class KartographGeneratorInteract : MonoBehaviour
+public class KartographGeneratorInteract : MonoBehaviour, IInteractable
 {
     public LevelGenerator3D levelGenerator;
     public KartographPlayerPlacer playerPlacer;
@@ -43,5 +43,15 @@ public class KartographGeneratorInteract : MonoBehaviour
             playerPlacer.OnGenerationTriggered();
 
         generating = false;
+    }
+
+    public bool CanInteract(GameObject interactor)
+    {
+        return true;
+    }
+
+    public void Interact(GameObject interactor)
+    {
+        Interact();
     }
 }
