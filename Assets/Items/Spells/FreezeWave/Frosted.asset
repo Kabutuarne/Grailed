@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: Frosted
   m_EditorClassIdentifier: Assembly-CSharp::DurationEffect
   effectId: frosted
-  displayName: Frosted Effect
   duration: 13
   speedMultiplier: 1
   healthRegenMultiplier: 1
   manaRegenMultiplier: 1
+  energyRegenMultiplier: 1
   healthPerSecond: 0
-  healthAmount: 0
-  manaAmount: 0
+  manaPerSecond: 0
+  energyPerSecond: 0
   addStrength: 0
   addIntelligence: 0
-  addStaminaAttr: -5
-  addAgility: -5
+  addStaminaAttr: -8
+  addAgility: -8

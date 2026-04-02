@@ -13,12 +13,14 @@ MonoBehaviour:
   m_Name: FrozenEffect
   m_EditorClassIdentifier: Assembly-CSharp::PassiveEffect
   effectId: frozenEffect
-  displayName: Frozen
   speedMultiplier: 0
   healthRegenMultiplier: 1
   manaRegenMultiplier: 1
-  healPerSecond: 0
+  energyRegenMultiplier: 1
+  healthPerSecond: 0
+  manaPerSecond: 0
+  energyPerSecond: 0
   addStrength: 0
   addIntelligence: 0
-  addStaminaAttr: -10
-  addAgility: -10
+  addStaminaAttr: -8
+  addAgility: -8

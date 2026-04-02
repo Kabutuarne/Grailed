@@ -53,11 +53,10 @@
     <Compile Include="Assets\Scripts\World\Chest.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\PassiveEffect.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\KnockbackImpactBehaviour.cs" />
-    <Compile Include="Assets\Scripts\Player\UI\TooltipTextRow.cs" />
     <Compile Include="Assets\Scripts\Player\Items\ItemLookPrompt.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerConsume.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\RandomRoomSpawner.cs" />
-    <Compile Include="Assets\Scripts\Player\Interfaces\IItemTooltipData.cs" />
+    <Compile Include="Assets\Scripts\Player\UI\ItemDescriptionContainer.cs" />
     <Compile Include="Assets\Scripts\Player\ConsumableItem.cs" />
     <Compile Include="Assets\Scripts\Player\Items\DecorationItem.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCast.cs" />
@@ -70,6 +69,7 @@
     <Compile Include="Assets\Scripts\Player\Effects\EffectCarrier.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\KartographPlayerPlacer.cs" />
     <Compile Include="Assets\Scripts\Enemy\ButlerAI.cs" />
+    <Compile Include="Assets\Scripts\Player\UI\ItemLineData.cs" />
     <Compile Include="Assets\Scripts\Player\Items\AccessoryItem.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInteractor.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInventory.cs" />
@@ -83,8 +83,6 @@
     <Compile Include="Assets\Scripts\Player\Spells\AOESpell.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\DurationEffect.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\PlayerEffect.cs" />
-    <Compile Include="Assets\Scripts\Player\UI\ItemTooltipRowData.cs" />
-    <Compile Include="Assets\Scripts\Player\UI\ItemTooltip.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ItemTooltipDataUtility.cs" />
     <Compile Include="Assets\PlayerInputActions.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyStats.cs" />

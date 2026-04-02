@@ -16,7 +16,7 @@ public class ConsumableItem : ItemPickup, IInventoryIconProvider
     public Sprite inventoryIcon;
     public string title;
     public Color titleColor = Color.white;
-    public List<ItemTooltipRowData> descriptionRows = new List<ItemTooltipRowData>();
+    public List<ItemLineData> descriptionRows = new List<ItemLineData>();
 
     [Header("Behavior")]
     public bool destroyOnConsume = true;
@@ -37,7 +37,7 @@ public class ConsumableItem : ItemPickup, IInventoryIconProvider
     public override string TooltipTitle => DisplayName;
     public override Color TooltipTitleColor => titleColor;
 
-    public override IReadOnlyList<ItemTooltipRowData> GetTooltipRows()
+    public override IReadOnlyList<ItemLineData> GetItemLines()
     {
         return descriptionRows;
     }

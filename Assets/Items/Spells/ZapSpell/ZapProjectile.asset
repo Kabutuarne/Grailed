@@ -29,7 +29,7 @@ MonoBehaviour:
     m_Bits: 4294967295
   effectCarrier: {fileID: 11400000, guid: af19f4b415c150f4bb1b4b29f083d196, type: 2}
   castStartParticlePrefab: {fileID: 1141330259687333427, guid: 95ee0d317d680e84f8f78ef1983c25a4, type: 3}
-  flyingParticlePrefab: {fileID: 0}
+  flyingParticlePrefab: {fileID: 9027514048236820045, guid: 805d6ff8dc5c3d8439a7558030af7c5d, type: 3}
   hitParticlePrefab: {fileID: 1141330259687333427, guid: 95ee0d317d680e84f8f78ef1983c25a4, type: 3}
   impactBehaviours:
   - {fileID: 11400000, guid: bffcfdfa4285d2a40b44001db8ee38c2, type: 2}

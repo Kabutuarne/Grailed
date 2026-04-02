@@ -26,35 +26,34 @@ public static class ItemTooltipDataUtility
         return item.name;
     }
 
-    public static bool TryGetTooltipData(GameObject item, out string title, out Color titleColor, out List<ItemTooltipRowData> rows)
+    // get item lines (tagged) if present. Falls back to item data on the GameObject.
+    public static bool TryGetItemInfo(GameObject item, out string title, out Color titleColor, out List<ItemLineData> lines)
     {
         title = GetDisplayName(item);
         titleColor = Color.white;
-        rows = new List<ItemTooltipRowData>();
+        lines = new List<ItemLineData>();
 
         if (item == null)
             return false;
 
-        MonoBehaviour[] behaviours = item.GetComponents<MonoBehaviour>();
-        for (int i = 0; i < behaviours.Length; i++)
+        // If the ItemPickup component exists, use its stored lines
+        var pickup = item.GetComponent<ItemPickup>();
+        if (pickup != null)
         {
-            if (behaviours[i] is IItemTooltipData tooltipData)
+            title = string.IsNullOrWhiteSpace(pickup.TooltipTitle) ? title : pickup.TooltipTitle;
+            titleColor = pickup.TooltipTitleColor;
+            var src = pickup.GetItemLines();
+            if (src != null)
             {
-                title = string.IsNullOrWhiteSpace(tooltipData.TooltipTitle) ? title : tooltipData.TooltipTitle;
-                titleColor = tooltipData.TooltipTitleColor;
-
-                IReadOnlyList<ItemTooltipRowData> srcRows = tooltipData.GetTooltipRows();
-                if (srcRows != null)
+                for (int i = 0; i < src.Count && i < 5; i++)
                 {
-                    for (int r = 0; r < srcRows.Count; r++)
-                    {
-                        if (srcRows[r] != null)
-                            rows.Add(new ItemTooltipRowData(srcRows[r].text, srcRows[r].color));
-                    }
+                    var s = src[i];
+                    if (s != null)
+                        lines.Add(new ItemLineData(s.text, s.tag, s.color));
                 }
-
-                return true;
             }
+
+            return true;
         }
 
         return false;

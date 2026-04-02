@@ -27,9 +27,9 @@ MonoBehaviour:
   aimRayMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  effectCarrier: {fileID: 11400000, guid: 4586faef0de8a494f82f963c5eff0567, type: 2}
+  effectCarrier: {fileID: 11400000, guid: fcc830f46a7a58b43b394f7764b9c7c0, type: 2}
   castStartParticlePrefab: {fileID: 4021103657954561961, guid: 5c755f9bc5253ea418e919994537dcc7, type: 3}
-  flyingParticlePrefab: {fileID: 0}
+  flyingParticlePrefab: {fileID: 1206498299807332555, guid: 4436433f603a4a442aea0177c2f6c012, type: 3}
   hitParticlePrefab: {fileID: 2504214343621411470, guid: 3ed0d324122d7b24eaec75c55c74aafc, type: 3}
   impactBehaviours:
   - {fileID: 11400000, guid: 6c230f87db5de714d8379cf66a91fe80, type: 2}

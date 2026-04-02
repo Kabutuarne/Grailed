@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb28009e064aea442bfd4b2a2dc6fe3e, type: 3}
   m_Name: FireballKnockback
   m_EditorClassIdentifier: Assembly-CSharp::KnockbackImpactBehaviour
-  force: 10
+  force: 15
   upwardsModifier: 1
   forceMode: 1
   useProjectileRadius: 1
@@ -20,4 +20,4 @@ MonoBehaviour:
   layerMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  affectKinematicBodies: 1
+  affectKinematicBodies: 0

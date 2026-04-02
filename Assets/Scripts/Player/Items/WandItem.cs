@@ -12,7 +12,7 @@ public class WandItem : ItemPickup, IInventoryIconProvider
     [Header("Tooltip")]
     public string title;
     public Color titleColor = Color.white;
-    public List<ItemTooltipRowData> descriptionRows = new List<ItemTooltipRowData>();
+    public List<ItemLineData> descriptionRows = new List<ItemLineData>();
 
     [Header("Wand Slots")]
     [Tooltip("Number of internal spell slots on the wand.")]
@@ -43,7 +43,7 @@ public class WandItem : ItemPickup, IInventoryIconProvider
     public override string TooltipTitle => DisplayName;
     public override Color TooltipTitleColor => titleColor;
 
-    public override IReadOnlyList<ItemTooltipRowData> GetTooltipRows()
+    public override IReadOnlyList<ItemLineData> GetItemLines()
     {
         return descriptionRows;
     }

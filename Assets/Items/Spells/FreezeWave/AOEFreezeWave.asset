@@ -15,6 +15,6 @@ MonoBehaviour:
   castTime: 6
   manaCost: 20
   radius: 16
-  effectCarrier: {fileID: 11400000, guid: bf88ca0dca5f8aa4d9824563e487feea, type: 2}
+  effectCarrier: {fileID: 11400000, guid: 4cbd30f779818d44682e598cfea83a06, type: 2}
   castingParticlePrefab: {fileID: 4932088507883938021, guid: 1c9ff066d451a17459df75e76354486f, type: 3}
   effectOffset: {x: 0, y: 0, z: 0}

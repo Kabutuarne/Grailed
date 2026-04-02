@@ -133,16 +133,13 @@ public class EquippedItemTitleHUD : MonoBehaviour
             return wandTitle;
         }
 
-        MonoBehaviour[] behaviours = item.GetComponents<MonoBehaviour>();
-        for (int i = 0; i < behaviours.Length; i++)
+        var pickup = item.GetComponent<ItemPickup>();
+        if (pickup != null)
         {
-            if (behaviours[i] is IItemTooltipData tooltipData)
-            {
-                color = tooltipData.TooltipTitleColor;
-                return string.IsNullOrWhiteSpace(tooltipData.TooltipTitle)
-                    ? ItemTooltipDataUtility.GetDisplayName(item)
-                    : tooltipData.TooltipTitle;
-            }
+            color = pickup.TooltipTitleColor;
+            return string.IsNullOrWhiteSpace(pickup.TooltipTitle)
+                ? ItemTooltipDataUtility.GetDisplayName(item)
+                : pickup.TooltipTitle;
         }
 
         return ItemTooltipDataUtility.GetDisplayName(item);

@@ -16,7 +16,7 @@ public class Accessory : ItemPickup, ICastPermissionProvider, IInventoryIconProv
     public Color titleColor = Color.white;
 
     [Header("Tooltip Rows")]
-    public List<ItemTooltipRowData> descriptionRows = new List<ItemTooltipRowData>();
+    public List<ItemLineData> descriptionRows = new List<ItemLineData>();
 
     private bool equipped;
     private GameObject owner;
@@ -31,7 +31,7 @@ public class Accessory : ItemPickup, ICastPermissionProvider, IInventoryIconProv
     public override string TooltipTitle => DisplayName;
     public override Color TooltipTitleColor => titleColor;
 
-    public override IReadOnlyList<ItemTooltipRowData> GetTooltipRows() => descriptionRows;
+    public override IReadOnlyList<ItemLineData> GetItemLines() => descriptionRows;
 
     public void OnEquipped(GameObject user)
     {

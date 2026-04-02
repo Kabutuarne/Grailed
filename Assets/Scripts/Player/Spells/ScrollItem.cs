@@ -17,7 +17,7 @@ public class ScrollItem : ItemPickup, IInventoryIconProvider
     public Color titleColor = Color.white;
 
     [Header("Tooltip Rows")]
-    public List<ItemTooltipRowData> descriptionRows = new List<ItemTooltipRowData>();
+    public List<ItemLineData> descriptionRows = new List<ItemLineData>();
 
     [Header("Behavior")]
     public bool destroyOnCast = false;
@@ -38,7 +38,7 @@ public class ScrollItem : ItemPickup, IInventoryIconProvider
     public override string TooltipTitle => DisplayName;
     public override Color TooltipTitleColor => titleColor;
 
-    public override IReadOnlyList<ItemTooltipRowData> GetTooltipRows()
+    public override IReadOnlyList<ItemLineData> GetItemLines()
     {
         return descriptionRows;
     }

@@ -1,22 +1,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ItemPickup : MonoBehaviour, IItemDisplayName, IItemTooltipData
+public class ItemPickup : MonoBehaviour, IItemDisplayName
 {
     public string itemName;
     public GameObject itemPrefab;
 
-    [Header("Tooltip")]
+    [Header("Item Info")]
     public string tooltipTitleOverride;
     public Color tooltipTitleColor = Color.white;
-    public List<ItemTooltipRowData> tooltipRows = new List<ItemTooltipRowData>();
+    // Up to 5 lines, each tagged (Description, Agility, Stamina, Strength, Intelligence)
+    public List<ItemLineData> itemLines = new List<ItemLineData>();
 
     public virtual string DisplayName
     {
         get
         {
-            if (!string.IsNullOrWhiteSpace(itemName))
-                return itemName;
+            // if (!string.IsNullOrWhiteSpace(itemName))
+            //     return itemName;
 
             return gameObject.name;
         }
@@ -26,8 +27,8 @@ public class ItemPickup : MonoBehaviour, IItemDisplayName, IItemTooltipData
     {
         get
         {
-            if (!string.IsNullOrWhiteSpace(tooltipTitleOverride))
-                return tooltipTitleOverride;
+            // if (!string.IsNullOrWhiteSpace(tooltipTitleOverride))
+            //     return tooltipTitleOverride;
 
             return DisplayName;
         }
@@ -35,9 +36,10 @@ public class ItemPickup : MonoBehaviour, IItemDisplayName, IItemTooltipData
 
     public virtual Color TooltipTitleColor => tooltipTitleColor;
 
-    public virtual IReadOnlyList<ItemTooltipRowData> GetTooltipRows()
+    // Return the item lines (may be empty)
+    public virtual IReadOnlyList<ItemLineData> GetItemLines()
     {
-        return tooltipRows;
+        return itemLines;
     }
 
     public virtual void OnPickedUp()

@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: ZapFreeze
   m_EditorClassIdentifier: Assembly-CSharp::DurationEffect
   effectId: zapEffect
-  displayName: Zapped
-  duration: 2
+  duration: 3
   speedMultiplier: 0
   healthRegenMultiplier: 0
   manaRegenMultiplier: 0

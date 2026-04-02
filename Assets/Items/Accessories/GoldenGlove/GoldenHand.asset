@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11dfdc9687d559b40a89ad8a126ca9ea, type: 3}
   m_Name: GoldenHand
   m_EditorClassIdentifier: Assembly-CSharp::PassiveEffect
-  effectId: GoldenGlove
-  displayName: GoldenGlove
+  effectId: GoldenHand
   speedMultiplier: 1
   healthRegenMultiplier: 1
   manaRegenMultiplier: 1

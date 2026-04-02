@@ -26,6 +26,9 @@ public class PlayerUI : MonoBehaviour
     public Transform statusEffectsRoot;
     public GameObject statusEffectPrefab;
 
+    [Header("Status Effects Styling")]
+    public Sprite firstEffectBackground;
+
     [Header("Status Effects UI (HUD)")]
     public Transform statusEffectsHudRoot;
     public GameObject statusEffectHudPrefab;
@@ -51,13 +54,30 @@ public class PlayerUI : MonoBehaviour
     [Header("Backpack Root Panel")]
     public GameObject backpackRoot;
 
-    [Header("Item Tooltip")]
-    public GameObject itemTooltipPrefab;
+    [Header("HUD Numbers")]
+    public Text hudHealthText;
+    public Text hudManaText;
+    public Text hudEnergyText;
 
     [Header("Wand Slots Panel")]
     public WandSlotsPanel wandSlotsPanelPrefab;
     private WandSlotsPanel wandPanelInstance;
     private InventorySlotUI wandSourceSlot;
+
+    [Header("Selection Visuals")]
+    public GameObject selectedPrefabAccessory;
+    public GameObject selectedPrefabBackpack;
+    public GameObject selectedPrefabEquipped;
+    // Assign an existing ItemDescriptionContainer element in the backpack UI (do not instantiate)
+    public ItemDescriptionContainer descriptionContainerInstance; // existing UI element
+
+    public GameObject highlightedPrefabAccessory;
+    public GameObject highlightedPrefabBackpack;
+    public GameObject highlightedPrefabEquipped;
+
+    private InventorySlotUI selectedSlot;
+    private GameObject selectedMarkerInstance;
+    private ItemDescriptionContainer descriptionPanelInstance;
 
     [Header("Sound Effects")]
     [SerializeField] private AudioSource backpackOpenSound;
@@ -75,7 +95,7 @@ public class PlayerUI : MonoBehaviour
     private InventorySlotUI dragSourceSlot;
     private int dragSourceIndex = -1;
     private GameObject tooltipGO;
-    private ItemTooltip tooltipController;
+    private Component tooltipController; // kept for compatibility if reused
 
     void Start()
     {
@@ -89,13 +109,10 @@ public class PlayerUI : MonoBehaviour
         if (uiCanvas == null)
             uiCanvas = FindFirstObjectByType<Canvas>();
 
-        if (itemTooltipPrefab != null && uiCanvas != null)
-        {
-            tooltipGO = Instantiate(itemTooltipPrefab, uiCanvas.transform, false);
-            tooltipController = tooltipGO.GetComponent<ItemTooltip>();
-            if (tooltipGO != null)
-                tooltipGO.SetActive(false);
-        }
+        // Use the existing description container instance if assigned
+        descriptionPanelInstance = descriptionContainerInstance;
+        if (descriptionPanelInstance != null)
+            descriptionPanelInstance.gameObject.SetActive(false);
     }
 
     void OnDestroy()
@@ -126,7 +143,6 @@ public class PlayerUI : MonoBehaviour
             UpdateDrag(pos);
         }
 
-        UpdateTooltip();
 
         if (IsBackpackOpen && wandPanelInstance != null && wandPanelInstance.IsShowing)
         {
@@ -145,46 +161,7 @@ public class PlayerUI : MonoBehaviour
         }
     }
 
-    void UpdateTooltip()
-    {
-        if (tooltipGO == null || tooltipController == null || uiCanvas == null)
-            return;
-
-        if (!IsBackpackOpen)
-        {
-            tooltipController.Hide();
-            return;
-        }
-
-        InventorySlotUI hovered = InventorySlotUI.HoveredSlot;
-        if (hovered == null || hovered.inventory == null)
-        {
-            tooltipController.Hide();
-            return;
-        }
-
-        GameObject item = GetItemFromSlot(hovered);
-        if (item == null)
-        {
-            tooltipController.Hide();
-            return;
-        }
-
-        string title;
-        Color titleColor;
-        List<ItemTooltipRowData> rows;
-
-        ItemTooltipDataUtility.TryGetTooltipData(item, out title, out titleColor, out rows);
-
-        tooltipController.SetData(title, titleColor, rows);
-
-        Vector2 screenPos = UnityEngine.InputSystem.Mouse.current != null
-            ? (Vector2)UnityEngine.InputSystem.Mouse.current.position.ReadValue()
-            : (Vector2)Input.mousePosition;
-
-        tooltipController.SetScreenPosition(uiCanvas, screenPos);
-        tooltipController.Show();
-    }
+    // Tooltip system removed: no per-item tooltip rendering
 
     private GameObject GetItemFromSlot(InventorySlotUI slot)
     {
@@ -230,6 +207,13 @@ public class PlayerUI : MonoBehaviour
 
         if (healthBarBackpack != null) healthBarBackpack.value = h;
         if (manaBarBackpack != null) manaBarBackpack.value = m;
+
+        if (hudHealthText != null)
+            hudHealthText.text = $"{Mathf.RoundToInt(stats.health)} / {Mathf.RoundToInt(stats.maxHealth)}";
+        if (hudManaText != null)
+            hudManaText.text = $"{Mathf.RoundToInt(stats.mana)} / {Mathf.RoundToInt(stats.maxMana)}";
+        if (hudEnergyText != null)
+            hudEnergyText.text = $"{Mathf.RoundToInt(stats.stamina)} / {Mathf.RoundToInt(stats.maxStamina)}";
     }
 
     void UpdateStatusEffects()
@@ -263,10 +247,22 @@ public class PlayerUI : MonoBehaviour
             }
         }
 
+        int idx = 0;
         foreach (var kv in entries)
         {
             GameObject go = Instantiate(statusEffectPrefab, statusEffectsRoot);
             float timeVal = kv.Value;
+
+            // Special background for the first (top) effect if available
+            if (idx == 0 && firstEffectBackground != null)
+            {
+                var bg = go.transform.Find("BG");
+                if (bg != null)
+                {
+                    var bgImg = bg.GetComponent<Image>();
+                    if (bgImg != null) bgImg.sprite = firstEffectBackground;
+                }
+            }
 
             if (kv.Key is EffectCarrier carrier)
             {
@@ -280,29 +276,44 @@ public class PlayerUI : MonoBehaviour
                 if (iconImage != null && carrier.icon != null)
                     iconImage.sprite = carrier.icon;
 
-                // Description
-                var descTransform = go.transform.Find("Description");
-                if (descTransform != null)
+                // Title
+                var titleTransform = go.transform.Find("Title");
+                if (titleTransform != null)
                 {
-                    var descText = descTransform.GetComponent<Text>();
-                    if (descText != null)
-                    {
-                        descText.text = timeVal > 0f
-                            ? $"{carrier.description}\n<color=yellow>{Mathf.CeilToInt(timeVal)}s left</color>"
-                            : carrier.description;
-                    }
+                    var titleText = titleTransform.GetComponent<Text>();
+                    if (titleText != null)
+                        titleText.text = carrier.title ?? carrier.name;
+                }
+
+                // Time
+                var timeTransform = go.transform.Find("Time");
+                if (timeTransform != null)
+                {
+                    var timeText = timeTransform.GetComponent<Text>();
+                    if (timeText != null)
+                        timeText.text = timeVal > 0f ? $"{Mathf.CeilToInt(timeVal)}s" : "";
                 }
             }
             else
             {
-                Text t = go.GetComponentInChildren<Text>();
-                if (t != null)
+                var titleTransform = go.transform.Find("Title");
+                if (titleTransform != null)
                 {
-                    t.text = timeVal < 0f
-                        ? $"{kv.Key} (ON)"
-                        : $"{kv.Key} ({Mathf.CeilToInt(timeVal)}s)";
+                    var titleText = titleTransform.GetComponent<Text>();
+                    if (titleText != null)
+                        titleText.text = kv.Key.ToString();
+                }
+
+                var timeTransform = go.transform.Find("Time");
+                if (timeTransform != null)
+                {
+                    var timeText = timeTransform.GetComponent<Text>();
+                    if (timeText != null)
+                        timeText.text = timeVal < 0f ? "ON" : $"{Mathf.CeilToInt(timeVal)}s";
                 }
             }
+
+            idx++;
         }
     }
 
@@ -333,10 +344,21 @@ public class PlayerUI : MonoBehaviour
             }
         }
 
+        int idxHud = 0;
         foreach (var kv in entries)
         {
             GameObject go = Instantiate(statusEffectHudPrefab, statusEffectsHudRoot);
             float timeVal = kv.Value;
+
+            if (idxHud == 0 && firstEffectBackground != null)
+            {
+                var bg = go.transform.Find("BG");
+                if (bg != null)
+                {
+                    var bgImg = bg.GetComponent<Image>();
+                    if (bgImg != null) bgImg.sprite = firstEffectBackground;
+                }
+            }
 
             if (kv.Key is EffectCarrier carrier)
             {
@@ -349,24 +371,42 @@ public class PlayerUI : MonoBehaviour
                 if (iconImage != null && carrier.icon != null)
                     iconImage.sprite = carrier.icon;
 
-                var descTransform = go.transform.Find("Description");
-                if (descTransform != null)
+                var titleTransform = go.transform.Find("Title");
+                if (titleTransform != null)
                 {
-                    var descText = descTransform.GetComponent<Text>();
-                    if (descText != null)
-                        descText.text = carrier.description;
+                    var titleText = titleTransform.GetComponent<Text>();
+                    if (titleText != null)
+                        titleText.text = carrier.title ?? carrier.name;
+                }
+
+                var timeTransform = go.transform.Find("Time");
+                if (timeTransform != null)
+                {
+                    var timeText = timeTransform.GetComponent<Text>();
+                    if (timeText != null)
+                        timeText.text = timeVal > 0f ? $"{Mathf.CeilToInt(timeVal)}s" : "";
                 }
             }
             else
             {
-                Text t = go.GetComponentInChildren<Text>();
-                if (t != null)
+                var titleTransform = go.transform.Find("Title");
+                if (titleTransform != null)
                 {
-                    t.text = timeVal < 0f
-                        ? $"{kv.Key} (ON)"
-                        : $"{kv.Key} ({Mathf.CeilToInt(timeVal)}s)";
+                    var titleText = titleTransform.GetComponent<Text>();
+                    if (titleText != null)
+                        titleText.text = kv.Key.ToString();
+                }
+
+                var timeTransform = go.transform.Find("Time");
+                if (timeTransform != null)
+                {
+                    var timeText = timeTransform.GetComponent<Text>();
+                    if (timeText != null)
+                        timeText.text = timeVal < 0f ? "ON" : $"{Mathf.CeilToInt(timeVal)}s";
                 }
             }
+
+            idxHud++;
         }
     }
 
@@ -376,7 +416,10 @@ public class PlayerUI : MonoBehaviour
             return;
 
         if (rightHandSlot != null)
+        {
             rightHandSlot.SetItem(inventory.rightHandItem, -1, inventory);
+            EnsurePersistentSelectedMarker(rightHandSlot, inventory.rightHandItem != null);
+        }
     }
 
     void UpdateBackpackSlots()
@@ -395,6 +438,54 @@ public class PlayerUI : MonoBehaviour
                 : null;
 
             slot.SetItem(item, i, inventory);
+            EnsurePersistentSelectedMarker(slot, item != null);
+        }
+    }
+
+    private void EnsurePersistentSelectedMarker(InventorySlotUI slot, bool hasItem)
+    {
+        if (slot == null) return;
+
+        Transform existing = slot.transform.Find("PersistentSelectedMarker");
+        if (!hasItem)
+        {
+            if (existing != null) Destroy(existing.gameObject);
+            return;
+        }
+
+        if (existing != null)
+        {
+            existing.gameObject.SetActive(true);
+            return;
+        }
+
+        GameObject prefab = null;
+        switch (slot.slotType)
+        {
+            case InventorySlotUI.SlotType.Accessory: prefab = selectedPrefabAccessory; break;
+            case InventorySlotUI.SlotType.RightHand: prefab = selectedPrefabEquipped; break;
+            default: prefab = selectedPrefabBackpack; break;
+        }
+
+        if (prefab != null)
+        {
+            var inst = Instantiate(prefab, slot.transform);
+            inst.name = "PersistentSelectedMarker";
+            // place marker under the icon so it doesn't overlay the sprite
+            Transform iconT = (slot != null && slot.icon != null) ? slot.icon.transform : null;
+            if (iconT != null)
+            {
+                int idx = iconT.GetSiblingIndex();
+                inst.transform.SetSiblingIndex(idx);
+            }
+            inst.transform.localPosition = Vector3.zero;
+            // Disable raycast targets so marker does not block pointer events
+            foreach (var img in inst.GetComponentsInChildren<Image>(true))
+            {
+                img.raycastTarget = false;
+            }
+            var cg = inst.GetComponentInChildren<CanvasGroup>(true);
+            if (cg != null) cg.blocksRaycasts = false;
         }
     }
 
@@ -409,6 +500,7 @@ public class PlayerUI : MonoBehaviour
             var slot = accessorySlots[i];
             if (slot == null) continue;
             slot.SetItem(inventory.accessories[i], i, inventory);
+            EnsurePersistentSelectedMarker(slot, inventory.accessories[i] != null);
         }
     }
 
@@ -424,19 +516,19 @@ public class PlayerUI : MonoBehaviour
             manaText.text = $"{Mathf.RoundToInt(stats.mana)} / {Mathf.RoundToInt(stats.maxMana)}";
 
         if (staminaText != null)
-            staminaText.text = $"Stamina: {Mathf.RoundToInt(stats.stamina)} / {Mathf.RoundToInt(stats.maxStamina)}";
+            staminaText.text = $"{Mathf.RoundToInt(stats.stamina)} / {Mathf.RoundToInt(stats.maxStamina)}";
 
         if (intelligenceText != null)
-            intelligenceText.text = $"Intelligence: {Mathf.RoundToInt(stats.effectiveIntelligence)}";
+            intelligenceText.text = $"{Mathf.RoundToInt(stats.effectiveIntelligence)}";
 
         if (strengthText != null)
-            strengthText.text = $"Strength: {Mathf.RoundToInt(stats.effectiveStrength)}";
+            strengthText.text = $"{Mathf.RoundToInt(stats.effectiveStrength)}";
 
         if (staminaAttrText != null)
-            staminaAttrText.text = $"Stamina: {Mathf.RoundToInt(stats.effectiveStaminaAttr)}";
+            staminaAttrText.text = $"{Mathf.RoundToInt(stats.effectiveStaminaAttr)}";
 
         if (agilityText != null)
-            agilityText.text = $"Agility: {Mathf.RoundToInt(stats.effectiveAgility)}";
+            agilityText.text = $"{Mathf.RoundToInt(stats.effectiveAgility)}";
     }
 
     void HandleInventoryChanged()
@@ -657,6 +749,48 @@ public class PlayerUI : MonoBehaviour
                 }
             }
         }
+        else if (dstType == InventorySlotUI.SlotType.RightHand && srcType == InventorySlotUI.SlotType.Accessory)
+        {
+            // Move accessory from accessory slot into right hand
+            int srcAccIndex = dragSourceIndex;
+            if (srcAccIndex >= 0 && srcAccIndex < inventory.accessories.Length)
+            {
+                GameObject moving = inventory.accessories[srcAccIndex];
+                if (moving != null)
+                {
+                    var accComp = moving.GetComponent<Accessory>();
+                    if (accComp != null)
+                    {
+                        // Unequip accessory and equip to hand
+                        accComp.OnUnequipped();
+
+                        inventory.accessories[srcAccIndex] = null;
+
+                        // place in hand
+                        inventory.rightHandItem = moving;
+                        moving.transform.SetParent(inventory.rightHand, false);
+                        moving.transform.localPosition = Vector3.zero;
+                        moving.transform.localRotation = Quaternion.identity;
+
+                        var rb = moving.GetComponent<Rigidbody>();
+                        if (rb != null) { rb.isKinematic = true; rb.detectCollisions = false; }
+                        foreach (var col in moving.GetComponentsInChildren<Collider>()) col.enabled = false;
+                        moving.SetActive(true);
+
+                        if (srcAccIndex < accessorySlots.Length && accessorySlots[srcAccIndex] != null)
+                            accessorySlots[srcAccIndex].SetItem(inventory.accessories[srcAccIndex], srcAccIndex, inventory);
+                        if (rightHandSlot != null)
+                            rightHandSlot.SetItem(inventory.rightHandItem, -1, inventory);
+
+                        PlaySound(dropSuccessSound);
+                    }
+                    else
+                    {
+                        PlaySound(dropInvalidSound);
+                    }
+                }
+            }
+        }
         else if (dstType == InventorySlotUI.SlotType.Accessory)
         {
             var accComp = currentlyDraggedItem.GetComponent<Accessory>();
@@ -771,28 +905,50 @@ public class PlayerUI : MonoBehaviour
             {
                 GameObject moving = inventory.accessories[srcAccIndex];
                 GameObject prevBackpack = inventory.backpack[dstIndex];
-
                 var movingAcc = moving != null ? moving.GetComponent<Accessory>() : null;
                 if (movingAcc != null) movingAcc.OnUnequipped();
 
-                inventory.accessories[srcAccIndex] = prevBackpack;
-                inventory.backpack[dstIndex] = moving;
-
-                if (inventory.accessories[srcAccIndex] != null)
+                // If the backpack item is an Accessory, swap into the accessory slot.
+                var packAcc = prevBackpack != null ? prevBackpack.GetComponent<Accessory>() : null;
+                if (packAcc != null)
                 {
-                    var comp = inventory.accessories[srcAccIndex].GetComponent<Accessory>();
-                    if (comp != null) comp.OnEquipped(inventory.gameObject);
-                    inventory.accessories[srcAccIndex].SetActive(false);
+                    inventory.accessories[srcAccIndex] = prevBackpack;
+                    inventory.backpack[dstIndex] = moving;
+
+                    // Equip the new accessory in the slot
+                    if (inventory.accessories[srcAccIndex] != null)
+                    {
+                        var comp = inventory.accessories[srcAccIndex].GetComponent<Accessory>();
+                        if (comp != null) comp.OnEquipped(inventory.gameObject);
+                        inventory.accessories[srcAccIndex].SetActive(false);
+                    }
+
+                    if (inventory.backpack[dstIndex] != null)
+                        inventory.backpack[dstIndex].SetActive(false);
+
+                    if (dstIndex < backpackSlots.Length && backpackSlots[dstIndex] != null)
+                        backpackSlots[dstIndex].SetItem(inventory.backpack[dstIndex], dstIndex, inventory);
+                    if (srcAccIndex < accessorySlots.Length && accessorySlots[srcAccIndex] != null)
+                        accessorySlots[srcAccIndex].SetItem(inventory.accessories[srcAccIndex], srcAccIndex, inventory);
+
+                    PlaySound(dropSuccessSound);
                 }
-                if (inventory.backpack[dstIndex] != null)
-                    inventory.backpack[dstIndex].SetActive(false);
+                else
+                {
+                    // Backpack item is not an accessory: just move the accessory into the backpack slot and clear accessory slot.
+                    inventory.backpack[dstIndex] = moving;
+                    inventory.accessories[srcAccIndex] = null;
 
-                if (dstIndex < backpackSlots.Length && backpackSlots[dstIndex] != null)
-                    backpackSlots[dstIndex].SetItem(inventory.backpack[dstIndex], dstIndex, inventory);
-                if (srcAccIndex < accessorySlots.Length && accessorySlots[srcAccIndex] != null)
-                    accessorySlots[srcAccIndex].SetItem(inventory.accessories[srcAccIndex], srcAccIndex, inventory);
+                    if (inventory.backpack[dstIndex] != null)
+                        inventory.backpack[dstIndex].SetActive(false);
 
-                PlaySound(dropSuccessSound);
+                    if (dstIndex < backpackSlots.Length && backpackSlots[dstIndex] != null)
+                        backpackSlots[dstIndex].SetItem(inventory.backpack[dstIndex], dstIndex, inventory);
+                    if (srcAccIndex < accessorySlots.Length && accessorySlots[srcAccIndex] != null)
+                        accessorySlots[srcAccIndex].SetItem(inventory.accessories[srcAccIndex], srcAccIndex, inventory);
+
+                    PlaySound(dropSuccessSound);
+                }
             }
         }
         else
@@ -852,6 +1008,51 @@ public class PlayerUI : MonoBehaviour
         if (!newState) HideWandPanel();
 
         PlaySound(newState ? backpackOpenSound : backpackCloseSound);
+        // When opening the backpack, default the description to the held item.
+        if (newState)
+        {
+            if (descriptionPanelInstance != null)
+            {
+                if (inventory != null && inventory.rightHandItem != null)
+                {
+                    descriptionPanelInstance.Populate(inventory.rightHandItem.GetComponent<ItemPickup>());
+                    descriptionPanelInstance.gameObject.SetActive(true);
+                }
+                else
+                {
+                    // if no held item but inventory has items, try first backpack slot
+                    GameObject first = null;
+                    if (inventory != null && inventory.backpack != null && inventory.backpack.Length > 0)
+                        first = inventory.backpack[0];
+
+                    if (first != null)
+                    {
+                        descriptionPanelInstance.Populate(first.GetComponent<ItemPickup>());
+                        descriptionPanelInstance.gameObject.SetActive(true);
+                    }
+                    else
+                    {
+                        // hide only if inventory empty
+                        bool any = false;
+                        if (inventory != null)
+                        {
+                            if (inventory.rightHandItem != null) any = true;
+                            if (!any && inventory.backpack != null)
+                            {
+                                foreach (var it in inventory.backpack) if (it != null) { any = true; break; }
+                            }
+                            if (!any && inventory.accessories != null)
+                            {
+                                foreach (var it in inventory.accessories) if (it != null) { any = true; break; }
+                            }
+                        }
+
+                        if (!any && descriptionPanelInstance != null)
+                            descriptionPanelInstance.gameObject.SetActive(false);
+                    }
+                }
+            }
+        }
     }
 
     public void NotifySlotClicked(InventorySlotUI slot)
@@ -875,9 +1076,14 @@ public class PlayerUI : MonoBehaviour
         }
 
         var wand = item != null ? item.GetComponent<WandItem>() : null;
+
+        // Update selection visuals for clicked slot
+        UpdateSelectionForSlot(slot);
+
         if (wand == null)
         {
-            HideWandPanel();
+            if (wandPanelInstance != null && wandPanelInstance.IsForSource(slot))
+                HideWandPanel();
             return;
         }
 
@@ -887,6 +1093,121 @@ public class PlayerUI : MonoBehaviour
         {
             PlaySound(clickSound);
             ShowWandPanel(wand, slot);
+        }
+    }
+
+    private void UpdateSelectionForSlot(InventorySlotUI slot)
+    {
+
+        // If there's no slot or the slot contains no item, do not change the current description.
+        if (slot == null) return;
+
+        GameObject item = GetItemFromSlot(slot);
+        if (item == null) return;
+
+        // We're going to select a new valid item: clear previous selection visuals
+        if (selectedSlot != null && selectedSlot != slot && selectedSlot.icon != null)
+        {
+            selectedSlot.icon.rectTransform.localScale = Vector3.one;
+        }
+
+        if (selectedMarkerInstance != null && selectedSlot != slot)
+        {
+            // If this was a persistent marker, only remove its highlighted child
+            if (selectedMarkerInstance.name == "PersistentSelectedMarker")
+            {
+                var prev = selectedMarkerInstance.transform.Find("HighlightedMarker");
+                if (prev != null) Destroy(prev.gameObject);
+            }
+            else
+            {
+                Destroy(selectedMarkerInstance);
+                selectedMarkerInstance = null;
+            }
+        }
+
+        selectedSlot = slot;
+
+        // Grow icon
+        if (slot.icon != null)
+            slot.icon.rectTransform.localScale = Vector3.one * 1.2f;
+
+        // Highlight the persistent selected marker when description is shown
+        Transform persistent = slot.transform.Find("PersistentSelectedMarker");
+        // Determine icon sibling index so markers are placed under the icon
+        int iconSibling = 0;
+        Transform iconTransform = (slot.icon != null) ? slot.icon.transform : null;
+        if (iconTransform != null)
+            iconSibling = iconTransform.GetSiblingIndex();
+
+        if (persistent == null)
+        {
+            // fallback: create a transient marker if none exists
+            GameObject prefab = null;
+            switch (slot.slotType)
+            {
+                case InventorySlotUI.SlotType.Accessory: prefab = selectedPrefabAccessory; break;
+                case InventorySlotUI.SlotType.RightHand: prefab = selectedPrefabEquipped; break;
+                default: prefab = selectedPrefabBackpack; break;
+            }
+            if (prefab != null)
+            {
+                selectedMarkerInstance = Instantiate(prefab, slot.transform);
+                // place under the icon so it does not overlay the sprite
+                if (iconTransform != null)
+                    selectedMarkerInstance.transform.SetSiblingIndex(iconSibling);
+                else
+                    selectedMarkerInstance.transform.SetAsFirstSibling();
+            }
+        }
+        else
+        {
+            selectedMarkerInstance = persistent.gameObject;
+        }
+
+        // Populate the existing description container instance (do not instantiate new)
+        if (descriptionPanelInstance != null)
+        {
+            var pickup = item.GetComponent<ItemPickup>();
+            descriptionPanelInstance.Populate(pickup);
+            // Ensure description remains visible when inventory has items
+            bool any = false;
+            if (inventory != null)
+            {
+                if (inventory.rightHandItem != null) any = true;
+                if (!any && inventory.backpack != null)
+                {
+                    foreach (var it in inventory.backpack) if (it != null) { any = true; break; }
+                }
+                if (!any && inventory.accessories != null)
+                {
+                    foreach (var it in inventory.accessories) if (it != null) { any = true; break; }
+                }
+            }
+            descriptionPanelInstance.gameObject.SetActive(any);
+
+            // Activate highlighted prefab under the persistent marker (keep it unscaled and under icon)
+            if (selectedMarkerInstance != null)
+            {
+                var prev = selectedMarkerInstance.transform.Find("HighlightedMarker");
+                if (prev != null) Destroy(prev.gameObject);
+
+                GameObject hpf = null;
+                switch (slot.slotType)
+                {
+                    case InventorySlotUI.SlotType.Accessory: hpf = highlightedPrefabAccessory; break;
+                    case InventorySlotUI.SlotType.RightHand: hpf = highlightedPrefabEquipped; break;
+                    default: hpf = highlightedPrefabBackpack; break;
+                }
+
+                if (hpf != null)
+                {
+                    var h = Instantiate(hpf, selectedMarkerInstance.transform);
+                    h.name = "HighlightedMarker";
+                    // keep prefab scale as authored
+                    h.transform.localPosition = Vector3.zero;
+                }
+            }
         }
     }
 
