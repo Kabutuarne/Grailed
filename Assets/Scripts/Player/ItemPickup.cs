@@ -7,8 +7,6 @@ public class ItemPickup : MonoBehaviour, IItemDisplayName
     public GameObject itemPrefab;
 
     [Header("Item Info")]
-    public string tooltipTitleOverride;
-    public Color tooltipTitleColor = Color.white;
     // Up to 5 lines, each tagged (Description, Agility, Stamina, Strength, Intelligence)
     public List<ItemLineData> itemLines = new List<ItemLineData>();
 
@@ -27,14 +25,11 @@ public class ItemPickup : MonoBehaviour, IItemDisplayName
     {
         get
         {
-            // if (!string.IsNullOrWhiteSpace(tooltipTitleOverride))
-            //     return tooltipTitleOverride;
-
             return DisplayName;
         }
     }
 
-    public virtual Color TooltipTitleColor => tooltipTitleColor;
+    public virtual Color TooltipTitleColor => Color.white;
 
     // Return the item lines (may be empty)
     public virtual IReadOnlyList<ItemLineData> GetItemLines()

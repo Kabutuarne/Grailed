@@ -13,15 +13,6 @@ public class PlayerUI : MonoBehaviour
     [Header("HUD Root (Always-on HUD)")]
     public GameObject hudRoot;
 
-    [Header("HUD Bars (always-on HUD)")]
-    public Slider healthBarHUD;
-    public Slider manaBarHUD;
-    public Slider sprintBarHUD;
-
-    [Header("Backpack Bars")]
-    public Slider healthBarBackpack;
-    public Slider manaBarBackpack;
-
     [Header("Status Effects UI (Backpack)")]
     public Transform statusEffectsRoot;
     public GameObject statusEffectPrefab;
@@ -194,20 +185,6 @@ public class PlayerUI : MonoBehaviour
 
     void UpdateBars()
     {
-        if (stats == null)
-            return;
-
-        float h = stats.Health01;
-        float m = stats.Mana01;
-        float s = stats.Stamina01;
-
-        if (healthBarHUD != null) healthBarHUD.value = h;
-        if (manaBarHUD != null) manaBarHUD.value = m;
-        if (sprintBarHUD != null) sprintBarHUD.value = s;
-
-        if (healthBarBackpack != null) healthBarBackpack.value = h;
-        if (manaBarBackpack != null) manaBarBackpack.value = m;
-
         if (hudHealthText != null)
             hudHealthText.text = $"{Mathf.RoundToInt(stats.health)} / {Mathf.RoundToInt(stats.maxHealth)}";
         if (hudManaText != null)
@@ -1069,6 +1046,10 @@ public class PlayerUI : MonoBehaviour
                 break;
             case InventorySlotUI.SlotType.RightHand:
                 item = inventory.rightHandItem;
+                break;
+            case InventorySlotUI.SlotType.Accessory:
+                if (slot.slotIndex >= 0 && slot.slotIndex < inventory.accessories.Length)
+                    item = inventory.accessories[slot.slotIndex];
                 break;
             default:
                 HideWandPanel();

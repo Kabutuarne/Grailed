@@ -4,7 +4,12 @@ using UnityEngine;
 public class StatusEffects : MonoBehaviour
 {
     public IReadOnlyList<StatusEffectData> ActiveEffects => effects;
-    public void ClearAllEffects() => effects.Clear();
+    public void ClearAllEffects()
+    {
+        effects.Clear();
+        if (stats != null)
+            stats.OnStatusEffectsChanged();
+    }
     private List<StatusEffectData> effects = new List<StatusEffectData>();
     private PlayerStats stats;
 
@@ -46,11 +51,15 @@ public class StatusEffects : MonoBehaviour
 
         effects.RemoveAll(e => e.id == effect.id);
         effects.Add(effect);
+        if (stats != null)
+            stats.OnStatusEffectsChanged();
     }
 
     public void RemoveEffect(string id)
     {
         effects.RemoveAll(e => e.id == id);
+        if (stats != null)
+            stats.OnStatusEffectsChanged();
     }
 
     private void ApplyInstant(StatusEffectData e)

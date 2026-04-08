@@ -58,7 +58,6 @@
     <Compile Include="Assets\Scripts\World\LevelGeneration\RandomRoomSpawner.cs" />
     <Compile Include="Assets\Scripts\Player\UI\ItemDescriptionContainer.cs" />
     <Compile Include="Assets\Scripts\Player\ConsumableItem.cs" />
-    <Compile Include="Assets\Scripts\Player\Items\DecorationItem.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCast.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IItemDisplayName.cs" />
     <Compile Include="Assets\Scripts\Dialog\DialogueData.cs" />
@@ -67,22 +66,27 @@
     <Compile Include="Assets\Scripts\Player\Effects\StatusEffects.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\InstantEffect.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\EffectCarrier.cs" />
+    <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csParticleMove.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\KartographPlayerPlacer.cs" />
     <Compile Include="Assets\Scripts\Enemy\ButlerAI.cs" />
+    <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csMouseOrbit.cs" />
     <Compile Include="Assets\Scripts\Player\UI\ItemLineData.cs" />
     <Compile Include="Assets\Scripts\Player\Items\AccessoryItem.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInteractor.cs" />
+    <Compile Include="Assets\52SpecialEffectPack\EffectEditor\ShurikenEffectEditor\csShurikenEffectChanger.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInventory.cs" />
     <Compile Include="Assets\Scripts\World\KartographGeneratorInteract.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\ChanneledAOESpell.cs" />
     <Compile Include="Assets\Scripts\Player\ItemPickup.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IInteractable.cs" />
+    <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csAnimationSpin.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IInventoryIconProvider.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\SpellAimUtility.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\AOESpell.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\DurationEffect.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\PlayerEffect.cs" />
+    <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csDestroyEffect.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ItemTooltipDataUtility.cs" />
     <Compile Include="Assets\PlayerInputActions.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyStats.cs" />
@@ -91,8 +95,10 @@
     <Compile Include="Assets\Scripts\Player\Spells\ScrollItem.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\ChanneledProjectileSpell.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerStats.cs" />
+    <Compile Include="Assets\52SpecialEffectPack\EffectEditor\ShurikenEffectEditor\csShurikenEffectEditor.cs" />
     <Compile Include="Assets\Scripts\Dialog\DoorDialogSequence.cs" />
     <Compile Include="Assets\Scripts\Player\UI\WandSlotsPanel.cs" />
+    <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csShowAllEffect.cs" />
     <Compile Include="Assets\Scripts\Enemy\Interfaces\IResourceHandler.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ICastPermissionProvider.cs" />
     <Compile Include="Assets\Scripts\Player\Items\WandItem.cs" />
@@ -104,7 +110,6 @@
     <Compile Include="Assets\Scripts\World\LevelGeneration\StartRoomSpawner.cs" />
     <Compile Include="Assets\Scripts\Player\UI\EquippedItemTitleHUD.cs" />
     <Compile Include="Assets\Scripts\Player\UI\CastUI.cs" />
-    <Compile Include="Assets\Scripts\Player\PlayerDecorationPlacer.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\ProjectileImpactBehaviour.cs" />
     <Compile Include="Assets\Scripts\Player\UI\InventorySlotUI.cs" />
   </ItemGroup>
@@ -1296,8 +1301,8 @@
       <HintPath>Library\ScriptAssemblies\Unity.ProBuilder.AddOns.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.GPUDriven.Runtime">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.GPUDriven.Runtime.dll</HintPath>
+    <Reference Include="UnityUIExtensions.editor">
+      <HintPath>Library\ScriptAssemblies\UnityUIExtensions.editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.Timeline.Editor">
@@ -1306,6 +1311,10 @@
     </Reference>
     <Reference Include="Unity.VisualScripting.State.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.VisualScripting.State.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.GPUDriven.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.GPUDriven.Runtime.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.Mathematics">
@@ -1334,6 +1343,10 @@
     </Reference>
     <Reference Include="Unity.Multiplayer.Center.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.Multiplayer.Center.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityUIExtensions">
+      <HintPath>Library\ScriptAssemblies\UnityUIExtensions.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.ProBuilder.AssetIdRemapUtility">

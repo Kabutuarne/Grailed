@@ -52,6 +52,10 @@ public class PlayerStats : MonoBehaviour
     private PlayerInventory inventory;
     private PlayerController controller;
     private bool isDead;
+    // previous max values used to preserve resource percentages when maxima change
+    private float prevMaxHealth;
+    private float prevMaxMana;
+    private float prevMaxStamina;
 
     // ── lifecycle ─────────────────────────────────────────────────────────────
 
@@ -64,6 +68,10 @@ public class PlayerStats : MonoBehaviour
         health = maxHealth;
         mana = maxMana;
         stamina = maxStamina;
+
+        prevMaxHealth = maxHealth;
+        prevMaxMana = maxMana;
+        prevMaxStamina = maxStamina;
     }
 
     void Update()
@@ -128,6 +136,51 @@ public class PlayerStats : MonoBehaviour
         health = Mathf.Clamp(health, 0f, maxHealth);
         mana = Mathf.Clamp(mana, 0f, maxMana);
         stamina = Mathf.Clamp(stamina, 0f, maxStamina);
+    }
+
+    // Called by StatusEffects when effects are added/removed so derived maxima
+    // can be recalculated while preserving current resource percentages.
+    public void OnStatusEffectsChanged()
+    {
+        float newMaxHealth = maxHealth;
+        float newMaxMana = maxMana;
+        float newMaxStamina = maxStamina;
+
+        if (prevMaxHealth > 0f)
+        {
+            float frac = health / prevMaxHealth;
+            health = frac * newMaxHealth;
+        }
+        else
+        {
+            health = Mathf.Clamp(health, 0f, newMaxHealth);
+        }
+
+        if (prevMaxMana > 0f)
+        {
+            float frac = mana / prevMaxMana;
+            mana = frac * newMaxMana;
+        }
+        else
+        {
+            mana = Mathf.Clamp(mana, 0f, newMaxMana);
+        }
+
+        if (prevMaxStamina > 0f)
+        {
+            float frac = stamina / prevMaxStamina;
+            stamina = frac * newMaxStamina;
+        }
+        else
+        {
+            stamina = Mathf.Clamp(stamina, 0f, newMaxStamina);
+        }
+
+        ClampResourcesToMax();
+
+        prevMaxHealth = newMaxHealth;
+        prevMaxMana = newMaxMana;
+        prevMaxStamina = newMaxStamina;
     }
 
     // ── death / respawn ───────────────────────────────────────────────────────
