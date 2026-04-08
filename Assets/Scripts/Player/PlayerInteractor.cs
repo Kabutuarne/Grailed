@@ -271,8 +271,8 @@ public class PlayerInteractor : MonoBehaviour
             }
         }
 
-        return !string.IsNullOrWhiteSpace(itemPickup.itemName)
-            ? itemPickup.itemName
+        return !string.IsNullOrWhiteSpace(itemPickup.DisplayName)
+            ? itemPickup.DisplayName
             : itemPickup.gameObject.name;
     }
 

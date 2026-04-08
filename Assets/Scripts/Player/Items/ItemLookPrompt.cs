@@ -101,8 +101,8 @@ public class ItemLookPrompt : MonoBehaviour
         if (pickup == null)
             pickup = GetComponentInParent<ItemPickup>();
 
-        if (pickup != null && !string.IsNullOrWhiteSpace(pickup.itemName))
-            return pickup.itemName;
+        if (pickup != null && !string.IsNullOrWhiteSpace(pickup.DisplayName))
+            return pickup.DisplayName;
 
         return "Item";
     }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Accessory : ItemPickup, ICastPermissionProvider, IInventoryIconProvider
+public class Accessory : ItemPickup, ICastPermissionProvider, IInventoryPreviewProvider, IInventoryIconProvider
 {
     [Header("Effects (applied while equipped)")]
     public EffectCarrier effectCarrier;
@@ -12,26 +12,25 @@ public class Accessory : ItemPickup, ICastPermissionProvider, IInventoryIconProv
 
     [Header("Presentation")]
     public Sprite inventoryIcon;
-    public string title;
-    public Color titleColor = Color.white;
+    public Sprite InventoryIcon => inventoryIcon;
+    public GameObject renderModel;
+    [Header("UI Preview Tweaks")]
+    public Vector3 previewRotation = new Vector3(0, 180, 0);
+    public float previewScale = 1.0f;
 
-    [Header("Tooltip Rows")]
-    public List<ItemLineData> descriptionRows = new List<ItemLineData>();
+    // Provide preview data
+    public GameObject PreviewPrefab => renderModel;
+    public Vector3 PreviewRotation => previewRotation;
+    public float PreviewScale => previewScale;
 
     private bool equipped;
     private GameObject owner;
 
     public bool CanCastWhileMoving => canCastWhileMoving;
     public bool CanCastWhileHit => canCastWhileHit;
-    public Sprite InventoryIcon => inventoryIcon;
-
-    public override string DisplayName =>
-        !string.IsNullOrWhiteSpace(title) ? title : base.DisplayName;
-
-    public override string TooltipTitle => DisplayName;
-    public override Color TooltipTitleColor => titleColor;
-
-    public override IReadOnlyList<ItemLineData> GetItemLines() => descriptionRows;
+    // Use ItemPickup's title/description implementation (fields may be
+    // populated on the base or on legacy derived fields; ItemPickup will
+    // read them via reflection if needed).
 
     public void OnEquipped(GameObject user)
     {

@@ -125,11 +125,11 @@ public class EquippedItemTitleHUD : MonoBehaviour
             ScrollItem selectedScroll = wand.GetSelectedScroll();
             if (selectedScroll != null)
             {
-                color = wand.titleColor;
+                color = wand.TooltipTitleColor;
                 return $"{wandTitle} [{selectedScroll.DisplayName}]";
             }
 
-            color = wand.titleColor;
+            color = wand.TooltipTitleColor;
             return wandTitle;
         }
 

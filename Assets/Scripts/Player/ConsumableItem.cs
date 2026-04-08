@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public class ConsumableItem : ItemPickup, IInventoryIconProvider
+public class ConsumableItem : ItemPickup, IInventoryIconProvider, IInventoryPreviewProvider
 {
     [Header("Data")]
     public EffectCarrier carrier;
@@ -14,33 +14,23 @@ public class ConsumableItem : ItemPickup, IInventoryIconProvider
 
     [Header("Inventory UI")]
     public Sprite inventoryIcon;
-    public string title;
-    public Color titleColor = Color.white;
-    public List<ItemLineData> descriptionRows = new List<ItemLineData>();
+    // public string title;
+    // public Color titleColor = Color.white;
+    // public List<ItemLineData> descriptionRows = new List<ItemLineData>();
 
     [Header("Behavior")]
     public bool destroyOnConsume = true;
 
     public Sprite InventoryIcon => inventoryIcon;
 
-    public override string DisplayName
-    {
-        get
-        {
-            if (!string.IsNullOrWhiteSpace(title))
-                return title;
+    [Header("UI Preview Tweaks")]
+    public Vector3 previewRotation = new Vector3(0, 180, 0);
+    public float previewScale = 1.0f;
 
-            return base.DisplayName;
-        }
-    }
-
-    public override string TooltipTitle => DisplayName;
-    public override Color TooltipTitleColor => titleColor;
-
-    public override IReadOnlyList<ItemLineData> GetItemLines()
-    {
-        return descriptionRows;
-    }
+    // Provide preview data
+    public GameObject PreviewPrefab => renderModel;
+    public Vector3 PreviewRotation => previewRotation;
+    public float PreviewScale => previewScale;
 
     public void Consume(GameObject user)
     {

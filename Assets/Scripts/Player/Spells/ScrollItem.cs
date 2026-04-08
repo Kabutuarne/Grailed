@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Represents a scroll item that holds spell configuration and inventory metadata.
-public class ScrollItem : ItemPickup, IInventoryIconProvider
+public class ScrollItem : ItemPickup, IInventoryIconProvider, IInventoryPreviewProvider
 {
     [Header("Scroll Data")]
     public AOESpell aoeSpell;
@@ -13,35 +13,22 @@ public class ScrollItem : ItemPickup, IInventoryIconProvider
     [Header("Presentation")]
     public GameObject renderModel;
     public Sprite inventoryIcon;
-    public string title;
-    public Color titleColor = Color.white;
-
-    [Header("Tooltip Rows")]
-    public List<ItemLineData> descriptionRows = new List<ItemLineData>();
 
     [Header("Behavior")]
     public bool destroyOnCast = false;
 
     public Sprite InventoryIcon => inventoryIcon;
 
-    public override string DisplayName
-    {
-        get
-        {
-            if (!string.IsNullOrWhiteSpace(title))
-                return title;
+    [Header("UI Preview Tweaks")]
+    public Vector3 previewRotation = new Vector3(0, 180, 0);
+    public float previewScale = 1.0f;
 
-            return base.DisplayName;
-        }
-    }
+    // Provide preview data via interface
+    public GameObject PreviewPrefab => renderModel;
+    public Vector3 PreviewRotation => previewRotation;
+    public float PreviewScale => previewScale;
 
-    public override string TooltipTitle => DisplayName;
-    public override Color TooltipTitleColor => titleColor;
-
-    public override IReadOnlyList<ItemLineData> GetItemLines()
-    {
-        return descriptionRows;
-    }
+    // Inherit title, tooltip and lines from ItemPickup base
 
     public bool CanCast()
     {

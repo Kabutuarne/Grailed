@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: Tarrasque Effect
   m_EditorClassIdentifier: Assembly-CSharp::DurationEffect
   effectId: Tarrasque Effect
-  displayName: Tarrasque Effect
-  duration: 25
+  duration: 40
   speedMultiplier: 1
   healthRegenMultiplier: 1
   manaRegenMultiplier: 1
@@ -22,7 +21,7 @@ MonoBehaviour:
   healthPerSecond: 0
   manaPerSecond: 0
   energyPerSecond: 0
-  addStrength: 50
-  addIntelligence: -50
+  addStrength: 25
+  addIntelligence: -25
   addStaminaAttr: 20
   addAgility: 10

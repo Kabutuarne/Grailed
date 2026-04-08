@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: ArcanePotionEffect
   m_EditorClassIdentifier: Assembly-CSharp::DurationEffect
   effectId: Arcane Knowledge
-  displayName: Arcane Knowledge
   duration: 30
   speedMultiplier: 1
   healthRegenMultiplier: 1
@@ -22,7 +21,7 @@ MonoBehaviour:
   healthPerSecond: 0
   manaPerSecond: 0
   energyPerSecond: 0
-  addStrength: 15
+  addStrength: -1
   addIntelligence: 15
-  addStaminaAttr: 15
+  addStaminaAttr: -2
   addAgility: 15

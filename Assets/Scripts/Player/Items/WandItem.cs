@@ -2,17 +2,21 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 
-public class WandItem : ItemPickup, IInventoryIconProvider
+public class WandItem : ItemPickup, IInventoryIconProvider, IInventoryPreviewProvider
 {
     [Header("Presentation")]
     public GameObject renderModel;
     public Rigidbody rb;
     public Sprite inventoryIcon;
+    [Header("UI Preview Tweaks")]
+    public Vector3 previewRotation = new Vector3(0, 180, 0);
+    public float previewScale = 1.0f;
 
+    // Update/Add these interface implementations
+    public GameObject PreviewPrefab => renderModel;
+    public Vector3 PreviewRotation => previewRotation;
+    public float PreviewScale => previewScale;
     [Header("Tooltip")]
-    public string title;
-    public Color titleColor = Color.white;
-    public List<ItemLineData> descriptionRows = new List<ItemLineData>();
 
     [Header("Wand Slots")]
     [Tooltip("Number of internal spell slots on the wand.")]
@@ -29,24 +33,7 @@ public class WandItem : ItemPickup, IInventoryIconProvider
 
     public Sprite InventoryIcon => inventoryIcon;
 
-    public override string DisplayName
-    {
-        get
-        {
-            if (!string.IsNullOrWhiteSpace(title))
-                return title;
-
-            return base.DisplayName;
-        }
-    }
-
-    public override string TooltipTitle => DisplayName;
-    public override Color TooltipTitleColor => titleColor;
-
-    public override IReadOnlyList<ItemLineData> GetItemLines()
-    {
-        return descriptionRows;
-    }
+    // Use ItemPickup's title/description implementations
 
     void Awake()
     {

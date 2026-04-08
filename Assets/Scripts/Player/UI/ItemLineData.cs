@@ -16,11 +16,9 @@ public class ItemLineData
     [TextArea]
     public string text;
     public LineTag tag = LineTag.Description;
-    public Color color = Color.white;
-
     public ItemLineData() { }
-    public ItemLineData(string t, LineTag tag, Color c)
+    public ItemLineData(string t, LineTag tag)
     {
-        text = t; this.tag = tag; color = c;
+        text = t; this.tag = tag;
     }
 }

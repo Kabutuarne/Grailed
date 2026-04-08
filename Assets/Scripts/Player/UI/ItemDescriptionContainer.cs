@@ -45,15 +45,16 @@ public class ItemDescriptionContainer : MonoBehaviour
             if (lines != null && i < lines.Count && lines[i] != null && !string.IsNullOrWhiteSpace(lines[i].text))
             {
                 var data = lines[i];
-                t.text = data.text;
-                t.color = GetColorForTag(data.tag);
-                // t.transform.localScale = Vector3.one * 1f;
 
                 if (data.tag == ItemLineData.LineTag.Description && descriptionText != null)
                 {
                     descriptionText.text = data.text;
                     descriptionText.color = colorDescription;
-                    // descriptionText.transform.localScale = Vector3.one * 0.7f;
+                }
+                else
+                {
+                    t.text = data.text;
+                    t.color = GetColorForTag(data.tag);
                 }
             }
             else

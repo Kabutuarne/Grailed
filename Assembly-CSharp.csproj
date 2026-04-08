@@ -53,6 +53,7 @@
     <Compile Include="Assets\Scripts\World\Chest.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\PassiveEffect.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\KnockbackImpactBehaviour.cs" />
+    <Compile Include="Assets\Scripts\Player\Interfaces\IInventoryPreviewProvider.cs" />
     <Compile Include="Assets\Scripts\Player\Items\ItemLookPrompt.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerConsume.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\RandomRoomSpawner.cs" />
@@ -81,6 +82,7 @@
     <Compile Include="Assets\Scripts\Player\Interfaces\IInteractable.cs" />
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csAnimationSpin.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
+    <Compile Include="Assets\Scripts\Player\UI\InventoryPreviewRenderer.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IInventoryIconProvider.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\SpellAimUtility.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\AOESpell.cs" />

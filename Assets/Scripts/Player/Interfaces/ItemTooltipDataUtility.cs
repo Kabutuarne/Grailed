@@ -20,8 +20,8 @@ public static class ItemTooltipDataUtility
         }
 
         ItemPickup pickup = item.GetComponent<ItemPickup>();
-        if (pickup != null && !string.IsNullOrWhiteSpace(pickup.itemName))
-            return pickup.itemName;
+        if (pickup != null && !string.IsNullOrWhiteSpace(pickup.DisplayName))
+            return pickup.DisplayName;
 
         return item.name;
     }
@@ -49,7 +49,7 @@ public static class ItemTooltipDataUtility
                 {
                     var s = src[i];
                     if (s != null)
-                        lines.Add(new ItemLineData(s.text, s.tag, s.color));
+                        lines.Add(new ItemLineData(s.text, s.tag));
                 }
             }
 
