@@ -101,10 +101,10 @@ public class WandSlotsPanel : MonoBehaviour
             originalBGSprites.Add(orig);
             bgImages.Add(bgImg);
 
-            // Make the spell icon smaller than the slot background
-            if (uiSlot != null && uiSlot.icon != null)
+            // Make the spell preview smaller than the slot background
+            if (uiSlot != null && uiSlot.previewRaw != null)
             {
-                uiSlot.icon.rectTransform.localScale = new Vector3(0.5f, 0.5f, 1f);
+                uiSlot.previewRaw.rectTransform.localScale = new Vector3(0.5f, 0.5f, 1f);
             }
         }
 

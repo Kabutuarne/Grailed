@@ -59,12 +59,11 @@ public class PlayerUI : MonoBehaviour
     public GameObject selectedPrefabAccessory;
     public GameObject selectedPrefabBackpack;
     public GameObject selectedPrefabEquipped;
-    // Assign an existing ItemDescriptionContainer element in the backpack UI (do not instantiate)
-    public ItemDescriptionContainer descriptionContainerInstance; // existing UI element
+    public ItemDescriptionContainer descriptionContainerInstance;
 
-    public GameObject highlightedPrefabAccessory;
-    public GameObject highlightedPrefabBackpack;
-    public GameObject highlightedPrefabEquipped;
+    // public GameObject highlightedPrefabAccessory;
+    // public GameObject highlightedPrefabBackpack;
+    // public GameObject highlightedPrefabEquipped;
 
     private InventorySlotUI selectedSlot;
     private GameObject selectedMarkerInstance;
@@ -81,7 +80,7 @@ public class PlayerUI : MonoBehaviour
 
     private Canvas uiCanvas;
     private GameObject dragIconGO;
-    private Image dragIconImage;
+    private UnityEngine.UI.RawImage dragIconRaw;
     private GameObject currentlyDraggedItem;
     private InventorySlotUI dragSourceSlot;
     private int dragSourceIndex = -1;
@@ -448,8 +447,8 @@ public class PlayerUI : MonoBehaviour
         {
             var inst = Instantiate(prefab, slot.transform);
             inst.name = "PersistentSelectedMarker";
-            // place marker under the icon so it doesn't overlay the sprite
-            Transform iconT = (slot != null && slot.icon != null) ? slot.icon.transform : null;
+            // place marker under the preview RawImage so it doesn't overlay the texture
+            Transform iconT = (slot != null && slot.previewRaw != null) ? slot.previewRaw.transform : null;
             if (iconT != null)
             {
                 int idx = iconT.GetSiblingIndex();
@@ -515,7 +514,7 @@ public class PlayerUI : MonoBehaviour
         UpdateAccessories();
     }
 
-    public void StartDrag(GameObject item, Sprite icon, InventorySlotUI source, int sourceIndex = -1)
+    public void StartDrag(GameObject item, RenderTexture previewTexture, InventorySlotUI source, int sourceIndex = -1)
     {
         if (!IsBackpackOpen || item == null)
             return;
@@ -524,7 +523,7 @@ public class PlayerUI : MonoBehaviour
         dragSourceSlot = source;
         dragSourceIndex = sourceIndex;
 
-        CreateDragIcon(icon ?? GetIconFromItem(item));
+        CreateDragIcon(previewTexture);
         PlaySound(clickSound);
 
         Vector2 pos = UnityEngine.InputSystem.Mouse.current != null
@@ -555,11 +554,11 @@ public class PlayerUI : MonoBehaviour
         {
             Destroy(dragIconGO);
             dragIconGO = null;
-            dragIconImage = null;
+            dragIconRaw = null;
         }
     }
 
-    private void CreateDragIcon(Sprite sprite)
+    private void CreateDragIcon(RenderTexture tex)
     {
         if (uiCanvas == null)
             return;
@@ -569,15 +568,17 @@ public class PlayerUI : MonoBehaviour
 
         dragIconGO = new GameObject("DragIcon");
         dragIconGO.transform.SetParent(uiCanvas.transform, false);
-        dragIconImage = dragIconGO.AddComponent<Image>();
-        dragIconImage.raycastTarget = false;
-        dragIconImage.sprite = sprite;
+        dragIconRaw = dragIconGO.AddComponent<UnityEngine.UI.RawImage>();
+        dragIconRaw.raycastTarget = false;
+        dragIconRaw.texture = tex;
 
         RectTransform rt = dragIconGO.GetComponent<RectTransform>();
-        rt.sizeDelta = sprite != null ? new Vector2(sprite.rect.width, sprite.rect.height) : new Vector2(72, 72);
+        int w = (tex != null) ? tex.width : 72;
+        int h = (tex != null) ? tex.height : 72;
+        rt.sizeDelta = new Vector2(w, h);
     }
 
-    private Sprite GetIconFromItem(GameObject item) => ItemTooltipDataUtility.GetInventoryIcon(item);
+    // Sprite-based icon lookup removed; previews use RenderTexture via InventoryPreviewRenderer.
 
     public void HandleDrop(InventorySlotUI targetSlot)
     {
@@ -1087,9 +1088,9 @@ public class PlayerUI : MonoBehaviour
         if (item == null) return;
 
         // We're going to select a new valid item: clear previous selection visuals
-        if (selectedSlot != null && selectedSlot != slot && selectedSlot.icon != null)
+        if (selectedSlot != null && selectedSlot != slot)
         {
-            selectedSlot.icon.rectTransform.localScale = Vector3.one;
+            selectedSlot.SetSelected(false);
         }
 
         if (selectedMarkerInstance != null && selectedSlot != slot)
@@ -1108,16 +1109,15 @@ public class PlayerUI : MonoBehaviour
         }
 
         selectedSlot = slot;
-
-        // Grow icon
-        if (slot.icon != null)
-            slot.icon.rectTransform.localScale = Vector3.one * 1.2f;
+        // Mark the slot as selected so it scales smoothly
+        if (selectedSlot != null)
+            selectedSlot.SetSelected(true);
 
         // Highlight the persistent selected marker when description is shown
         Transform persistent = slot.transform.Find("PersistentSelectedMarker");
         // Determine icon sibling index so markers are placed under the icon
         int iconSibling = 0;
-        Transform iconTransform = (slot.icon != null) ? slot.icon.transform : null;
+        Transform iconTransform = (slot.previewRaw != null) ? slot.previewRaw.transform : null;
         if (iconTransform != null)
             iconSibling = iconTransform.GetSiblingIndex();
 
@@ -1166,29 +1166,6 @@ public class PlayerUI : MonoBehaviour
                 }
             }
             descriptionPanelInstance.gameObject.SetActive(any);
-
-            // Activate highlighted prefab under the persistent marker (keep it unscaled and under icon)
-            if (selectedMarkerInstance != null)
-            {
-                var prev = selectedMarkerInstance.transform.Find("HighlightedMarker");
-                if (prev != null) Destroy(prev.gameObject);
-
-                GameObject hpf = null;
-                switch (slot.slotType)
-                {
-                    case InventorySlotUI.SlotType.Accessory: hpf = highlightedPrefabAccessory; break;
-                    case InventorySlotUI.SlotType.RightHand: hpf = highlightedPrefabEquipped; break;
-                    default: hpf = highlightedPrefabBackpack; break;
-                }
-
-                if (hpf != null)
-                {
-                    var h = Instantiate(hpf, selectedMarkerInstance.transform);
-                    h.name = "HighlightedMarker";
-                    // keep prefab scale as authored
-                    h.transform.localPosition = Vector3.zero;
-                }
-            }
         }
     }
 

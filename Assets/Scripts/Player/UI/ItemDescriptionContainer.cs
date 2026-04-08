@@ -30,40 +30,45 @@ public class ItemDescriptionContainer : MonoBehaviour
             titleText.color = new Color(0xF2 / 255f, 0xE6 / 255f, 0xC8 / 255f);
         }
 
-        var lines = pickup.GetItemLines();
+        var allLines = pickup.GetItemLines();
 
-        // Clear description first
-        if (descriptionText != null)
-            descriptionText.text = string.Empty;
+        // Reset all UI elements
+        if (descriptionText != null) descriptionText.text = string.Empty;
+        foreach (var t in lineTexts) { if (t != null) t.text = string.Empty; }
 
-        // Fill lines in order; Description tag will also be copied to descriptionText
-        for (int i = 0; i < lineTexts.Count; i++)
+        if (allLines == null) return;
+
+        // Track which UI line slot we are currently filling
+        int uiLineIndex = 0;
+
+        foreach (var data in allLines)
         {
-            var t = lineTexts[i];
-            if (t == null) continue;
+            if (data == null || string.IsNullOrWhiteSpace(data.text)) continue;
 
-            if (lines != null && i < lines.Count && lines[i] != null && !string.IsNullOrWhiteSpace(lines[i].text))
+            // Handle the special Description tag
+            if (data.tag == ItemLineData.LineTag.Description)
             {
-                var data = lines[i];
-
-                if (data.tag == ItemLineData.LineTag.Description && descriptionText != null)
+                if (descriptionText != null)
                 {
                     descriptionText.text = data.text;
                     descriptionText.color = colorDescription;
                 }
-                else
+                continue;
+            }
+
+            // Handle all other tags in order
+            if (uiLineIndex < lineTexts.Count)
+            {
+                var t = lineTexts[uiLineIndex];
+                if (t != null)
                 {
                     t.text = data.text;
                     t.color = GetColorForTag(data.tag);
+                    uiLineIndex++; // Only move to the next UI slot if we actually filled one
                 }
-            }
-            else
-            {
-                t.text = string.Empty;
             }
         }
     }
-
     private Color GetColorForTag(ItemLineData.LineTag tag)
     {
         switch (tag)
