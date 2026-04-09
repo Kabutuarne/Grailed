@@ -18,7 +18,7 @@ MonoBehaviour:
   laserEffectPrefab: {fileID: 8860363494751517875, guid: bebba8ca57c040241b61361fc8d83e9b, type: 3}
   hitEffectPrefab: {fileID: 4924508274929071776, guid: 8cdce399628470c4793917e7b1dcbded, type: 3}
   passiveEffect: {fileID: 11400000, guid: 764017c55e6b6dd4ea48c8cf1cfd9d19, type: 2}
-  cameraLocalSpawnOffset: {x: 0, y: 2, z: 2}
+  cameraLocalSpawnOffset: {x: 0, y: -0.5, z: 0}
   cameraForwardSpawnPush: 2
   aimViaCameraRaycast: 1
   aimRayDistance: 50

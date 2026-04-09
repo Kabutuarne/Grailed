@@ -1,199 +1,164 @@
-Shader "Custom/URP Lit Triplanar Bricks"
+Shader "Universal Render Pipeline/Lit (Local Space Triplanar)"
 {
     Properties
     {
-        [MainTexture] _BaseMap("Base Map", 2D) = "white" {}
-        [MainColor] _BaseColor("Base Color", Color) = (1,1,1,1)
+        _WorkflowMode("WorkflowMode", Float) = 1.0
+        [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
+        [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
+        _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+        _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
+        _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
+        _BumpScale("Normal Scale", Float) = 1.0
+        _BumpMap("Normal Map", 2D) = "bump" {}
+        _OcclusionStrength("Occlusion Strength", Range(0.0, 1.0)) = 1.0
+        _OcclusionMap("Occlusion", 2D) = "white" {}
+        [HDR] _EmissionColor("Emission Color", Color) = (0,0,0)
+        _EmissionMap("Emission Map", 2D) = "white" {}
 
-        _Metallic("Metallic", Range(0,1)) = 0
-        _Smoothness("Smoothness", Range(0,1)) = 0.5
+        [Header(Triplanar Settings)]
+        _WorldScale("Texture Scale (tiles per unit)", Float) = 1.0
+        _TriplanarSharpness("Triplanar Blend Sharpness", Range(1.0, 16.0)) = 4.0
 
-        [Normal] _BumpMap("Normal Map", 2D) = "bump" {}
-        _BumpScale("Normal Strength", Range(0,2)) = 1
-
-        _TriplanarScale("Triplanar Scale", Float) = 1
-        _TriplanarBlend("Blend Sharpness", Range(1,8)) = 4
+        [HideInInspector] _Surface("__surface", Float) = 0.0
+        [HideInInspector] _Blend("__blend", Float) = 0.0
+        [HideInInspector] _Cull("__cull", Float) = 2.0
+        [HideInInspector] _ZWrite("__zw", Float) = 1.0
+        [HideInInspector] _SrcBlend("__src", Float) = 1.0
+        [HideInInspector] _DstBlend("__dst", Float) = 0.0
     }
 
     SubShader
     {
-        Tags
-        {
-            "RenderPipeline" = "UniversalPipeline"
-            "RenderType" = "Opaque"
-            "UniversalMaterialType" = "Lit"
-        }
-
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit" }
         LOD 300
 
         Pass
         {
             Name "ForwardLit"
-            Tags { "LightMode"="UniversalForward" }
+            Tags { "LightMode" = "UniversalForward" }
+            Blend[_SrcBlend][_DstBlend]
+            ZWrite[_ZWrite]
+            Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma target 4.5
-            #pragma vertex vert
-            #pragma fragment frag
+            #pragma target 3.0
+            #pragma vertex LitPassVertex
+            #pragma fragment LitPassFragment
 
-            // Lighting variants
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHTS
+            // Universal Pipeline keywords for lighting and shadows
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
-            #pragma multi_compile_fog
-
+            
             #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _EMISSION
+            #pragma shader_feature_local_fragment _OCCLUSIONMAP
 
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
-            CBUFFER_START(UnityPerMaterial)
-                half4 _BaseColor;
-                half _Metallic;
-                half _Smoothness;
-                half _BumpScale;
-                float _TriplanarScale;
-                float _TriplanarBlend;
-            CBUFFER_END
+            float _WorldScale;
+            float _TriplanarSharpness;
 
-            TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
-            TEXTURE2D(_BumpMap); SAMPLER(sampler_BumpMap);
-
-            struct Attributes
-            {
+            struct Attributes {
                 float4 positionOS : POSITION;
                 float3 normalOS   : NORMAL;
-                float2 lightmapUV : TEXCOORD1;
+                float4 tangentOS  : TANGENT;
+                float2 texcoord   : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
-            struct Varyings
-            {
+            struct Varyings {
                 float4 positionCS : SV_POSITION;
-                float4 positionCSRaw : TEXCOORD0;
-                float3 positionWS : TEXCOORD1;
-                float3 normalWS : TEXCOORD2;
-                float3 viewDirWS : TEXCOORD3;
-                float4 shadowCoord : TEXCOORD4;
-                half3 vertexLighting : TEXCOORD5;
-                float fogCoord : TEXCOORD6;
-                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 7);
+                float3 positionWS : TEXCOORD0;
+                half3  normalWS   : TEXCOORD1;
+                float3 positionScaledLS : TEXCOORD3; // Scaled Local Pos
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
-            // ===============================
-            // Triplanar
-            // ===============================
-            float3 TriplanarWeights(float3 n)
-            {
-                float3 w = pow(abs(n), _TriplanarBlend);
-                return w / max(dot(w,1.0), 1e-4);
+            // Calculate object scale from the world matrix
+            float3 GetObjectScale() {
+                return float3(
+                    length(float3(unity_ObjectToWorld[0].x, unity_ObjectToWorld[1].x, unity_ObjectToWorld[2].x)),
+                    length(float3(unity_ObjectToWorld[0].y, unity_ObjectToWorld[1].y, unity_ObjectToWorld[2].y)),
+                    length(float3(unity_ObjectToWorld[0].z, unity_ObjectToWorld[1].z, unity_ObjectToWorld[2].z))
+                );
             }
 
-            half4 TriplanarAlbedo(float3 worldPos, float3 worldNormal)
-            {
-                float3 w = TriplanarWeights(worldNormal);
-                float2 uvX = worldPos.zy * _TriplanarScale;
-                float2 uvY = worldPos.xz * _TriplanarScale;
-                float2 uvZ = worldPos.xy * _TriplanarScale;
+            Varyings LitPassVertex(Attributes input) {
+                Varyings output = (Varyings)0;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
 
-                half4 sampleX = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uvX);
-                half4 sampleY = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uvY);
-                half4 sampleZ = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uvZ);
+                VertexPositionInputs vInput = GetVertexPositionInputs(input.positionOS.xyz);
+                output.positionCS = vInput.positionCS;
+                output.positionWS = vInput.positionWS;
+                output.normalWS   = GetVertexNormalInputs(input.normalOS, input.tangentOS).normalWS;
 
-                return sampleX * w.x + sampleY * w.y + sampleZ * w.z;
+                // "Glue" logic: Use local position multiplied by current scale
+                output.positionScaledLS = input.positionOS.xyz * GetObjectScale();
+
+                return output;
             }
 
-            half3 TriplanarNormalWS(float3 worldPos, float3 worldNormal)
-            {
-                float3 w = TriplanarWeights(worldNormal);
-                float2 uvX = worldPos.zy * _TriplanarScale;
-                float2 uvY = worldPos.xz * _TriplanarScale;
-                float2 uvZ = worldPos.xy * _TriplanarScale;
-
-                half3 nX = UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uvX), _BumpScale);
-                half3 nY = UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uvY), _BumpScale);
-                half3 nZ = UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uvZ), _BumpScale);
-
-                half3 worldX = half3(nX.z, nX.x, nX.y);
-                half3 worldY = half3(nY.x, nY.z, nY.y);
-                half3 worldZ = nZ;
-
-                return normalize(worldX*w.x + worldY*w.y + worldZ*w.z);
+            // Helper for sampling textures triplanar-style
+            half4 SampleTriplanar(TEXTURE2D_PARAM(tex, samp), float3 p, float3 w, float4 st) {
+                float2 uvX = (p.zy * _WorldScale) * st.xy + st.zw;
+                float2 uvY = (p.xz * _WorldScale) * st.xy + st.zw;
+                float2 uvZ = (p.xy * _WorldScale) * st.xy + st.zw;
+                return SAMPLE_TEXTURE2D(tex, samp, uvX) * w.x + SAMPLE_TEXTURE2D(tex, samp, uvY) * w.y + SAMPLE_TEXTURE2D(tex, samp, uvZ) * w.z;
             }
 
-            // ===============================
-            // Vertex
-            // ===============================
-            Varyings vert(Attributes v)
-            {
-                Varyings o;
+            void LitPassFragment(Varyings input, out half4 outColor : SV_Target0) {
+                UNITY_SETUP_INSTANCE_ID(input);
 
-                VertexPositionInputs pos = GetVertexPositionInputs(v.positionOS.xyz);
-                VertexNormalInputs norm = GetVertexNormalInputs(v.normalOS);
+                float3 p = input.positionScaledLS;
+                half3 normalWS = normalize(input.normalWS);
+                
+                // Calculate blending weights based on the normal [cite: 22]
+                float3 w = pow(abs(normalWS), max(_TriplanarSharpness, 0.01));
+                w /= (w.x + w.y + w.z);
 
-                o.positionCS = pos.positionCS;
-                o.positionCSRaw = pos.positionCS;
-                o.positionWS = pos.positionWS;
-                o.normalWS = NormalizeNormalPerVertex(norm.normalWS);
-                o.viewDirWS = GetWorldSpaceViewDir(pos.positionWS);
-                o.shadowCoord = GetShadowCoord(pos);
-                o.fogCoord = ComputeFogFactor(pos.positionCS.z);
-
-                OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapUV);
-                OUTPUT_SH(o.normalWS, o.vertexSH);
-
-                o.vertexLighting = half3(0,0,0);
-
-                return o;
-            }
-
-            // ===============================
-            // Fragment
-            // ===============================
-            half4 frag(Varyings i) : SV_Target
-            {
-                SurfaceData surface;
-                ZERO_INITIALIZE(SurfaceData, surface);
-
-                // Triplanar Albedo
-                half4 albedoSample = TriplanarAlbedo(i.positionWS, i.normalWS);
-                surface.albedo = albedoSample.rgb * _BaseColor.rgb;
-                surface.metallic = _Metallic;
-                surface.smoothness = _Smoothness;
-                surface.occlusion = 1;
-                surface.alpha = 1;
-
-                // Triplanar normal
-                half3 normalWS = i.normalWS;
-                #ifdef _NORMALMAP
-                    normalWS = TriplanarNormalWS(i.positionWS, normalWS);
+                // Initialize SurfaceData for URP Lighting 
+                SurfaceData s = (SurfaceData)0;
+                half4 albedo = SampleTriplanar(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), p, w, _BaseMap_ST) * _BaseColor;
+                s.albedo = albedo.rgb;
+                s.alpha = albedo.a;
+                s.metallic = _Metallic;
+                s.smoothness = _Smoothness;
+                s.normalTS = half3(0, 0, 1); // Normal mapping would go here
+                
+                #if defined(_OCCLUSIONMAP)
+                    s.occlusion = SampleTriplanar(TEXTURE2D_ARGS(_OcclusionMap, sampler_OcclusionMap), p, w, _BaseMap_ST).g * _OcclusionStrength;
+                #else
+                    s.occlusion = 1.0;
                 #endif
-                normalWS = NormalizeNormalPerPixel(normalWS);
 
-                InputData inputData;
-                ZERO_INITIALIZE(InputData, inputData);
-                inputData.positionWS = i.positionWS;
+                #if defined(_EMISSION)
+                    s.emission = SampleTriplanar(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), p, w, _BaseMap_ST).rgb * _EmissionColor.rgb;
+                #endif
+
+                // Initialize InputData for lighting calculation [cite: 132, 134]
+                InputData inputData = (InputData)0;
+                inputData.positionWS = input.positionWS;
                 inputData.normalWS = normalWS;
-                inputData.viewDirectionWS = SafeNormalize(i.viewDirWS);
-                inputData.shadowCoord = i.shadowCoord;
-                inputData.fogCoord = i.fogCoord;
-                inputData.vertexLighting = i.vertexLighting;
-                inputData.bakedGI = SAMPLE_GI(i.lightmapUV, i.vertexSH, normalWS);
-                inputData.shadowMask = SAMPLE_SHADOWMASK(i.lightmapUV);
-                inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(i.positionCSRaw);
+                inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
+                inputData.shadowCoord = TransformWorldToShadowCoord(input.positionWS);
+                inputData.bakedGI = SampleSH(normalWS);
+                inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
 
-                half4 color = UniversalFragmentPBR(inputData, surface);
-                color.rgb = MixFog(color.rgb, inputData.fogCoord);
-                return color;
+                // Apply URP PBR Lighting [cite: 150]
+                outColor = UniversalFragmentPBR(inputData, s);
             }
-
             ENDHLSL
         }
+        
+        // Use the original ShadowCaster pass so the object casts shadows [cite: 155]
+        UsePass "Universal Render Pipeline/Lit/ShadowCaster"
+        UsePass "Universal Render Pipeline/Lit/DepthOnly"
     }
-
-    FallBack Off
+    FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }

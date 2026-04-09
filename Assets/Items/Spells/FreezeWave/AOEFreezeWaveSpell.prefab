@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &385365482173030703
+--- !u!1 &8581447026848873273
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,12 +8,12 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 7590214797331416316}
-  - component: {fileID: 8570433266162682829}
-  - component: {fileID: 550031857580130979}
-  - component: {fileID: 1904883707981479424}
-  - component: {fileID: 5172170287415319672}
-  - component: {fileID: 9060297031270522796}
+  - component: {fileID: 8563381931547920971}
+  - component: {fileID: 3879387429993238176}
+  - component: {fileID: 87589068534797428}
+  - component: {fileID: 3691417298506870128}
+  - component: {fileID: 2547580164087130178}
+  - component: {fileID: 4215579090412147861}
   m_Layer: 0
   m_Name: AOEFreezeWaveSpell
   m_TagString: Untagged
@@ -21,13 +21,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7590214797331416316
+--- !u!4 &8563381931547920971
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 385365482173030703}
+  m_GameObject: {fileID: 8581447026848873273}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -36,48 +36,52 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8570433266162682829
+--- !u!114 &3879387429993238176
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 385365482173030703}
+  m_GameObject: {fileID: 8581447026848873273}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e7530036afe6b9b45b7f763f418b0b86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ScrollItem
-  itemName: Frost Wave
-  itemPrefab: {fileID: 385365482173030703}
-  itemLines: []
+  title: Freeze Wave
+  titleColor: {r: 0.7783019, g: 0.9443581, b: 1, a: 1}
+  itemPrefab: {fileID: 0}
+  descriptionRows:
+  - text: Casts a wide wave of Frost, freezing all in it's way.
+    tag: 0
+  - text: 6s Base cast time
+    tag: 1
+  - text: 20 Mana cost
+    tag: 4
   aoeSpell: {fileID: 11400000, guid: 2b3e18e61989ff6489706a6d7cde2943, type: 2}
   projectileSpell: {fileID: 0}
   channeledProjectileSpell: {fileID: 0}
   channeledAOESpell: {fileID: 0}
-  renderModel: {fileID: 385365482173030703}
+  renderModel: {fileID: 0}
   inventoryIcon: {fileID: 21300000, guid: 5ea81e3c60b6b5d4a93dd7b949e44b14, type: 3}
-  title: Freeze Wave
-  titleColor: {r: 0.7783019, g: 0.9443581, b: 1, a: 1}
-  descriptionRows: []
   destroyOnCast: 0
   previewRotation: {x: 25, y: 180, z: 70}
   previewScale: 30
---- !u!33 &550031857580130979
+--- !u!33 &87589068534797428
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 385365482173030703}
+  m_GameObject: {fileID: 8581447026848873273}
   m_Mesh: {fileID: 3253524224474421750, guid: 9e607803edd68c74a80986cfb13bd4b3, type: 3}
---- !u!23 &1904883707981479424
+--- !u!23 &3691417298506870128
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 385365482173030703}
+  m_GameObject: {fileID: 8581447026848873273}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -120,13 +124,13 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &5172170287415319672
+--- !u!65 &2547580164087130178
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 385365482173030703}
+  m_GameObject: {fileID: 8581447026848873273}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -141,13 +145,13 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.002438921, y: 0.0006311643, z: 0.0005878737}
   m_Center: {x: -0.000012515694, y: -0.00006118011, z: 0.00030389123}
---- !u!54 &9060297031270522796
+--- !u!54 &4215579090412147861
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 385365482173030703}
+  m_GameObject: {fileID: 8581447026848873273}
   serializedVersion: 5
   m_Mass: 1
   m_LinearDamping: 0.2

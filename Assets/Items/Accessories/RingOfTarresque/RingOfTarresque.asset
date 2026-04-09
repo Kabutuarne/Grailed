@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: RingOfTarresque
   m_EditorClassIdentifier: Assembly-CSharp::PassiveEffect
   effectId: Ring Of Tarresque
-  displayName: Ring Of Tarresque
   speedMultiplier: 1
   healthRegenMultiplier: 1
   manaRegenMultiplier: 1
@@ -21,7 +20,7 @@ MonoBehaviour:
   healthPerSecond: 0
   manaPerSecond: 0
   energyPerSecond: 0
-  addStrength: 15
+  addStrength: 10
   addIntelligence: -7
   addStaminaAttr: 5
   addAgility: 3

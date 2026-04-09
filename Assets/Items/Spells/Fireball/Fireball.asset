@@ -12,14 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70ed0eca34a575d47abc4eafa96c6c64, type: 3}
   m_Name: Fireball
   m_EditorClassIdentifier: Assembly-CSharp::ProjectileSpell
-  castTime: 1
-  manaCost: 5
+  castTime: 2
+  manaCost: 12
   speed: 32
   lifetime: 5
   impactRadius: 20
   projectileModelPrefab: {fileID: 1206498299807332555, guid: af6c1e3f046eecd4d81330aeb285600f, type: 3}
   despawnDelay: 1
-  cameraLocalSpawnOffset: {x: 0, y: -0.15, z: 2}
+  cameraLocalSpawnOffset: {x: 0, y: -0.15, z: 0}
   cameraForwardSpawnPush: 1
   ignoreCasterColliders: 0
   aimViaCameraRaycast: 1
