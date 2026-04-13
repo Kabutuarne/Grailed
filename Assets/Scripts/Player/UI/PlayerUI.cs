@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -51,9 +52,13 @@ public class PlayerUI : MonoBehaviour
     public Text hudEnergyText;
 
     [Header("Wand Slots Panel")]
-    public WandSlotsPanel wandSlotsPanelPrefab;
+    public WandSlotsPanel wandSlotsPanel;
     private WandSlotsPanel wandPanelInstance;
     private InventorySlotUI wandSourceSlot;
+
+    [Header("Wand Slot Overlay")]
+    private WandSlotOverlay wandSlotOverlay;
+    private InventorySlotUI overlaySlot;
 
     [Header("Selection Visuals")]
     public GameObject selectedPrefabAccessory;
@@ -133,22 +138,19 @@ public class PlayerUI : MonoBehaviour
             UpdateDrag(pos);
         }
 
-
-        if (IsBackpackOpen && wandPanelInstance != null && wandPanelInstance.IsShowing)
+        // Manage wand-slot drag overlay when dragging items over wand internals
+        var hoveredGlobal = InventorySlotUI.HoveredSlot;
+        if (currentlyDraggedItem != null)
         {
-            wandPanelInstance.UpdateLayout();
-
-            var mouse = UnityEngine.InputSystem.Mouse.current;
-            bool clickReleased = mouse != null && mouse.leftButton.wasReleasedThisFrame;
-            var hovered = InventorySlotUI.HoveredSlot;
-            if (clickReleased && currentlyDraggedItem == null)
-            {
-                bool overWandSource = hovered == wandSourceSlot;
-                bool overWandInternal = hovered != null && hovered.slotType == InventorySlotUI.SlotType.WandInternal;
-                if (!overWandSource && !overWandInternal)
-                    HideWandPanel();
-            }
+            if (hoveredGlobal != null && hoveredGlobal.slotType == InventorySlotUI.SlotType.WandInternal)
+                ShowWandSlotOverlay(hoveredGlobal);
+            else
+                HideWandSlotOverlay();
         }
+
+
+        // Panel visibility is now controlled by selection/description logic in NotifySlotClicked
+        // and UpdateSelectionForSlot. Avoid auto-hiding on mouse release here.
     }
 
     // Tooltip system removed: no per-item tooltip rendering
@@ -393,8 +395,12 @@ public class PlayerUI : MonoBehaviour
 
         if (rightHandSlot != null)
         {
-            rightHandSlot.SetItem(inventory.rightHandItem, -1, inventory);
-            EnsurePersistentSelectedMarker(rightHandSlot, inventory.rightHandItem != null);
+            GameObject handItem = inventory.rightHandItem;
+            if (currentlyDraggedItem != null && dragSourceSlot == rightHandSlot && dragSourceSlot.slotType == InventorySlotUI.SlotType.RightHand)
+                handItem = null;
+
+            rightHandSlot.SetItem(handItem, -1, inventory);
+            EnsurePersistentSelectedMarker(rightHandSlot, handItem != null);
         }
     }
 
@@ -412,6 +418,10 @@ public class PlayerUI : MonoBehaviour
             GameObject item = (inventory.backpack != null && i < inventory.backpack.Length)
                 ? inventory.backpack[i]
                 : null;
+
+            // If dragging and this is the source backpack slot, show it as empty while dragging
+            if (currentlyDraggedItem != null && dragSourceSlot == slot && dragSourceSlot.slotType == InventorySlotUI.SlotType.Backpack)
+                item = null;
 
             slot.SetItem(item, i, inventory);
             EnsurePersistentSelectedMarker(slot, item != null);
@@ -475,8 +485,13 @@ public class PlayerUI : MonoBehaviour
         {
             var slot = accessorySlots[i];
             if (slot == null) continue;
-            slot.SetItem(inventory.accessories[i], i, inventory);
-            EnsurePersistentSelectedMarker(slot, inventory.accessories[i] != null);
+            GameObject item = inventory.accessories[i];
+            // If dragging and this is the source accessory slot, show it as empty while dragging
+            if (currentlyDraggedItem != null && dragSourceSlot == slot && dragSourceSlot.slotType == InventorySlotUI.SlotType.Accessory)
+                item = null;
+
+            slot.SetItem(item, i, inventory);
+            EnsurePersistentSelectedMarker(slot, item != null);
         }
     }
 
@@ -523,6 +538,46 @@ public class PlayerUI : MonoBehaviour
         dragSourceSlot = source;
         dragSourceIndex = sourceIndex;
 
+        // Make the source slot visually appear empty while dragging
+        Debug.Log("Drag started from slot: " + source?.name + " with item: " + item.name);
+        if (dragSourceSlot != null)
+        {
+            Debug.Log("Making source slot appear empty: " + dragSourceSlot.name);
+            if (dragSourceSlot.previewRaw != null)
+            {
+                if (dragSourceSlot.placeholderTexture != null)
+                {
+                    dragSourceSlot.previewRaw.texture = dragSourceSlot.placeholderTexture;
+                    dragSourceSlot.previewRaw.enabled = true;
+                }
+                else
+                {
+                    dragSourceSlot.previewRaw.texture = null;
+                    dragSourceSlot.previewRaw.enabled = false;
+                }
+            }
+            Debug.Log("" + dragSourceSlot.name + " preview set to placeholder/hidden.");
+            // remove selection visuals so slot looks emptied
+            dragSourceSlot.SetSelected(false);
+            var persistent = dragSourceSlot.transform.Find("PersistentSelectedMarker");
+            if (persistent != null)
+                persistent.gameObject.SetActive(false);
+
+            // If the drag started from a wand internal slot, play its overlay reverse animation
+            if (dragSourceSlot.slotType == InventorySlotUI.SlotType.WandInternal)
+            {
+                var over = dragSourceSlot.GetComponentInChildren<WandSlotOverlay>(true);
+                if (over != null)
+                    over.PlayOut(true);
+
+                if (overlaySlot == dragSourceSlot)
+                {
+                    overlaySlot = null;
+                    wandSlotOverlay = null;
+                }
+            }
+        }
+
         CreateDragIcon(previewTexture);
         PlaySound(clickSound);
 
@@ -546,9 +601,13 @@ public class PlayerUI : MonoBehaviour
 
     public void EndDrag()
     {
+        // capture source so we can restore its visuals after drag ends
+        var src = dragSourceSlot;
+
+        // hide any wand overlay immediately
+        HideWandSlotOverlay();
+
         currentlyDraggedItem = null;
-        dragSourceSlot = null;
-        dragSourceIndex = -1;
 
         if (dragIconGO != null)
         {
@@ -556,6 +615,12 @@ public class PlayerUI : MonoBehaviour
             dragIconGO = null;
             dragIconRaw = null;
         }
+
+        // restore visuals for the source slot
+        RestoreSlotVisuals(src);
+
+        dragSourceSlot = null;
+        dragSourceIndex = -1;
     }
 
     private void CreateDragIcon(RenderTexture tex)
@@ -576,6 +641,69 @@ public class PlayerUI : MonoBehaviour
         int w = (tex != null) ? tex.width : 72;
         int h = (tex != null) ? tex.height : 72;
         rt.sizeDelta = new Vector2(w, h);
+    }
+
+    // Show the overlay child (WandSlotOverlay) on the given wand-internal slot and play its in-animation.
+    private void ShowWandSlotOverlay(InventorySlotUI slot)
+    {
+        if (slot == null) return;
+        if (overlaySlot == slot) return;
+
+        // Only play overlay animations for ScrollItems (only those can be placed into wand slots)
+        if (currentlyDraggedItem == null || currentlyDraggedItem.GetComponent<ScrollItem>() == null)
+            return;
+
+        // If a different overlay is currently active, play it out first
+        if (wandSlotOverlay != null && overlaySlot != null && overlaySlot != slot)
+            wandSlotOverlay.PlayOut(false);
+
+
+        var overlayComp = slot.GetComponentInChildren<WandSlotOverlay>(true);
+        if (overlayComp == null) return;
+
+        // Ensure overlay GameObject active before starting coroutine to avoid "game object is inactive" errors
+        if (!overlayComp.gameObject.activeInHierarchy)
+            overlayComp.gameObject.SetActive(true);
+
+        // Ensure overlay is rendered above the preview image
+        if (slot.previewRaw != null)
+            overlayComp.transform.SetSiblingIndex(slot.previewRaw.transform.GetSiblingIndex() + 1);
+        else
+            overlayComp.transform.SetAsLastSibling();
+
+        overlaySlot = slot;
+        wandSlotOverlay = overlayComp;
+        wandSlotOverlay.PlayIn(false);
+    }
+
+    private void HideWandSlotOverlay()
+    {
+        if (wandSlotOverlay == null) return;
+        wandSlotOverlay.PlayOut(false);
+        wandSlotOverlay = null;
+        overlaySlot = null;
+    }
+
+    private void RestoreSlotVisuals(InventorySlotUI slot)
+    {
+        if (slot == null) return;
+        GameObject item = GetItemFromSlot(slot);
+        slot.SetItem(item, slot.slotIndex, inventory);
+
+        Transform persistent = slot.transform.Find("PersistentSelectedMarker");
+        if (persistent != null)
+        {
+            if (item != null) persistent.gameObject.SetActive(true);
+            else Destroy(persistent.gameObject);
+        }
+        if (selectedSlot == slot)
+        {
+            slot.SetSelected(true);
+        }
+        // Ensure any overlay child is disabled for restored slots
+        var overlayComp = slot.GetComponentInChildren<WandSlotOverlay>(true);
+        if (overlayComp != null)
+            overlayComp.ForceDisable();
     }
 
     // Sprite-based icon lookup removed; previews use RenderTexture via InventoryPreviewRenderer.
@@ -659,9 +787,22 @@ public class PlayerUI : MonoBehaviour
 
                         targetSlot.SetItem(wandOwner.GetSlotItem(wandIndex), wandIndex, inventory);
                         if (srcIndex < backpackSlots.Length && backpackSlots[srcIndex] != null)
+                        {
                             backpackSlots[srcIndex].SetItem(inventory.backpack[srcIndex], srcIndex, inventory);
+                            // update persistent selected marker immediately for the source backpack slot
+                            EnsurePersistentSelectedMarker(backpackSlots[srcIndex], inventory.backpack[srcIndex] != null);
+                        }
 
                         PlaySound(dropSuccessSound);
+                        // Refresh wand slots UI so overlays/labels update immediately
+                        if (descriptionPanelInstance != null)
+                            descriptionPanelInstance.RefreshWandSlots();
+                        else if (wandPanelInstance != null)
+                        {
+                            wandPanelInstance.Show(wandOwner, wandSourceSlot, this);
+                            var r = wandPanelInstance.transform as RectTransform;
+                            if (r != null) UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(r);
+                        }
                     }
                 }
             }
@@ -671,8 +812,20 @@ public class PlayerUI : MonoBehaviour
                 wandOwner.SetSlotItem(wandIndex, currentlyDraggedItem);
                 targetSlot.SetItem(wandOwner.GetSlotItem(wandIndex), wandIndex, inventory);
                 if (rightHandSlot != null)
+                {
                     rightHandSlot.SetItem(inventory.rightHandItem, -1, inventory);
+                    EnsurePersistentSelectedMarker(rightHandSlot, inventory.rightHandItem != null);
+                }
                 PlaySound(dropSuccessSound);
+                // Refresh wand slots UI so overlays/labels update immediately
+                if (descriptionPanelInstance != null)
+                    descriptionPanelInstance.RefreshWandSlots();
+                else if (wandPanelInstance != null)
+                {
+                    wandPanelInstance.Show(wandOwner, wandSourceSlot, this);
+                    var r2 = wandPanelInstance.transform as RectTransform;
+                    if (r2 != null) UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(r2);
+                }
             }
             else if (srcType == InventorySlotUI.SlotType.WandInternal)
             {
@@ -684,6 +837,15 @@ public class PlayerUI : MonoBehaviour
                     targetSlot.SetItem(wandOwner.GetSlotItem(wandIndex), wandIndex, inventory);
                     dragSourceSlot.SetItem(srcWand.GetSlotItem(srcWandIndex), srcWandIndex, inventory);
                     PlaySound(dropSuccessSound);
+                    // Refresh wand slots UI so overlays/labels update immediately
+                    if (descriptionPanelInstance != null)
+                        descriptionPanelInstance.RefreshWandSlots();
+                    else if (wandPanelInstance != null)
+                    {
+                        wandPanelInstance.Show(wandOwner, wandSourceSlot, this);
+                        var r3 = wandPanelInstance.transform as RectTransform;
+                        if (r3 != null) UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(r3);
+                    }
                 }
                 else
                 {
@@ -708,8 +870,20 @@ public class PlayerUI : MonoBehaviour
                             item.SetActive(false);
                             if (dstIndex < backpackSlots.Length && backpackSlots[dstIndex] != null)
                                 backpackSlots[dstIndex].SetItem(inventory.backpack[dstIndex], dstIndex, inventory);
+                            // update persistent marker immediately for destination backpack slot
+                            if (dstIndex < backpackSlots.Length && backpackSlots[dstIndex] != null)
+                                EnsurePersistentSelectedMarker(backpackSlots[dstIndex], inventory.backpack[dstIndex] != null);
                             dragSourceSlot.SetItem(srcWand.GetSlotItem(srcWandIndex), srcWandIndex, inventory);
                             PlaySound(dropSuccessSound);
+                            // Refresh wand slots UI so overlays/labels update immediately
+                            if (descriptionPanelInstance != null)
+                                descriptionPanelInstance.RefreshWandSlots();
+                            else if (wandPanelInstance != null)
+                            {
+                                wandPanelInstance.Show(srcWand, wandSourceSlot, this);
+                                var r4 = wandPanelInstance.transform as RectTransform;
+                                if (r4 != null) UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(r4);
+                            }
                         }
                     }
                     else if (dstType == InventorySlotUI.SlotType.RightHand)
@@ -717,6 +891,8 @@ public class PlayerUI : MonoBehaviour
                         inventory.EquipRight(item);
                         if (rightHandSlot != null)
                             rightHandSlot.SetItem(inventory.rightHandItem, -1, inventory);
+                        if (rightHandSlot != null)
+                            EnsurePersistentSelectedMarker(rightHandSlot, inventory.rightHandItem != null);
                         dragSourceSlot.SetItem(srcWand.GetSlotItem(srcWandIndex), srcWandIndex, inventory);
                         PlaySound(dropSuccessSound);
                     }
@@ -993,8 +1169,18 @@ public class PlayerUI : MonoBehaviour
             {
                 if (inventory != null && inventory.rightHandItem != null)
                 {
-                    descriptionPanelInstance.Populate(inventory.rightHandItem.GetComponent<ItemPickup>());
+                    var pickup = inventory.rightHandItem.GetComponent<ItemPickup>();
+                    descriptionPanelInstance.Populate(pickup);
                     descriptionPanelInstance.gameObject.SetActive(true);
+                    // If the held item is a wand, show its internal slots immediately.
+                    var wandComp = inventory.rightHandItem.GetComponent<WandItem>();
+                    if (wandComp != null)
+                    {
+                        descriptionPanelInstance.ShowWandSlots(wandComp, rightHandSlot, this);
+                        var descRect = descriptionPanelInstance.transform as RectTransform;
+                        if (descRect != null)
+                            UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(descRect);
+                    }
                 }
                 else
                 {
@@ -1005,8 +1191,19 @@ public class PlayerUI : MonoBehaviour
 
                     if (first != null)
                     {
-                        descriptionPanelInstance.Populate(first.GetComponent<ItemPickup>());
+                        var pickup = first.GetComponent<ItemPickup>();
+                        descriptionPanelInstance.Populate(pickup);
                         descriptionPanelInstance.gameObject.SetActive(true);
+                        // If the first backpack item is a wand, show its internal slots.
+                        var wandComp = first.GetComponent<WandItem>();
+                        if (wandComp != null)
+                        {
+                            InventorySlotUI src = (backpackSlots != null && backpackSlots.Length > 0) ? backpackSlots[0] : null;
+                            descriptionPanelInstance.ShowWandSlots(wandComp, src, this);
+                            var descRect2 = descriptionPanelInstance.transform as RectTransform;
+                            if (descRect2 != null)
+                                UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(descRect2);
+                        }
                     }
                     else
                     {
@@ -1035,47 +1232,10 @@ public class PlayerUI : MonoBehaviour
 
     public void NotifySlotClicked(InventorySlotUI slot)
     {
-        if (!IsBackpackOpen)
-            return;
+        if (!IsBackpackOpen) return;
 
-        GameObject item = null;
-        switch (slot.slotType)
-        {
-            case InventorySlotUI.SlotType.Backpack:
-                if (slot.slotIndex >= 0 && slot.slotIndex < inventory.backpack.Length)
-                    item = inventory.backpack[slot.slotIndex];
-                break;
-            case InventorySlotUI.SlotType.RightHand:
-                item = inventory.rightHandItem;
-                break;
-            case InventorySlotUI.SlotType.Accessory:
-                if (slot.slotIndex >= 0 && slot.slotIndex < inventory.accessories.Length)
-                    item = inventory.accessories[slot.slotIndex];
-                break;
-            default:
-                HideWandPanel();
-                return;
-        }
-
-        var wand = item != null ? item.GetComponent<WandItem>() : null;
-
-        // Update selection visuals for clicked slot
+        // Keep selection update centralized — the description container will handle showing wand slots.
         UpdateSelectionForSlot(slot);
-
-        if (wand == null)
-        {
-            if (wandPanelInstance != null && wandPanelInstance.IsForSource(slot))
-                HideWandPanel();
-            return;
-        }
-
-        if (wandPanelInstance != null && wandPanelInstance.IsForSource(slot))
-            HideWandPanel();
-        else
-        {
-            PlaySound(clickSound);
-            ShowWandPanel(wand, slot);
-        }
     }
 
     private void UpdateSelectionForSlot(InventorySlotUI slot)
@@ -1166,30 +1326,36 @@ public class PlayerUI : MonoBehaviour
                 }
             }
             descriptionPanelInstance.gameObject.SetActive(any);
+            // If description is visible and the item is a wand, show wand slots panel (via description container).
+            if (descriptionPanelInstance.gameObject.activeSelf)
+            {
+                var wandComp = item != null ? item.GetComponent<WandItem>() : null;
+                if (wandComp != null)
+                {
+                    if (!descriptionPanelInstance.IsWandPanelForSource(slot))
+                        PlaySound(clickSound);
+                    descriptionPanelInstance.ShowWandSlots(wandComp, slot, this);
+                }
+                else
+                {
+                    descriptionPanelInstance.HideWandSlots();
+                }
+            }
         }
-    }
-
-    private void ShowWandPanel(WandItem wand, InventorySlotUI source)
-    {
-        HideWandPanel();
-        if (wandSlotsPanelPrefab == null)
-        {
-            Debug.LogWarning("Assign wandSlotsPanelPrefab in PlayerUI to show wand slots.");
-            return;
-        }
-
-        wandPanelInstance = Instantiate(wandSlotsPanelPrefab);
-        wandPanelInstance.Show(wand, source, this);
-        wandSourceSlot = source;
     }
 
     private void HideWandPanel()
     {
+        if (descriptionPanelInstance != null)
+        {
+            descriptionPanelInstance.HideWandSlots();
+            return;
+        }
+
         if (wandPanelInstance != null)
         {
+            // Clear/hide the panel but do not destroy the scene-owned instance
             wandPanelInstance.Hide();
-            Destroy(wandPanelInstance.gameObject);
-            wandPanelInstance = null;
         }
 
         wandSourceSlot = null;

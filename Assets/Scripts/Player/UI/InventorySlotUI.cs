@@ -67,20 +67,25 @@ public class InventorySlotUI : MonoBehaviour,
         if (label != null)
             label.text = item != null ? ItemTooltipDataUtility.GetDisplayName(item) : string.Empty;
 
+        // For wand-internal slots, keep the label hidden until the overlay animation finishes
+        if (slotType == SlotType.WandInternal && label != null)
+            label.gameObject.SetActive(false);
+
         // Ensure previewRaw exists and is enabled so raycasts always work.
-        // if (previewRaw == null)
-        //     return;
 
-        // previewRaw.enabled = true;
-
-        // // Default to placeholder
-        // previewRaw.texture = placeholderTexture;
-
-        // if (item != null)
-        if (previewRaw != null || placeholderTexture != null)
+        // Ensure previewRaw exists. Default to placeholder if available, otherwise hide the preview.
+        if (previewRaw != null)
         {
-            previewRaw.texture = placeholderTexture;
-            previewRaw.enabled = true;
+            if (placeholderTexture != null)
+            {
+                previewRaw.texture = placeholderTexture;
+                previewRaw.enabled = true;
+            }
+            else
+            {
+                previewRaw.texture = null;
+                previewRaw.enabled = false;
+            }
             desiredScale = Vector3.one;
         }
 
@@ -94,6 +99,26 @@ public class InventorySlotUI : MonoBehaviour,
                 {
                     previewRaw.texture = rt;
                     previewRaw.enabled = true;
+                }
+            }
+        }
+
+        // If this is a wand-internal slot, only trigger overlay animation for ScrollItems.
+        if (slotType == SlotType.WandInternal)
+        {
+            var overlayComp = GetComponentInChildren<WandSlotOverlay>(true);
+            if (overlayComp != null)
+            {
+                bool isScroll = (item != null && item.GetComponent<ScrollItem>() != null);
+                if (isScroll)
+                {
+                    // Immediately show the final frame and mark as permanent so population
+                    // does not replay the entry animation for existing items.
+                    overlayComp.SetFinalFrameAndPermanent();
+                }
+                else
+                {
+                    overlayComp.ForceDisable();
                 }
             }
         }
@@ -187,6 +212,11 @@ public class InventorySlotUI : MonoBehaviour,
     public void OnPointerClick(PointerEventData eventData)
     {
         if (playerUI == null)
+            return;
+
+        // Prevent selecting wand-internal slots (they should not change the description),
+        // but still allow hover/drag behavior.
+        if (slotType == SlotType.WandInternal)
             return;
 
         playerUI.NotifySlotClicked(this);

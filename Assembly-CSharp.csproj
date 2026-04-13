@@ -67,6 +67,7 @@
     <Compile Include="Assets\Scripts\Player\Effects\StatusEffects.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\InstantEffect.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\EffectCarrier.cs" />
+    <Compile Include="Assets\Scripts\Player\UI\WandSlotOverlay.cs" />
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csParticleMove.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\KartographPlayerPlacer.cs" />
     <Compile Include="Assets\Scripts\Enemy\ButlerAI.cs" />
@@ -135,7 +136,6 @@
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
     <None Include="Assets\PBS Materials Variety Pack\readme.txt" />
-    <None Include="Assets\CustomShaders\Lit.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
     <None Include="Assets\CFXR Prefabs\Texts\_Make your own text effect.txt" />
     <None Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Assets\Shaders\CFXR_PASSES.cginc" />

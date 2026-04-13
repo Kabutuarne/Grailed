@@ -264,9 +264,11 @@ public class WandItem : ItemPickup, IInventoryIconProvider, IInventoryPreviewPro
 
         int n = spellSlots.Length;
 
+        // Normalize startIndex to a 0..n-1 range to avoid negative modulo issues
+        int start = ((startIndex % n) + n) % n;
         for (int step = 1; step <= n; step++)
         {
-            int idx = (startIndex + step) % n;
+            int idx = (start + step) % n;
             if (spellSlots[idx] != null)
                 return idx;
         }
@@ -281,9 +283,11 @@ public class WandItem : ItemPickup, IInventoryIconProvider, IInventoryPreviewPro
 
         int n = spellSlots.Length;
 
+        // Normalize startIndex to a 0..n-1 range to avoid negative modulo issues
+        int start = ((startIndex % n) + n) % n;
         for (int step = 1; step <= n; step++)
         {
-            int idx = (startIndex - step + n) % n;
+            int idx = (start - step + n) % n;
             if (spellSlots[idx] != null)
                 return idx;
         }

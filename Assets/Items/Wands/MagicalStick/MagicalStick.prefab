@@ -60,7 +60,7 @@ MonoBehaviour:
   renderModel: {fileID: 4163739702010545080}
   rb: {fileID: 2935013487662631732}
   inventoryIcon: {fileID: 21300000, guid: c4038e514d93bcd40914b3c9166f2e09, type: 3}
-  previewRotation: {x: 330, y: 150, z: 40}
+  previewRotation: {x: 330, y: 150, z: 100}
   previewScale: 30
   slotCount: 2
   initialSpells: []
