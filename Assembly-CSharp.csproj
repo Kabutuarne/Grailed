@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Player\Spells\ProjectileSpell.cs" />
+    <Compile Include="Assets\Scripts\MenuScripts\SettingsManager.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IChannelCastRuntime.cs" />
     <Compile Include="Assets\Scripts\World\Chest.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\PassiveEffect.cs" />
@@ -57,6 +58,7 @@
     <Compile Include="Assets\Scripts\Player\Items\ItemLookPrompt.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerConsume.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\RandomRoomSpawner.cs" />
+    <Compile Include="Assets\Scripts\MenuScripts\ButtonAnimator.cs" />
     <Compile Include="Assets\Scripts\Player\UI\ItemDescriptionContainer.cs" />
     <Compile Include="Assets\Scripts\Player\ConsumableItem.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCast.cs" />
@@ -86,8 +88,10 @@
     <Compile Include="Assets\Scripts\Player\UI\InventoryPreviewRenderer.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IInventoryIconProvider.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\SpellAimUtility.cs" />
+    <Compile Include="Assets\Scripts\MenuScripts\MainMenuManager.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\AOESpell.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\DurationEffect.cs" />
+    <Compile Include="Assets\Scripts\MenuScripts\RebindActionUI.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\PlayerEffect.cs" />
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csDestroyEffect.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ItemTooltipDataUtility.cs" />
@@ -108,11 +112,13 @@
     <Compile Include="Assets\Scripts\Enemy\Interfaces\IEffectTarget.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ISpellCastDefinition.cs" />
     <Compile Include="Assets\Scripts\Player\UI\PlayerUI.cs" />
+    <Compile Include="Assets\Scripts\MenuScripts\SaveSlotManager.cs" />
     <Compile Include="Assets\Scripts\Dialog\DialogueUI.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ManaUtility.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\StartRoomSpawner.cs" />
     <Compile Include="Assets\Scripts\Player\UI\EquippedItemTitleHUD.cs" />
     <Compile Include="Assets\Scripts\Player\UI\CastUI.cs" />
+    <Compile Include="Assets\Scripts\MenuScripts\SettingsUI.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\ProjectileImpactBehaviour.cs" />
     <Compile Include="Assets\Scripts\Player\UI\InventorySlotUI.cs" />
   </ItemGroup>
