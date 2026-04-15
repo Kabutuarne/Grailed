@@ -19,4 +19,5 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 438fe958add4a6a40a77546e1cb06b04, type: 3}
   description: Zapped
   particlePrefab: {fileID: 7131401307255788800, guid: 75e01f249c6b8634b892db563c33d3db, type: 3}
-  breaksCast: 0
+  particleYOffset: -3
+  breaksCast: 1

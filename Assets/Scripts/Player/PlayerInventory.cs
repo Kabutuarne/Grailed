@@ -35,9 +35,8 @@ public class PlayerInventory : MonoBehaviour
         ItemPickup pickup = item.GetComponent<ItemPickup>();
         if (pickup != null && rightHandItem == null)
         {
-            item.transform.SetParent(rightHand, false);
-            item.transform.localPosition = Vector3.zero;
-            item.transform.localRotation = Quaternion.identity;
+            // Use the item's hold transform if available (handles position/rotation/scale offsets).
+            pickup.ApplyHeldTransform(rightHand);
 
             var rb = item.GetComponent<Rigidbody>();
             if (rb != null)
@@ -137,9 +136,16 @@ public class PlayerInventory : MonoBehaviour
             return;
         }
 
-        item.transform.SetParent(rightHand, false);
-        item.transform.localPosition = Vector3.zero;
-        item.transform.localRotation = Quaternion.identity;
+        var pick = item.GetComponent<ItemPickup>();
+        if (pick != null)
+            pick.ApplyHeldTransform(rightHand);
+        else
+        {
+            item.transform.SetParent(rightHand, false);
+            item.transform.localPosition = Vector3.zero;
+            item.transform.localRotation = Quaternion.identity;
+            item.transform.localScale = Vector3.one;
+        }
 
         var rbNew = item.GetComponent<Rigidbody>();
         if (rbNew != null)
@@ -184,9 +190,16 @@ public class PlayerInventory : MonoBehaviour
 
         if (backpackItem != null)
         {
-            backpackItem.transform.SetParent(rightHand, false);
-            backpackItem.transform.localPosition = Vector3.zero;
-            backpackItem.transform.localRotation = Quaternion.identity;
+            var pick = backpackItem.GetComponent<ItemPickup>();
+            if (pick != null)
+                pick.ApplyHeldTransform(rightHand);
+            else
+            {
+                backpackItem.transform.SetParent(rightHand, false);
+                backpackItem.transform.localPosition = Vector3.zero;
+                backpackItem.transform.localRotation = Quaternion.identity;
+                backpackItem.transform.localScale = Vector3.one;
+            }
 
             var rb = backpackItem.GetComponent<Rigidbody>();
             if (rb != null)
@@ -311,6 +324,22 @@ public class PlayerInventory : MonoBehaviour
             acc.OnUnequipped();
 
         accessories[index] = null;
+        OnInventoryChanged?.Invoke();
+
+        return DropWorldItem(item, dropOrigin);
+    }
+
+    // Drop an item from a wand internal slot into the world.
+    public bool DropFromWand(GameObject wandOwner, int slotIndex, Transform dropOrigin)
+    {
+        if (wandOwner == null) return false;
+
+        var wand = wandOwner.GetComponent<WandItem>();
+        if (wand == null) return false;
+
+        GameObject item = wand.RemoveSlotItem(slotIndex);
+        if (item == null) return false;
+
         OnInventoryChanged?.Invoke();
 
         return DropWorldItem(item, dropOrigin);

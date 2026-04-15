@@ -31,73 +31,59 @@ public class ItemDescriptionContainer : MonoBehaviour
     {
         if (pickup == null) return;
 
+        currentPickup = pickup;
+
         if (titleText != null)
         {
             titleText.text = pickup.TooltipTitle;
             titleText.color = new Color(0xF2 / 255f, 0xE6 / 255f, 0xC8 / 255f);
         }
 
-        var allLines = pickup.GetItemLines();
-
-        // Reset all UI elements
         if (descriptionText != null) descriptionText.text = string.Empty;
         foreach (var t in lineTexts) { if (t != null) t.text = string.Empty; }
 
+        var allLines = pickup.GetItemLines();
         if (allLines == null) return;
 
-        // Separate description-tagged lines from other tagged lines so we can display both.
-        var descriptionLines = new List<string>();
-        var otherLines = new List<ItemLineData>();
-
+        int uiLineIndex = 0;
         foreach (var data in allLines)
         {
             if (data == null || string.IsNullOrWhiteSpace(data.text)) continue;
+
             if (data.tag == ItemLineData.LineTag.Description)
-                descriptionLines.Add(data.text);
-            else
-                otherLines.Add(data);
-        }
-
-        // Populate description area with all description lines joined by newline
-        if (descriptionText != null && descriptionLines.Count > 0)
-        {
-            descriptionText.text = string.Join("\n", descriptionLines.ToArray());
-            descriptionText.color = colorDescription;
-        }
-
-        // Fill the fixed UI line slots first with tagged attribute lines
-        int uiLineIndex = 0;
-        foreach (var data in otherLines)
-        {
-            if (uiLineIndex >= lineTexts.Count) break;
-            var t = lineTexts[uiLineIndex];
-            if (t != null)
             {
-                t.text = data.text;
-                t.color = GetColorForTag(data.tag);
-                uiLineIndex++;
+                if (descriptionText != null)
+                {
+                    descriptionText.text = data.text;
+                    descriptionText.color = colorDescription;
+                }
             }
-        }
-
-        // If there are still free UI line slots, fill them with additional description lines (if any)
-        int descIndex = 0;
-        while (uiLineIndex < lineTexts.Count && descIndex < descriptionLines.Count)
-        {
-            var t = lineTexts[uiLineIndex];
-            if (t != null)
+            else if (uiLineIndex < lineTexts.Count)
             {
-                t.text = descriptionLines[descIndex];
-                t.color = colorDescription;
-                uiLineIndex++;
-                descIndex++;
-            }
-            else
-            {
-                uiLineIndex++;
+                var t = lineTexts[uiLineIndex++];
+                if (t != null)
+                {
+                    t.text = data.text;
+                    t.color = GetColorForTag(data.tag);
+                }
             }
         }
     }
 
+    private ItemPickup currentPickup;
+
+    public ItemPickup CurrentPickup => currentPickup;
+
+    // Clear and hide the description container (used when the described item is removed)
+    public void Clear()
+    {
+        currentPickup = null;
+        if (titleText != null) titleText.text = string.Empty;
+        if (descriptionText != null) descriptionText.text = string.Empty;
+        foreach (var t in lineTexts) { if (t != null) t.text = string.Empty; }
+        HideWandSlots();
+        gameObject.SetActive(false);
+    }
     // Show wand slots associated with this description. If prefab is set it will be instantiated
     // as a child under this container. Passing null wand will hide any existing wand panel.
     public void ShowWandSlots(WandItem wand, InventorySlotUI sourceSlot, PlayerUI ui)

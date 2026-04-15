@@ -6,7 +6,7 @@ public class KartographGeneratorInteract : MonoBehaviour, IInteractable
 {
     public LevelGenerator3D levelGenerator;
     public KartographPlayerPlacer playerPlacer;
-
+    public GameObject globalLightSource;
     public bool generateOnlyOnce = true;
 
     bool generating;
@@ -38,7 +38,7 @@ public class KartographGeneratorInteract : MonoBehaviour, IInteractable
     void OnGenerationFinished()
     {
         Debug.Log("Kartograph generation finished.");
-
+        globalLightSource.SetActive(false);
         if (playerPlacer != null)
             playerPlacer.OnGenerationTriggered();
 

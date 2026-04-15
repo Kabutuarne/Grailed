@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51bd952c2d850644699e8544acb30e8c, type: 3}
   m_Name: ZapHurt
   m_EditorClassIdentifier: Assembly-CSharp::InstantEffect
-  effectId: effect
-  displayName: Zap
+  effectId: zapHurtEffect
   healthAmount: -5
   manaAmount: 0
+  energyAmount: 0
+  breaksCast: 1

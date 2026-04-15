@@ -61,6 +61,7 @@
     <Compile Include="Assets\Scripts\MenuScripts\ButtonAnimator.cs" />
     <Compile Include="Assets\Scripts\Player\UI\ItemDescriptionContainer.cs" />
     <Compile Include="Assets\Scripts\Player\ConsumableItem.cs" />
+    <Compile Include="Assets\Scripts\Player\Items\DecorationItem.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCast.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IItemDisplayName.cs" />
     <Compile Include="Assets\Scripts\Dialog\DialogueData.cs" />

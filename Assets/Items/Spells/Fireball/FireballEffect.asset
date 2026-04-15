@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: FireballEffect
   m_EditorClassIdentifier: Assembly-CSharp::InstantEffect
   effectId: fireballEffect
-  displayName: Fireball
   healthAmount: -50
   manaAmount: 0
+  energyAmount: 0
+  breaksCast: 1

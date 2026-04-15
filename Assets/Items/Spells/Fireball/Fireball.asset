@@ -16,10 +16,10 @@ MonoBehaviour:
   manaCost: 12
   speed: 32
   lifetime: 5
-  impactRadius: 20
+  impactRadius: 15
   projectileModelPrefab: {fileID: 1206498299807332555, guid: af6c1e3f046eecd4d81330aeb285600f, type: 3}
   despawnDelay: 1
-  cameraLocalSpawnOffset: {x: 0, y: -0.15, z: 0}
+  cameraLocalSpawnOffset: {x: 0, y: 0, z: 0}
   cameraForwardSpawnPush: 1
   ignoreCasterColliders: 0
   aimViaCameraRaycast: 1

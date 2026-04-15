@@ -527,6 +527,79 @@ public class PlayerUI : MonoBehaviour
         UpdateBackpackSlots();
         UpdateHands();
         UpdateAccessories();
+
+        // If the description panel is showing an item that no longer exists in the
+        // player's inventory (was dropped/consumed), clear the description and selection.
+        if (descriptionPanelInstance != null && descriptionPanelInstance.CurrentPickup != null)
+        {
+            ItemPickup cur = descriptionPanelInstance.CurrentPickup;
+            bool present = false;
+
+            // Right hand
+            if (inventory != null && inventory.rightHandItem == cur.gameObject) present = true;
+
+            // Backpack
+            if (!present && inventory != null && inventory.backpack != null)
+            {
+                foreach (var it in inventory.backpack) if (it == cur.gameObject) { present = true; break; }
+            }
+
+            // Accessories
+            if (!present && inventory != null && inventory.accessories != null)
+            {
+                foreach (var it in inventory.accessories) if (it == cur.gameObject) { present = true; break; }
+            }
+
+            // Wand internals (scan any wand items inside inventory)
+            if (!present && inventory != null)
+            {
+                // check right hand
+                if (!present && inventory.rightHandItem != null)
+                {
+                    var w = inventory.rightHandItem.GetComponent<WandItem>();
+                    if (w != null)
+                    {
+                        for (int i = 0; i < w.SlotCount; i++) if (w.GetSlotItem(i) == cur.gameObject) { present = true; break; }
+                    }
+                }
+
+                // check backpack
+                if (!present && inventory.backpack != null)
+                {
+                    foreach (var it in inventory.backpack)
+                    {
+                        if (it == null) continue;
+                        var w2 = it.GetComponent<WandItem>();
+                        if (w2 != null)
+                        {
+                            for (int i = 0; i < w2.SlotCount; i++) if (w2.GetSlotItem(i) == cur.gameObject) { present = true; break; }
+                            if (present) break;
+                        }
+                    }
+                }
+
+                // check accessories
+                if (!present && inventory.accessories != null)
+                {
+                    foreach (var it in inventory.accessories)
+                    {
+                        if (it == null) continue;
+                        var w3 = it.GetComponent<WandItem>();
+                        if (w3 != null)
+                        {
+                            for (int i = 0; i < w3.SlotCount; i++) if (w3.GetSlotItem(i) == cur.gameObject) { present = true; break; }
+                            if (present) break;
+                        }
+                    }
+                }
+            }
+
+            if (!present)
+            {
+                DeselectCurrentSlot();
+                descriptionPanelInstance.Clear();
+            }
+        }
     }
 
     public void StartDrag(GameObject item, RenderTexture previewTexture, InventorySlotUI source, int sourceIndex = -1)
@@ -922,9 +995,16 @@ public class PlayerUI : MonoBehaviour
 
                         // place in hand
                         inventory.rightHandItem = moving;
-                        moving.transform.SetParent(inventory.rightHand, false);
-                        moving.transform.localPosition = Vector3.zero;
-                        moving.transform.localRotation = Quaternion.identity;
+                        var pickupComp = moving.GetComponent<ItemPickup>();
+                        if (pickupComp != null)
+                            pickupComp.ApplyHeldTransform(inventory.rightHand);
+                        else
+                        {
+                            moving.transform.SetParent(inventory.rightHand, false);
+                            moving.transform.localPosition = Vector3.zero;
+                            moving.transform.localRotation = Quaternion.identity;
+                            moving.transform.localScale = Vector3.one;
+                        }
 
                         var rb = moving.GetComponent<Rigidbody>();
                         if (rb != null) { rb.isKinematic = true; rb.detectCollisions = false; }
@@ -1133,7 +1213,19 @@ public class PlayerUI : MonoBehaviour
         if (slot == null || slot.slotType != InventorySlotUI.SlotType.Backpack || slot.slotIndex < 0)
             return false;
 
-        return inventory.DropFromBackpack(slot.slotIndex, dropOrigin);
+        GameObject item = GetItemFromSlot(slot);
+        bool ok = inventory.DropFromBackpack(slot.slotIndex, dropOrigin);
+        if (ok && descriptionPanelInstance != null)
+        {
+            var pickup = item != null ? item.GetComponent<ItemPickup>() : null;
+            if (pickup != null && descriptionPanelInstance.CurrentPickup == pickup)
+            {
+                DeselectCurrentSlot();
+                descriptionPanelInstance.Clear();
+            }
+        }
+
+        return ok;
     }
 
     public bool TryDropHoveredAccessoryItem(Transform dropOrigin)
@@ -1144,7 +1236,56 @@ public class PlayerUI : MonoBehaviour
         if (slot == null || slot.slotType != InventorySlotUI.SlotType.Accessory || slot.slotIndex < 0)
             return false;
 
-        return inventory.DropFromAccessory(slot.slotIndex, dropOrigin);
+        GameObject item = GetItemFromSlot(slot);
+        bool ok = inventory.DropFromAccessory(slot.slotIndex, dropOrigin);
+        if (ok && descriptionPanelInstance != null)
+        {
+            var pickup = item != null ? item.GetComponent<ItemPickup>() : null;
+            if (pickup != null && descriptionPanelInstance.CurrentPickup == pickup)
+            {
+                DeselectCurrentSlot();
+                descriptionPanelInstance.Clear();
+            }
+        }
+
+        return ok;
+    }
+
+    public bool TryDropHoveredWandInternal(Transform dropOrigin)
+    {
+        if (!IsBackpackOpen || inventory == null) return false;
+
+        var slot = InventorySlotUI.HoveredSlot;
+        if (slot == null || slot.slotType != InventorySlotUI.SlotType.WandInternal || slot.wandOwner == null || slot.wandSlotIndex < 0)
+            return false;
+
+        GameObject item = GetItemFromSlot(slot);
+        bool ok = inventory.DropFromWand(slot.wandOwner.gameObject, slot.wandSlotIndex, dropOrigin);
+        if (ok)
+        {
+            if (descriptionPanelInstance != null)
+            {
+                // If the description showed this item, clear it; otherwise refresh wand slots
+                var pickup = item != null ? item.GetComponent<ItemPickup>() : null;
+                if (pickup != null && descriptionPanelInstance.CurrentPickup == pickup)
+                {
+                    DeselectCurrentSlot();
+                    descriptionPanelInstance.Clear();
+                }
+                else
+                {
+                    descriptionPanelInstance.RefreshWandSlots();
+                }
+            }
+            else if (wandPanelInstance != null)
+            {
+                wandPanelInstance.Show(slot.wandOwner.GetComponent<WandItem>(), slot, this);
+                var r = wandPanelInstance.transform as RectTransform;
+                if (r != null) UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(r);
+            }
+        }
+
+        return ok;
     }
 
     public void ToggleBackpack()
@@ -1162,69 +1303,38 @@ public class PlayerUI : MonoBehaviour
         if (!newState) HideWandPanel();
 
         PlaySound(newState ? backpackOpenSound : backpackCloseSound);
-        // When opening the backpack, default the description to the held item.
+        // Do not auto-select when opening the backpack. Only show description if a slot
+        // is already selected (selection must come from an explicit click).
         if (newState)
         {
             if (descriptionPanelInstance != null)
             {
-                if (inventory != null && inventory.rightHandItem != null)
+                if (selectedSlot != null)
                 {
-                    var pickup = inventory.rightHandItem.GetComponent<ItemPickup>();
-                    descriptionPanelInstance.Populate(pickup);
-                    descriptionPanelInstance.gameObject.SetActive(true);
-                    // If the held item is a wand, show its internal slots immediately.
-                    var wandComp = inventory.rightHandItem.GetComponent<WandItem>();
-                    if (wandComp != null)
+                    var item = GetItemFromSlot(selectedSlot);
+                    if (item != null)
                     {
-                        descriptionPanelInstance.ShowWandSlots(wandComp, rightHandSlot, this);
-                        var descRect = descriptionPanelInstance.transform as RectTransform;
-                        if (descRect != null)
-                            UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(descRect);
-                    }
-                }
-                else
-                {
-                    // if no held item but inventory has items, try first backpack slot
-                    GameObject first = null;
-                    if (inventory != null && inventory.backpack != null && inventory.backpack.Length > 0)
-                        first = inventory.backpack[0];
-
-                    if (first != null)
-                    {
-                        var pickup = first.GetComponent<ItemPickup>();
+                        var pickup = item.GetComponent<ItemPickup>();
                         descriptionPanelInstance.Populate(pickup);
                         descriptionPanelInstance.gameObject.SetActive(true);
-                        // If the first backpack item is a wand, show its internal slots.
-                        var wandComp = first.GetComponent<WandItem>();
+
+                        var wandComp = item.GetComponent<WandItem>();
                         if (wandComp != null)
                         {
-                            InventorySlotUI src = (backpackSlots != null && backpackSlots.Length > 0) ? backpackSlots[0] : null;
-                            descriptionPanelInstance.ShowWandSlots(wandComp, src, this);
-                            var descRect2 = descriptionPanelInstance.transform as RectTransform;
-                            if (descRect2 != null)
-                                UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(descRect2);
+                            descriptionPanelInstance.ShowWandSlots(wandComp, selectedSlot, this);
+                            var descRect = descriptionPanelInstance.transform as RectTransform;
+                            if (descRect != null)
+                                UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(descRect);
                         }
                     }
                     else
                     {
-                        // hide only if inventory empty
-                        bool any = false;
-                        if (inventory != null)
-                        {
-                            if (inventory.rightHandItem != null) any = true;
-                            if (!any && inventory.backpack != null)
-                            {
-                                foreach (var it in inventory.backpack) if (it != null) { any = true; break; }
-                            }
-                            if (!any && inventory.accessories != null)
-                            {
-                                foreach (var it in inventory.accessories) if (it != null) { any = true; break; }
-                            }
-                        }
-
-                        if (!any && descriptionPanelInstance != null)
-                            descriptionPanelInstance.gameObject.SetActive(false);
+                        descriptionPanelInstance.gameObject.SetActive(false);
                     }
+                }
+                else
+                {
+                    descriptionPanelInstance.gameObject.SetActive(false);
                 }
             }
         }
@@ -1273,6 +1383,9 @@ public class PlayerUI : MonoBehaviour
         if (selectedSlot != null)
             selectedSlot.SetSelected(true);
 
+        // Play selection sound for any clicked/selected item
+        PlaySound(clickSound);
+
         // Highlight the persistent selected marker when description is shown
         Transform persistent = slot.transform.Find("PersistentSelectedMarker");
         // Determine icon sibling index so markers are placed under the icon
@@ -1306,41 +1419,48 @@ public class PlayerUI : MonoBehaviour
             selectedMarkerInstance = persistent.gameObject;
         }
 
-        // Populate the existing description container instance (do not instantiate new)
+        // Populate the existing description container instance (do not instantiate new).
+        // Selection only happens on explicit slot clicks so show the description now.
         if (descriptionPanelInstance != null)
         {
             var pickup = item.GetComponent<ItemPickup>();
             descriptionPanelInstance.Populate(pickup);
-            // Ensure description remains visible when inventory has items
-            bool any = false;
-            if (inventory != null)
+            descriptionPanelInstance.gameObject.SetActive(true);
+
+            // If the selected item is a wand, show its internal slots panel.
+            var wandComp = item != null ? item.GetComponent<WandItem>() : null;
+            if (wandComp != null)
             {
-                if (inventory.rightHandItem != null) any = true;
-                if (!any && inventory.backpack != null)
-                {
-                    foreach (var it in inventory.backpack) if (it != null) { any = true; break; }
-                }
-                if (!any && inventory.accessories != null)
-                {
-                    foreach (var it in inventory.accessories) if (it != null) { any = true; break; }
-                }
+                descriptionPanelInstance.ShowWandSlots(wandComp, slot, this);
             }
-            descriptionPanelInstance.gameObject.SetActive(any);
-            // If description is visible and the item is a wand, show wand slots panel (via description container).
-            if (descriptionPanelInstance.gameObject.activeSelf)
+            else
             {
-                var wandComp = item != null ? item.GetComponent<WandItem>() : null;
-                if (wandComp != null)
-                {
-                    if (!descriptionPanelInstance.IsWandPanelForSource(slot))
-                        PlaySound(clickSound);
-                    descriptionPanelInstance.ShowWandSlots(wandComp, slot, this);
-                }
-                else
-                {
-                    descriptionPanelInstance.HideWandSlots();
-                }
+                descriptionPanelInstance.HideWandSlots();
             }
+        }
+    }
+
+    // Deselect the currently selected slot and clear visual markers.
+    private void DeselectCurrentSlot()
+    {
+        if (selectedSlot != null)
+        {
+            selectedSlot.SetSelected(false);
+            selectedSlot = null;
+        }
+
+        if (selectedMarkerInstance != null)
+        {
+            if (selectedMarkerInstance.name == "PersistentSelectedMarker")
+            {
+                var prev = selectedMarkerInstance.transform.Find("HighlightedMarker");
+                if (prev != null) Destroy(prev.gameObject);
+            }
+            else
+            {
+                Destroy(selectedMarkerInstance);
+            }
+            selectedMarkerInstance = null;
         }
     }
 

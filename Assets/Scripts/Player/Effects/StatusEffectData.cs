@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 [Serializable]
 public class StatusEffectData
@@ -40,4 +41,7 @@ public class StatusEffectData
         this.duration = duration;
         this.timer = duration;
     }
+
+    [NonSerialized]
+    public GameObject runtimeParticleInstance;
 }

@@ -6,6 +6,16 @@ public class StatusEffects : MonoBehaviour
     public IReadOnlyList<StatusEffectData> ActiveEffects => effects;
     public void ClearAllEffects()
     {
+        // Destroy any spawned runtime particles before clearing
+        for (int i = 0; i < effects.Count; i++)
+        {
+            if (effects[i].runtimeParticleInstance != null)
+            {
+                Destroy(effects[i].runtimeParticleInstance);
+                effects[i].runtimeParticleInstance = null;
+            }
+        }
+
         effects.Clear();
         if (stats != null)
             stats.OnStatusEffectsChanged();
@@ -29,7 +39,16 @@ public class StatusEffects : MonoBehaviour
                 e.timer -= Time.deltaTime;
                 if (e.timer <= 0f)
                 {
+                    // cleanup any spawned particle for this effect
+                    if (e.runtimeParticleInstance != null)
+                    {
+                        Destroy(e.runtimeParticleInstance);
+                        e.runtimeParticleInstance = null;
+                    }
+
                     effects.RemoveAt(i);
+                    if (stats != null)
+                        stats.OnStatusEffectsChanged();
                     continue;
                 }
             }
@@ -49,16 +68,53 @@ public class StatusEffects : MonoBehaviour
             return;
         }
 
-        effects.RemoveAll(e => e.id == effect.id);
+        // Remove any existing instance with the same id and cleanup visuals first
+        for (int i = effects.Count - 1; i >= 0; i--)
+        {
+            if (effects[i].id == effect.id)
+            {
+                if (effects[i].runtimeParticleInstance != null)
+                {
+                    Destroy(effects[i].runtimeParticleInstance);
+                    effects[i].runtimeParticleInstance = null;
+                }
+                effects.RemoveAt(i);
+            }
+        }
+
         effects.Add(effect);
+
+        // Spawn carrier particle prefab if provided
+        if (effect.carrier != null && effect.carrier.particlePrefab != null)
+        {
+            var go = Instantiate(effect.carrier.particlePrefab, transform);
+            go.transform.localPosition = Vector3.up * effect.carrier.particleYOffset;
+            go.transform.localRotation = Quaternion.identity;
+            effect.runtimeParticleInstance = go;
+        }
+
         if (stats != null)
             stats.OnStatusEffectsChanged();
     }
 
     public void RemoveEffect(string id)
     {
-        effects.RemoveAll(e => e.id == id);
-        if (stats != null)
+        bool removedAny = false;
+        for (int i = effects.Count - 1; i >= 0; i--)
+        {
+            if (effects[i].id == id)
+            {
+                if (effects[i].runtimeParticleInstance != null)
+                {
+                    Destroy(effects[i].runtimeParticleInstance);
+                    effects[i].runtimeParticleInstance = null;
+                }
+                effects.RemoveAt(i);
+                removedAny = true;
+            }
+        }
+
+        if (removedAny && stats != null)
             stats.OnStatusEffectsChanged();
     }
 

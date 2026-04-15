@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: FireballKnockback
   m_EditorClassIdentifier: Assembly-CSharp::KnockbackImpactBehaviour
   force: 15
-  upwardsModifier: 1
+  upwardsModifier: 3
   forceMode: 1
   useProjectileRadius: 1
-  radius: 20
+  radius: 15
   layerMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  affectKinematicBodies: 0
+  affectKinematicBodies: 1

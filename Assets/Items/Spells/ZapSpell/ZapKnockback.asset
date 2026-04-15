@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KnockbackImpactBehaviour
   force: 2
   upwardsModifier: 1
-  forceMode: 0
+  forceMode: 1
   useProjectileRadius: 1
   radius: 2
   layerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 479
   affectKinematicBodies: 1

@@ -30,6 +30,9 @@ public class WandItem : ItemPickup, IInventoryIconProvider, IInventoryPreviewPro
     private bool wasEquipped;
     private int filledCount;
     private PlayerInventory invCache;
+    // track original local scales for items placed into wand internals so we can
+    // restore them when items are removed (prevents scale corruption)
+    private Vector3[] slotOriginalLocalScales;
 
     public Sprite InventoryIcon => inventoryIcon;
 
@@ -39,6 +42,8 @@ public class WandItem : ItemPickup, IInventoryIconProvider, IInventoryPreviewPro
     {
         int count = Mathf.Max(1, slotCount);
         spellSlots = new GameObject[count];
+        slotOriginalLocalScales = new Vector3[count];
+        for (int i = 0; i < slotOriginalLocalScales.Length; i++) slotOriginalLocalScales[i] = Vector3.one;
 
         if (initialSpells != null)
         {
@@ -46,6 +51,7 @@ public class WandItem : ItemPickup, IInventoryIconProvider, IInventoryPreviewPro
             {
                 if (initialSpells[i] == null)
                     continue;
+
 
                 ScrollItem scroll = initialSpells[i].GetComponent<ScrollItem>();
                 if (scroll != null)
@@ -58,6 +64,16 @@ public class WandItem : ItemPickup, IInventoryIconProvider, IInventoryPreviewPro
         {
             if (spellSlots[i] != null)
                 filledCount++;
+        }
+
+        // Ensure there's always a selected index when the wand contains any spells,
+        // even if the wand is not currently equipped. This lets the player know
+        // which internal spell will be active when equipping or casting.
+        if (selectedIndex == -1)
+        {
+            int first = FindFirstFilledSlotIndex();
+            if (first != -1)
+                selectedIndex = first;
         }
     }
 
@@ -101,6 +117,9 @@ public class WandItem : ItemPickup, IInventoryIconProvider, IInventoryPreviewPro
             if (index == selectedIndex)
                 selectedIndex = FindNextFilledSlotIndexStartingFrom(index);
 
+            if (slotOriginalLocalScales != null && index >= 0 && index < slotOriginalLocalScales.Length)
+                slotOriginalLocalScales[index] = Vector3.one;
+
             return true;
         }
 
@@ -108,7 +127,12 @@ public class WandItem : ItemPickup, IInventoryIconProvider, IInventoryPreviewPro
         if (scroll == null)
             return false;
 
+
         bool wasEmpty = (filledCount == 0);
+
+        // Preserve original local scale so removing the item restores it.
+        if (slotOriginalLocalScales != null && index >= 0 && index < slotOriginalLocalScales.Length)
+            slotOriginalLocalScales[index] = item.transform.localScale;
 
         item.transform.SetParent(transform, false);
         item.transform.localPosition = Vector3.zero;
@@ -131,12 +155,19 @@ public class WandItem : ItemPickup, IInventoryIconProvider, IInventoryPreviewPro
         if (wasNull)
             filledCount++;
 
+        // If this was the first inserted scroll and no selection exists, select it
+        // so wand storage always has a selected spell even when not equipped.
+        if (wasEmpty && selectedIndex == -1)
+        {
+            selectedIndex = index;
+        }
+
+        // If wand is currently equipped, notify HUD that the equipped title may have changed.
         if (wasEmpty && IsEquipped)
         {
             selectedIndex = index;
             NotifyEquippedTitle();
         }
-
         return true;
     }
 
@@ -153,6 +184,15 @@ public class WandItem : ItemPickup, IInventoryIconProvider, IInventoryPreviewPro
 
         item.transform.SetParent(null, true);
 
+        // Restore original local scale if we recorded one
+        if (slotOriginalLocalScales != null && index >= 0 && index < slotOriginalLocalScales.Length)
+        {
+            var orig = slotOriginalLocalScales[index];
+            if (orig != Vector3.zero) // treat zero as uninitialized
+                item.transform.localScale = orig;
+            slotOriginalLocalScales[index] = Vector3.one;
+        }
+
         if (index == selectedIndex)
             selectedIndex = FindNextFilledSlotIndexStartingFrom(index);
 
@@ -168,6 +208,13 @@ public class WandItem : ItemPickup, IInventoryIconProvider, IInventoryPreviewPro
         GameObject tmp = spellSlots[a];
         spellSlots[a] = spellSlots[b];
         spellSlots[b] = tmp;
+
+        if (slotOriginalLocalScales != null && a >= 0 && a < slotOriginalLocalScales.Length && b >= 0 && b < slotOriginalLocalScales.Length)
+        {
+            Vector3 tmpScale = slotOriginalLocalScales[a];
+            slotOriginalLocalScales[a] = slotOriginalLocalScales[b];
+            slotOriginalLocalScales[b] = tmpScale;
+        }
 
         if (selectedIndex >= 0 &&
             selectedIndex < spellSlots.Length &&

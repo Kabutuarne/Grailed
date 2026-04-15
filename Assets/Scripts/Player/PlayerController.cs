@@ -235,6 +235,10 @@ public class PlayerController : MonoBehaviour
         {
             if (playerUI.TryDropHoveredAccessoryItem(dropOrigin)) return;
             if (playerUI.TryDropHoveredBackpackItem(dropOrigin)) return;
+            if (playerUI.TryDropHoveredWandInternal(dropOrigin)) return;
+
+            // Backpack is open and cursor is not over any inventory slot — do not drop the equipped hand item.
+            return;
         }
 
         inventory.DropFromHand(dropOrigin);

@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EffectCarrier
   effects:
   - {fileID: 11400000, guid: 2bab8f99333d1c049b1c45d65e2884ef, type: 2}
+  - {fileID: 11400000, guid: 58c8885f800d2ce4680c4f14b199b57c, type: 2}
   title: Burning
   icon: {fileID: 21300000, guid: 7baeda930cfdcfc4cad2ecd1028cbaef, type: 3}
   description: Burning
   particlePrefab: {fileID: 1206498299807332555, guid: 4436433f603a4a442aea0177c2f6c012, type: 3}
+  particleYOffset: -3
   breaksCast: 1
