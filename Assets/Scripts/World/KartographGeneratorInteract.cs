@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using UnityEngine;
 using Kartograph;
 using Kartograph.Entities;
@@ -32,17 +34,39 @@ public class KartographGeneratorInteract : MonoBehaviour, IInteractable
 
         generating = true;
 
-        levelGenerator.Generate(OnGenerationFinished);
+        try
+        {
+            levelGenerator.Generate(OnGenerationFinished);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogException(ex);
+            generating = false;
+        }
     }
 
     void OnGenerationFinished()
     {
         Debug.Log("Kartograph generation finished.");
-        globalLightSource.SetActive(false);
-        if (playerPlacer != null)
-            playerPlacer.OnGenerationTriggered();
+        if (globalLightSource != null)
+            globalLightSource.SetActive(false);
+        // First spawn items in the generated rooms, then place the player.
+        StartCoroutine(SpawnItemsThenPlacePlayer());
 
         generating = false;
+    }
+
+    IEnumerator SpawnItemsThenPlacePlayer()
+    {
+        // Try to find an item spawner in the scene and let it spawn deterministically.
+        var itemSpawner = FindFirstObjectByType<ItemRandomSpawner>();
+        if (itemSpawner != null)
+        {
+            yield return StartCoroutine(itemSpawner.SpawnWhenReady());
+        }
+
+        if (playerPlacer != null)
+            playerPlacer.OnGenerationTriggered();
     }
 
     public bool CanInteract(GameObject interactor)

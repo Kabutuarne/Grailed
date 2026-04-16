@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70ed0eca34a575d47abc4eafa96c6c64, type: 3}
+  m_Name: DeleteProjectile
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectileSpell
+  castTime: 2
+  manaCost: 15
+  speed: 90
+  lifetime: 3
+  impactRadius: 4
+  projectileModelPrefab: {fileID: 9027514048236820045, guid: 805d6ff8dc5c3d8439a7558030af7c5d, type: 3}
+  despawnDelay: 2
+  cameraLocalSpawnOffset: {x: 0, y: 0, z: 0}
+  cameraForwardSpawnPush: 1
+  ignoreCasterColliders: 0
+  aimViaCameraRaycast: 1
+  aimRayDistance: 200
+  aimRayMask:
+    serializedVersion: 2
+    m_Bits: 479
+  effectCarrier: {fileID: 11400000, guid: a6149e73e5c5d61429e8a6be9764c94f, type: 2}
+  castStartParticlePrefab: {fileID: 1141330259687333427, guid: 95ee0d317d680e84f8f78ef1983c25a4, type: 3}
+  flyingParticlePrefab: {fileID: 9027514048236820045, guid: 805d6ff8dc5c3d8439a7558030af7c5d, type: 3}
+  hitParticlePrefab: {fileID: 1141330259687333427, guid: 95ee0d317d680e84f8f78ef1983c25a4, type: 3}
+  impactBehaviours:
+  - {fileID: 11400000, guid: bffcfdfa4285d2a40b44001db8ee38c2, type: 2}

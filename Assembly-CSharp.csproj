@@ -56,6 +56,7 @@
     <Compile Include="Assets\Scripts\Player\Spells\KnockbackImpactBehaviour.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IInventoryPreviewProvider.cs" />
     <Compile Include="Assets\Scripts\Player\Items\ItemLookPrompt.cs" />
+    <Compile Include="Assets\Scripts\World\TestEnemySpawner.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerConsume.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\RandomRoomSpawner.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\ButtonAnimator.cs" />
@@ -109,15 +110,18 @@
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csShowAllEffect.cs" />
     <Compile Include="Assets\Scripts\Enemy\Interfaces\IResourceHandler.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ICastPermissionProvider.cs" />
+    <Compile Include="Assets\Scripts\World\LevelGeneration\ItemRandomSpawner.cs" />
     <Compile Include="Assets\Scripts\Player\Items\WandItem.cs" />
     <Compile Include="Assets\Scripts\Enemy\Interfaces\IEffectTarget.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ISpellCastDefinition.cs" />
     <Compile Include="Assets\Scripts\Player\UI\PlayerUI.cs" />
+    <Compile Include="Assets\Scripts\World\LevelGeneration\ItemCatalog.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\SaveSlotManager.cs" />
     <Compile Include="Assets\Scripts\Dialog\DialogueUI.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ManaUtility.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\StartRoomSpawner.cs" />
     <Compile Include="Assets\Scripts\Player\UI\EquippedItemTitleHUD.cs" />
+    <Compile Include="Assets\Scripts\World\TestSceneSwitcher.cs" />
     <Compile Include="Assets\Scripts\Player\UI\CastUI.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\SettingsUI.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\ProjectileImpactBehaviour.cs" />
