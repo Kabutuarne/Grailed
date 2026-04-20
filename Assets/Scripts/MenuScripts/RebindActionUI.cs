@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
@@ -23,6 +24,34 @@ public class RebindActionUI : MonoBehaviour
     [SerializeField] private TMP_Text bindingLabel;      // Shows current key
     [SerializeField] private GameObject listeningOverlay; // "Listening…" state
 
+    // ── Friendly Name Dictionary ──────────────────────────────────────────────
+
+    /// <summary>
+    /// Maps raw InputAction names to player-facing strings.
+    /// Composite-part rows are handled by SettingsUI and passed in via
+    /// <see cref="Initialise"/>, so only the top-level action name is needed here.
+    /// </summary>
+    private static readonly Dictionary<string, string> FriendlyNames
+        = new(System.StringComparer.OrdinalIgnoreCase)
+    {
+        // ── Movement ──────────────────────────────────────
+        { "Move",        "Move"               }, // parts shown as "Move: Up" etc.
+        { "Jump",        "Jump"               },
+        { "Sprint",      "Sprint"             },
+        { "Crouch",      "Crouch"             },
+
+        // ── Interaction ───────────────────────────────────
+        { "Interact",    "Interact"           },
+        { "Cast",        "Cast Spell"         },
+        { "Consume",     "Consume Item"           },
+        { "DropItem",    "Drop Item"          },
+
+        // ── Inventory / UI ────────────────────────────────
+        { "Backpack",    "Toggle Backpack"    },
+        { "SpellScroll", "Select Next/Previous Spell" },
+        { "Pause",       "Pause"             },
+    };
+
     // ── Internal State ────────────────────────────────────────────────────────
 
     private InputAction _action;
@@ -45,18 +74,26 @@ public class RebindActionUI : MonoBehaviour
 
     // ── Public Initialisation ─────────────────────────────────────────────────
 
-    /// <summary>Called by SettingsUI after instantiation.</summary>
-    public void Initialise(InputAction action, int bindingIndex)
+    /// <summary>
+    /// Called by <see cref="SettingsUI"/> after instantiation.
+    /// </summary>
+    /// <param name="action">The InputAction this row controls.</param>
+    /// <param name="bindingIndex">Index into <paramref name="action"/>.bindings.</param>
+    /// <param name="displayName">
+    /// Pre-built human-readable label supplied by SettingsUI
+    /// (e.g. "Move: Up" for composite parts, or "Toggle Backpack" for a normal action).
+    /// If null or empty, the row falls back to auto-formatting the action name.
+    /// </param>
+    public void Initialise(InputAction action, int bindingIndex, string displayName = null)
     {
         _action = action;
         _bindingIndex = bindingIndex;
 
         if (actionNameLabel != null)
         {
-            var binding = action.bindings[bindingIndex];
-            // Use composite name (e.g. "Move/Up") or plain action name
-            string rawName = binding.isComposite ? $"{action.name} ({binding.name})" : action.name;
-            actionNameLabel.text = FormatName(rawName);
+            actionNameLabel.text = string.IsNullOrEmpty(displayName)
+                ? FriendlyActionName(action.name)
+                : displayName;
         }
 
         RefreshBindingDisplay();
@@ -124,12 +161,20 @@ public class RebindActionUI : MonoBehaviour
         if (bindingLabel != null && listening) bindingLabel.text = "…";
     }
 
-    /// <summary>Converts "MoveLeft" / "move_left" → "Move Left".</summary>
-    private static string FormatName(string raw)
+    // ── Name Formatting (public so SettingsUI can use it too) ─────────────────
+
+    /// <summary>
+    /// Returns the friendly display name for a raw action name.
+    /// Falls back to auto-formatting (camelCase → "Camel Case") if no
+    /// explicit mapping exists in <see cref="FriendlyNames"/>.
+    /// </summary>
+    public static string FriendlyActionName(string rawActionName)
     {
-        // Insert space before uppercase letters (camelCase → "Camel Case")
-        string spaced = Regex.Replace(raw, @"(\B[A-Z])", " $1");
-        // Replace underscores with spaces
+        if (FriendlyNames.TryGetValue(rawActionName, out string friendly))
+            return friendly;
+
+        // Auto-format: insert spaces before uppercase letters and replace underscores
+        string spaced = Regex.Replace(rawActionName, @"(\B[A-Z])", " $1");
         return spaced.Replace('_', ' ');
     }
 }

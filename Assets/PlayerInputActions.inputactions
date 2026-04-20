@@ -104,6 +104,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "Pause",
+                    "type": "Button",
+                    "id": "152a2644-4716-43c1-a23d-f9a12a6d1a4e",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -177,17 +186,6 @@
                     "name": "",
                     "id": "0a8a7a19-068a-486d-befa-66d37a1dc266",
                     "path": "<Keyboard>/space",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Jump",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "6244621a-c615-45d9-b416-7395d23e4422",
-                    "path": "",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -280,6 +278,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "SpellScroll",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "683a651a-d20b-43e5-9ba2-1f9a7c7b6099",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pause",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

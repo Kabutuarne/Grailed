@@ -205,10 +205,10 @@ TextureImporter:
       name: OtherButtons_3
       rect:
         serializedVersion: 2
-        x: 182
-        y: 68
-        width: 11
-        height: 24
+        x: 206
+        y: 61
+        width: 5
+        height: 35
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -227,10 +227,10 @@ TextureImporter:
       name: OtherButtons_4
       rect:
         serializedVersion: 2
-        x: 205
-        y: 68
-        width: 11
-        height: 24
+        x: 214
+        y: 61
+        width: 5
+        height: 35
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -249,10 +249,10 @@ TextureImporter:
       name: OtherButtons_5
       rect:
         serializedVersion: 2
-        x: 224
-        y: 68
-        width: 11
-        height: 24
+        x: 226
+        y: 72
+        width: 123
+        height: 13
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -268,7 +268,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: OtherButtons_6
+      name: OtherButtons_14
       rect:
         serializedVersion: 2
         x: 9
@@ -283,8 +283,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9238277617347584cab11d6b041a4154
-      internalID: -1195017576
+      spriteID: 3c7322c2492a2d44286db7f57456ac08
+      internalID: 61191574
       vertices: []
       indices: 
       edges: []
@@ -307,11 +307,20 @@ TextureImporter:
     nameFileIdTable:
       OtherButtons_0: 1111673610
       OtherButtons_1: 2029707893
+      OtherButtons_10: 1803672582
+      OtherButtons_11: -542625387
+      OtherButtons_12: -2131807288
+      OtherButtons_13: -1296346556
+      OtherButtons_14: 61191574
+      OtherButtons_15: -1283440044
       OtherButtons_2: -1663774988
       OtherButtons_3: -210709530
       OtherButtons_4: 1467974723
       OtherButtons_5: 1870562723
       OtherButtons_6: -1195017576
+      OtherButtons_7: 1357597817
+      OtherButtons_8: -260219227
+      OtherButtons_9: -521638008
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

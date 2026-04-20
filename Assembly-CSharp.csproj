@@ -54,6 +54,7 @@
     <Compile Include="Assets\Scripts\World\Chest.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\PassiveEffect.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\KnockbackImpactBehaviour.cs" />
+    <Compile Include="Assets\Scripts\MenuScripts\AttributeIcon.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IInventoryPreviewProvider.cs" />
     <Compile Include="Assets\Scripts\Player\Items\ItemLookPrompt.cs" />
     <Compile Include="Assets\Scripts\World\TestEnemySpawner.cs" />
@@ -123,6 +124,7 @@
     <Compile Include="Assets\Scripts\Player\UI\EquippedItemTitleHUD.cs" />
     <Compile Include="Assets\Scripts\World\TestSceneSwitcher.cs" />
     <Compile Include="Assets\Scripts\Player\UI\CastUI.cs" />
+    <Compile Include="Assets\Scripts\MenuScripts\NextButton.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\SettingsUI.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\ProjectileImpactBehaviour.cs" />
     <Compile Include="Assets\Scripts\Player\UI\InventorySlotUI.cs" />

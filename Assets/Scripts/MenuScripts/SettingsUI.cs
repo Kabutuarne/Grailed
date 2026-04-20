@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 /// <summary>
@@ -16,6 +17,7 @@ public class SettingsUI : MonoBehaviour
     [SerializeField] private GameObject audioSection;
     [SerializeField] private GameObject displaySection;
     [SerializeField] private GameObject keybindsSection;
+
     [Header("Settings Sub-Sections Tabs")]
     [SerializeField] private Button audioTabButton;
     [SerializeField] private GameObject audioTabButtonGlow;
@@ -38,18 +40,33 @@ public class SettingsUI : MonoBehaviour
     [SerializeField] private Toggle fullscreenToggle;
     [SerializeField] private Slider resolutionScaleSlider;
     [SerializeField] private TMP_Text resolutionScaleLabel;
+    /// <summary>
+    /// Slider range should be set in the Inspector to
+    /// [SettingsManager.MouseSensitivityMin … SettingsManager.MouseSensitivityMax].
+    /// </summary>
+    [SerializeField] private Slider mouseSensitivitySlider;
+    [SerializeField] private TMP_Text mouseSensitivityLabel;
 
     // ── Keybinds ──────────────────────────────────────────────────────────────
 
     [Header("Keybind Controls")]
     [SerializeField] private Transform keybindContainer;   // Scroll content parent
-    [SerializeField] private RebindActionUI rebindRowPrefab;   // Prefab with RebindActionUI
+    [SerializeField] private RebindActionUI rebindRowPrefab;    // Prefab with RebindActionUI
     [SerializeField] private Button resetBindingsButton;
 
     // ── Internal ──────────────────────────────────────────────────────────────
 
     private SettingsManager _settings;
     private readonly List<RebindActionUI> _rebindRows = new();
+
+    /// <summary>
+    /// Actions to skip entirely in the keybind list (e.g. mouse-driven controls
+    /// that don't make sense to rebind via keyboard).
+    /// </summary>
+    private static readonly HashSet<string> SkippedActions = new(System.StringComparer.OrdinalIgnoreCase)
+    {
+        "Look",
+    };
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -65,6 +82,7 @@ public class SettingsUI : MonoBehaviour
         }
 
         InitialiseResolutionSlider();
+        InitialiseMouseSensitivitySlider();
         RefreshAllControls();
         SubscribeToEvents();
         RegisterUICallbacks();
@@ -79,7 +97,7 @@ public class SettingsUI : MonoBehaviour
         UnregisterUICallbacks();
     }
 
-    // ── Section Tabs ───────────────────────
+    // ── Section Tabs ──────────────────────────────────────────────────────────
 
     public void ShowAudioSection() => ActivateSection(audioSection);
     public void ShowDisplaySection() => ActivateSection(displaySection);
@@ -91,7 +109,6 @@ public class SettingsUI : MonoBehaviour
 
     private void ActivateSection(GameObject target)
     {
-        // Each entry pairs a content panel with its tab button and glow object.
         (GameObject section, Button tab, GameObject glow)[] tabs =
         {
             (audioSection,    audioTabButton,    audioTabButtonGlow),
@@ -108,8 +125,8 @@ public class SettingsUI : MonoBehaviour
             var label = tab.GetComponentInChildren<TMP_Text>();
             if (label != null)
                 label.color = isActive
-                    ? new Color(1f, 0.84f, 0f)   // Gold — active tab
-                    : new Color(1f, 0f, 0f);      // Red — inactive tab
+                    ? new Color(1f, 0.84f, 0f)  // Gold — active tab
+                    : new Color(1f, 0f, 0f); // Red  — inactive tab
         }
     }
 
@@ -121,6 +138,7 @@ public class SettingsUI : MonoBehaviour
         sfxVolumeSlider?.onValueChanged.AddListener(OnSFXSliderChanged);
         fullscreenToggle?.onValueChanged.AddListener(OnFullscreenToggleChanged);
         resolutionScaleSlider?.onValueChanged.AddListener(OnResolutionScaleSliderChanged);
+        mouseSensitivitySlider?.onValueChanged.AddListener(OnMouseSensitivitySliderChanged);
         resetBindingsButton?.onClick.AddListener(OnResetBindingsClicked);
     }
 
@@ -130,6 +148,7 @@ public class SettingsUI : MonoBehaviour
         sfxVolumeSlider?.onValueChanged.RemoveListener(OnSFXSliderChanged);
         fullscreenToggle?.onValueChanged.RemoveListener(OnFullscreenToggleChanged);
         resolutionScaleSlider?.onValueChanged.RemoveListener(OnResolutionScaleSliderChanged);
+        mouseSensitivitySlider?.onValueChanged.RemoveListener(OnMouseSensitivitySliderChanged);
         resetBindingsButton?.onClick.RemoveListener(OnResetBindingsClicked);
     }
 
@@ -139,6 +158,7 @@ public class SettingsUI : MonoBehaviour
         _settings.OnSFXVolumeChanged += OnSFXVolumeChangedExternally;
         _settings.OnFullscreenChanged += OnFullscreenChangedExternally;
         _settings.OnResolutionScaleChanged += OnResolutionScaleChangedExternally;
+        _settings.OnMouseSensitivityChanged += OnMouseSensitivityChangedExternally;
     }
 
     private void UnsubscribeFromEvents()
@@ -148,9 +168,10 @@ public class SettingsUI : MonoBehaviour
         _settings.OnSFXVolumeChanged -= OnSFXVolumeChangedExternally;
         _settings.OnFullscreenChanged -= OnFullscreenChangedExternally;
         _settings.OnResolutionScaleChanged -= OnResolutionScaleChangedExternally;
+        _settings.OnMouseSensitivityChanged -= OnMouseSensitivityChangedExternally;
     }
 
-    // ── Refresh (populate controls from current SettingsManager state) ─────────
+    // ── Refresh ───────────────────────────────────────────────────────────────
 
     private void RefreshAllControls()
     {
@@ -158,6 +179,7 @@ public class SettingsUI : MonoBehaviour
         SetSFXUI(_settings.SFXVolume);
         SetFullscreenUI(_settings.IsFullscreen);
         SetResolutionUI(_settings.ResolutionScaleIndex);
+        SetMouseSensitivityUI(_settings.MouseSensitivity);
     }
 
     private void InitialiseResolutionSlider()
@@ -168,7 +190,15 @@ public class SettingsUI : MonoBehaviour
         resolutionScaleSlider.wholeNumbers = true;
     }
 
-    // ── UI Setters (use SetValueWithoutNotify to avoid feedback loops) ─────────
+    private void InitialiseMouseSensitivitySlider()
+    {
+        if (mouseSensitivitySlider == null) return;
+        mouseSensitivitySlider.minValue = SettingsManager.MouseSensitivityMin;
+        mouseSensitivitySlider.maxValue = SettingsManager.MouseSensitivityMax;
+        mouseSensitivitySlider.wholeNumbers = false;
+    }
+
+    // ── UI Setters ────────────────────────────────────────────────────────────
 
     private void SetMusicUI(float value)
     {
@@ -196,17 +226,22 @@ public class SettingsUI : MonoBehaviour
             resolutionScaleLabel.text = SettingsManager.ResolutionScaleLabels[index];
     }
 
-    // ── UI Event Handlers (user changed a control) ────────────────────────────
+    private void SetMouseSensitivityUI(float value)
+    {
+        mouseSensitivitySlider?.SetValueWithoutNotify(value);
+        if (mouseSensitivityLabel != null)
+            mouseSensitivityLabel.text = $"{value:F1}x";
+    }
+
+    // ── UI Event Handlers ─────────────────────────────────────────────────────
 
     private void OnMusicSliderChanged(float value) => _settings.SetMusicVolume(value);
     private void OnSFXSliderChanged(float value) => _settings.SetSFXVolume(value);
     private void OnFullscreenToggleChanged(bool value) => _settings.SetFullscreen(value);
+    private void OnMouseSensitivitySliderChanged(float v) => _settings.SetMouseSensitivity(v);
 
     private void OnResolutionScaleSliderChanged(float value)
-    {
-        int index = Mathf.RoundToInt(value);
-        _settings.SetResolutionScaleIndex(index);
-    }
+        => _settings.SetResolutionScaleIndex(Mathf.RoundToInt(value));
 
     private void OnResetBindingsClicked()
     {
@@ -214,12 +249,13 @@ public class SettingsUI : MonoBehaviour
         BuildKeybindRows();
     }
 
-    // ── SettingsManager Event Handlers (external change → update UI) ──────────
+    // ── SettingsManager Event Handlers ────────────────────────────────────────
 
     private void OnMusicVolumeChangedExternally(float v) => SetMusicUI(v);
     private void OnSFXVolumeChangedExternally(float v) => SetSFXUI(v);
     private void OnFullscreenChangedExternally(bool v) => SetFullscreenUI(v);
     private void OnResolutionScaleChangedExternally(int i) => SetResolutionUI(i);
+    private void OnMouseSensitivityChangedExternally(float v) => SetMouseSensitivityUI(v);
 
     // ── Keybind Row Builder ───────────────────────────────────────────────────
 
@@ -239,18 +275,46 @@ public class SettingsUI : MonoBehaviour
         {
             foreach (var action in map.actions)
             {
+                // Skip mouse-driven actions that can't be meaningfully rebound here
+                if (SkippedActions.Contains(action.name)) continue;
+
                 for (int i = 0; i < action.bindings.Count; i++)
                 {
                     var binding = action.bindings[i];
 
-                    // Skip composite parts — only show the composite root or non-composite entries
-                    if (binding.isPartOfComposite) continue;
+                    // Skip composite *roots* (e.g. "2D Vector") — show the parts instead
+                    if (binding.isComposite) continue;
+
+                    // Build a human-readable label for this row
+                    string displayName = BuildDisplayName(action, binding);
 
                     var row = Instantiate(rebindRowPrefab, keybindContainer);
-                    row.Initialise(action, i);
+                    row.Initialise(action, i, displayName);
                     _rebindRows.Add(row);
                 }
             }
         }
     }
+
+    /// <summary>
+    /// Returns a player-facing label for a binding row.
+    /// Composite parts are shown as "{ActionFriendlyName}: {PartName}"
+    /// (e.g. "Move: Up"), while standalone bindings use the friendly action name.
+    /// </summary>
+    private static string BuildDisplayName(InputAction action, InputBinding binding)
+    {
+        string actionFriendly = RebindActionUI.FriendlyActionName(action.name);
+
+        if (binding.isPartOfComposite)
+        {
+            // binding.name is e.g. "Up", "Down", "Left", "Right", "Positive", etc.
+            string partName = CapitaliseFirst(binding.name);
+            return $"{actionFriendly}: {partName}";
+        }
+
+        return actionFriendly;
+    }
+
+    private static string CapitaliseFirst(string s) =>
+        string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s[1..];
 }

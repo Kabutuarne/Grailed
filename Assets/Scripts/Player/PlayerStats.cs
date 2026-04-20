@@ -65,6 +65,17 @@ public class PlayerStats : MonoBehaviour
         inventory = GetComponent<PlayerInventory>();
         controller = GetComponent<PlayerController>();
 
+        // If there is an active save, apply the saved attribute values before
+        // calculating derived maxima so health/mana/stamina are correct.
+        var save = SaveSlotContext.LoadActiveSave();
+        if (save != null && !save.isEmpty)
+        {
+            intelligence = save.intelligence;
+            strength = save.strength;
+            staminaAttr = save.staminaAttr;
+            agility = save.agility;
+        }
+
         health = maxHealth;
         mana = maxMana;
         stamina = maxStamina;

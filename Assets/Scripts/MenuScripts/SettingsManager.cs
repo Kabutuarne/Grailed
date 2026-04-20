@@ -4,7 +4,7 @@ using UnityEngine.Audio;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// Persistent singleton that owns all game settings (audio, display, keybinds).
+/// Persistent singleton that owns all game settings (audio, display, mouse, keybinds).
 /// Place on a GameObject in your first/boot scene. It survives scene loads.
 /// Requires: an AudioMixer with exposed parameters "MusicVolume" and "SFXVolume".
 /// </summary>
@@ -32,12 +32,24 @@ public class SettingsManager : MonoBehaviour
     public static readonly string[] ResolutionScaleLabels = { "50%", "67%", "75%", "100%", "125%", "150%" };
     public const int DefaultResolutionScaleIndex = 3; // 100 %
 
+    // ── Mouse Sensitivity Options ─────────────────────────────────────────────
+
+    /// <summary>Minimum and maximum multiplier for mouse-look sensitivity.</summary>
+    public const float MouseSensitivityMin = 0.1f;
+    public const float MouseSensitivityMax = 5.0f;
+    public const float MouseSensitivityDefault = 1.0f;
+
     // ── Public State ──────────────────────────────────────────────────────────
 
     public float MusicVolume { get; private set; } = 1f;
     public float SFXVolume { get; private set; } = 1f;
     public bool IsFullscreen { get; private set; } = true;
     public int ResolutionScaleIndex { get; private set; } = DefaultResolutionScaleIndex;
+    /// <summary>
+    /// Linear mouse-look sensitivity multiplier (0.1–5.0).
+    /// Consumers (e.g. a camera controller) should multiply their raw delta by this value.
+    /// </summary>
+    public float MouseSensitivity { get; private set; } = MouseSensitivityDefault;
 
     // ── Events (used by SettingsUI to stay in sync) ───────────────────────────
 
@@ -45,6 +57,7 @@ public class SettingsManager : MonoBehaviour
     public event Action<float> OnSFXVolumeChanged;
     public event Action<bool> OnFullscreenChanged;
     public event Action<int> OnResolutionScaleChanged;
+    public event Action<float> OnMouseSensitivityChanged;
     public event Action OnBindingsChanged;
 
     // ── PlayerPrefs Keys ──────────────────────────────────────────────────────
@@ -53,6 +66,7 @@ public class SettingsManager : MonoBehaviour
     private const string KeySFX = "Settings_SFXVolume";
     private const string KeyFullscreen = "Settings_Fullscreen";
     private const string KeyResSca = "Settings_ResolutionScale";
+    private const string KeyMouseSens = "Settings_MouseSensitivity";
     private const string KeyBindings = "Settings_KeybindOverrides";
 
     // ── Native Resolution Cache ───────────────────────────────────────────────
@@ -139,6 +153,7 @@ public class SettingsManager : MonoBehaviour
     }
 
     // ── Resolution Scale ──────────────────────────────────────────────────────
+
     public void SetResolutionScaleIndex(int index)
     {
         ResolutionScaleIndex = Mathf.Clamp(index, 0, ResolutionScaleValues.Length - 1);
@@ -153,6 +168,21 @@ public class SettingsManager : MonoBehaviour
         int w = Mathf.Max(1, Mathf.RoundToInt(_nativeWidth * scale));
         int h = Mathf.Max(1, Mathf.RoundToInt(_nativeHeight * scale));
         Screen.SetResolution(w, h, Screen.fullScreen);
+    }
+
+    // ── Mouse Sensitivity ─────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Sets the mouse-look sensitivity multiplier.
+    /// </summary>
+    /// <param name="value">
+    /// Clamped to [<see cref="MouseSensitivityMin"/>, <see cref="MouseSensitivityMax"/>].
+    /// </param>
+    public void SetMouseSensitivity(float value)
+    {
+        MouseSensitivity = Mathf.Clamp(value, MouseSensitivityMin, MouseSensitivityMax);
+        PlayerPrefs.SetFloat(KeyMouseSens, MouseSensitivity);
+        OnMouseSensitivityChanged?.Invoke(MouseSensitivity);
     }
 
     // ── Keybinds ──────────────────────────────────────────────────────────────
@@ -189,8 +219,12 @@ public class SettingsManager : MonoBehaviour
         MusicVolume = PlayerPrefs.GetFloat(KeyMusic, 1f);
         SFXVolume = PlayerPrefs.GetFloat(KeySFX, 1f);
         IsFullscreen = PlayerPrefs.GetInt(KeyFullscreen, 1) == 1;
-        ResolutionScaleIndex = PlayerPrefs.GetInt(KeyResSca, DefaultResolutionScaleIndex);
-        ResolutionScaleIndex = Mathf.Clamp(ResolutionScaleIndex, 0, ResolutionScaleValues.Length - 1);
+        ResolutionScaleIndex = Mathf.Clamp(
+            PlayerPrefs.GetInt(KeyResSca, DefaultResolutionScaleIndex),
+            0, ResolutionScaleValues.Length - 1);
+        MouseSensitivity = Mathf.Clamp(
+            PlayerPrefs.GetFloat(KeyMouseSens, MouseSensitivityDefault),
+            MouseSensitivityMin, MouseSensitivityMax);
 
         if (inputActions != null && PlayerPrefs.HasKey(KeyBindings))
         {
@@ -206,6 +240,7 @@ public class SettingsManager : MonoBehaviour
         ApplySFXVolume();
         Screen.fullScreen = IsFullscreen;
         ApplyResolutionScale();
+        // MouseSensitivity is read on-demand by camera/look controllers — no Apply needed.
     }
 
     // ── Utility ───────────────────────────────────────────────────────────────

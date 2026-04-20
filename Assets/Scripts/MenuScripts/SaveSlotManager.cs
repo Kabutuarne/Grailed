@@ -18,6 +18,12 @@ public class SaveData
     public string timestamp = "";        // Human-readable creation date
     public float playTimeSeconds = 0f;
 
+    // Player attribute values (persisted per-save)
+    public float intelligence = 10f;
+    public float strength = 10f;
+    public float staminaAttr = 10f;
+    public float agility = 10f;
+
     // ── Game data fields ─────────────────────────────────────────────
     // public float   playerHealth;
     // public Vector3 playerPosition;
@@ -92,7 +98,21 @@ public class SaveSlotManager : MonoBehaviour
 
     [Header("New Save Dialog")]
     [SerializeField] private GameObject newSaveDialog;
+    [Tooltip("Title section (shown first). Hide/Show via Next button.)")]
+    [SerializeField] private GameObject newSaveTitleSection;
+    [Tooltip("Attribute selection section (shown after Next)")]
+    [SerializeField] private GameObject newSaveAttributesSection;
     [SerializeField] private TMP_InputField saveNameInput;
+    [Header("Attribute sliders")]
+    [SerializeField] private Slider intelligenceSlider;
+    [SerializeField] private TMP_Text intelligenceValueLabel;
+    [SerializeField] private Slider strengthSlider;
+    [SerializeField] private TMP_Text strengthValueLabel;
+    [SerializeField] private Slider agilitySlider;
+    [SerializeField] private TMP_Text agilityValueLabel;
+    [SerializeField] private Slider staminaSlider;
+    [SerializeField] private TMP_Text staminaValueLabel;
+    [SerializeField] private TMP_Text remainingPointsLabel;
     [SerializeField] private Button confirmNewSaveButton;
     [SerializeField] private Button cancelNewSaveButton;
 
@@ -115,6 +135,11 @@ public class SaveSlotManager : MonoBehaviour
 
     private SaveData[] _slots = new SaveData[SlotCount];
     private int _selectedSlot = -1;
+    // Attribute slider constraints
+    private const int AttrMin = 1;
+    private const int AttrMax = 10;
+    private const int AttrTotalMax = 29;
+    private bool _suppressSliderCallbacks = false;
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -164,15 +189,58 @@ public class SaveSlotManager : MonoBehaviour
         if (newSaveDialog != null)
         {
             newSaveDialog.SetActive(true);
+            // show title section first, attributes hidden until Next
+            if (newSaveTitleSection != null) newSaveTitleSection.SetActive(true);
+            if (newSaveAttributesSection != null) newSaveAttributesSection.SetActive(false);
+
             if (saveNameInput != null)
                 saveNameInput.text = $"Save {_selectedSlot + 1}";
+
+            // Prepopulate attribute sliders from the existing slot (or sensible defaults)
+            var slotData = _slots[_selectedSlot];
+            if (slotData != null && !slotData.isEmpty)
+            {
+                if (intelligenceSlider != null) intelligenceSlider.value = slotData.intelligence;
+                if (strengthSlider != null) strengthSlider.value = slotData.strength;
+                if (agilitySlider != null) agilitySlider.value = slotData.agility;
+                if (staminaSlider != null) staminaSlider.value = slotData.staminaAttr;
+            }
+            else
+            {
+                // Balanced default distribution that sums to AttrTotalMax (25)
+                int baseVal = AttrTotalMax / 4; // 6
+                int remainder = AttrTotalMax % 4; // 1
+
+                if (intelligenceSlider != null)
+                {
+                    intelligenceSlider.value = baseVal + (remainder > 0 ? 1 : 0);
+                    if (remainder > 0) remainder--;
+                }
+                if (strengthSlider != null)
+                {
+                    strengthSlider.value = baseVal + (remainder > 0 ? 1 : 0);
+                    if (remainder > 0) remainder--;
+                }
+                if (agilitySlider != null)
+                {
+                    agilitySlider.value = baseVal + (remainder > 0 ? 1 : 0);
+                    if (remainder > 0) remainder--;
+                }
+                if (staminaSlider != null)
+                {
+                    staminaSlider.value = baseVal + (remainder > 0 ? 1 : 0);
+                    if (remainder > 0) remainder--;
+                }
+
+            }
+            // Update numeric labels and remaining points (for both existing and default cases)
+            UpdateAttributeLabels();
         }
     }
 
     private void OnConfirmNewSave()
     {
         if (_selectedSlot < 0) return;
-
         string name = (saveNameInput != null && !string.IsNullOrWhiteSpace(saveNameInput.text))
             ? saveNameInput.text.Trim()
             : $"Save {_selectedSlot + 1}";
@@ -182,7 +250,11 @@ public class SaveSlotManager : MonoBehaviour
             isEmpty = false,
             saveName = name,
             timestamp = DateTime.Now.ToString("MMM dd, yyyy  HH:mm"),
-            playTimeSeconds = 0f
+            playTimeSeconds = 0f,
+            intelligence = intelligenceSlider != null ? intelligenceSlider.value : 10f,
+            strength = strengthSlider != null ? strengthSlider.value : 10f,
+            agility = agilitySlider != null ? agilitySlider.value : 10f,
+            staminaAttr = staminaSlider != null ? staminaSlider.value : 10f
         };
 
         _slots[_selectedSlot] = data;
@@ -250,6 +322,8 @@ public class SaveSlotManager : MonoBehaviour
     private void HideAllDialogs()
     {
         if (newSaveDialog != null) newSaveDialog.SetActive(false);
+        if (newSaveTitleSection != null) newSaveTitleSection.SetActive(false);
+        if (newSaveAttributesSection != null) newSaveAttributesSection.SetActive(false);
         if (confirmDeleteDialog != null) confirmDeleteDialog.SetActive(false);
     }
 
@@ -334,6 +408,88 @@ public class SaveSlotManager : MonoBehaviour
 
         confirmDeleteButton?.onClick.AddListener(OnConfirmDelete);
         cancelDeleteButton?.onClick.AddListener(HideAllDialogs);
+        // Configure attribute sliders (min/max/whole numbers and add listeners)
+        SetupAttributeSliders();
+    }
+
+    private void SetupAttributeSliders()
+    {
+        Slider[] sliders = new Slider[] { intelligenceSlider, strengthSlider, agilitySlider, staminaSlider };
+        for (int i = 0; i < sliders.Length; i++)
+        {
+            var s = sliders[i];
+            if (s == null) continue;
+            s.minValue = AttrMin;
+            s.maxValue = AttrMax;
+            s.wholeNumbers = true;
+            int idx = i; // capture
+            // Add a listener that enforces the total-points cap
+            s.onValueChanged.AddListener((v) => OnAttributeSliderChanged(idx));
+        }
+        // ensure labels reflect initial slider values
+        UpdateAttributeLabels();
+    }
+
+    private void OnAttributeSliderChanged(int index)
+    {
+        if (_suppressSliderCallbacks) return;
+        _suppressSliderCallbacks = true;
+
+        Slider changed = GetSliderByIndex(index);
+        if (changed == null)
+        {
+            _suppressSliderCallbacks = false;
+            return;
+        }
+
+        // Sum other sliders
+        float sumOther = 0f;
+        for (int i = 0; i < 4; i++)
+        {
+            if (i == index) continue;
+            var s = GetSliderByIndex(i);
+            if (s != null) sumOther += s.value;
+        }
+
+        float allowedForChanged = AttrTotalMax - sumOther;
+        if (allowedForChanged < AttrMin) allowedForChanged = AttrMin;
+
+        float clamped = Mathf.Clamp(changed.value, AttrMin, Mathf.Min(AttrMax, allowedForChanged));
+        if (Mathf.Abs(changed.value - clamped) > 0.001f)
+            changed.value = clamped;
+
+        // update labels after the change
+        UpdateAttributeLabels();
+
+        _suppressSliderCallbacks = false;
+    }
+
+    private Slider GetSliderByIndex(int index)
+    {
+        switch (index)
+        {
+            case 0: return intelligenceSlider;
+            case 1: return strengthSlider;
+            case 2: return agilitySlider;
+            case 3: return staminaSlider;
+            default: return null;
+        }
+    }
+
+    private void UpdateAttributeLabels()
+    {
+        int iv = intelligenceSlider != null ? Mathf.RoundToInt(intelligenceSlider.value) : 0;
+        int sv = strengthSlider != null ? Mathf.RoundToInt(strengthSlider.value) : 0;
+        int av = agilitySlider != null ? Mathf.RoundToInt(agilitySlider.value) : 0;
+        int stv = staminaSlider != null ? Mathf.RoundToInt(staminaSlider.value) : 0;
+
+        if (intelligenceValueLabel != null) intelligenceValueLabel.text = iv.ToString();
+        if (strengthValueLabel != null) strengthValueLabel.text = sv.ToString();
+        if (agilityValueLabel != null) agilityValueLabel.text = av.ToString();
+        if (staminaValueLabel != null) staminaValueLabel.text = stv.ToString();
+
+        int remaining = AttrTotalMax - (iv + sv + av + stv);
+        if (remainingPointsLabel != null) remainingPointsLabel.text = $"{remaining}";
     }
 
     private void ValidateSlotArrays()
