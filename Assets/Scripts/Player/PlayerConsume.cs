@@ -173,11 +173,17 @@ public class PlayerConsume : MonoBehaviour
                 inventory.ConsumeFromBackpack(backpackIndex, gameObject);
         }
 
+        if (castUI != null)
+            castUI.Complete();
+
         ResetConsumeState();
     }
 
     private void CancelConsume()
     {
+        if (castUI != null)
+            castUI.Interrupt();
+
         ResetConsumeState();
     }
 
@@ -188,9 +194,6 @@ public class PlayerConsume : MonoBehaviour
         consumeElapsed = 0f;
         source = Source.None;
         backpackIndex = -1;
-
-        if (castUI != null)
-            castUI.Hide();
     }
 
     private bool ReadConsumeHeld()

@@ -109,7 +109,7 @@ public class PlayerCast : MonoBehaviour
         if (currentChannelRuntime != null)
         {
             if (castUI != null)
-                castUI.ShowCasting();
+                castUI.ShowChanneling();
 
             return;
         }
@@ -136,7 +136,7 @@ public class PlayerCast : MonoBehaviour
             }
 
             if (castUI != null)
-                castUI.ShowCasting();
+                castUI.ShowChanneling();
 
             return;
         }
@@ -250,12 +250,20 @@ public class PlayerCast : MonoBehaviour
     private void CancelCast()
     {
         StopChannelRuntime();
+
+        if (castUI != null)
+            castUI.Interrupt();
+
         ResetCastState();
     }
 
     private void EndCast()
     {
         StopChannelRuntime();
+
+        if (castUI != null)
+            castUI.Complete();
+
         ResetCastState();
     }
 
@@ -277,8 +285,5 @@ public class PlayerCast : MonoBehaviour
         currentChanneledSpell = null;
         elapsed = 0f;
         castTimeActual = 0f;
-
-        if (castUI != null)
-            castUI.Hide();
     }
 }
