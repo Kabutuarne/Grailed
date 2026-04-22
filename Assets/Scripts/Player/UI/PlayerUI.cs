@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,9 +19,6 @@ public class PlayerUI : MonoBehaviour
     public Transform statusEffectsRoot;
     public GameObject statusEffectPrefab;
 
-    [Header("Status Effects Styling")]
-    public Sprite firstEffectBackground;
-
     [Header("Status Effects UI (HUD)")]
     public Transform statusEffectsHudRoot;
     public GameObject statusEffectHudPrefab;
@@ -35,21 +33,21 @@ public class PlayerUI : MonoBehaviour
     public InventorySlotUI[] backpackSlots;
 
     [Header("Character Sheet Texts (Backpack)")]
-    public Text healthText;
-    public Text manaText;
-    public Text staminaText;
-    public Text intelligenceText;
-    public Text strengthText;
-    public Text staminaAttrText;
-    public Text agilityText;
+    public TMP_Text healthText;
+    public TMP_Text manaText;
+    public TMP_Text staminaText;
+    public TMP_Text intelligenceText;
+    public TMP_Text strengthText;
+    public TMP_Text staminaAttrText;
+    public TMP_Text agilityText;
 
     [Header("Backpack Root Panel")]
     public GameObject backpackRoot;
 
     [Header("HUD Numbers")]
-    public Text hudHealthText;
-    public Text hudManaText;
-    public Text hudEnergyText;
+    public TMP_Text hudHealthText;
+    public TMP_Text hudManaText;
+    public TMP_Text hudEnergyText;
 
     [Header("Wand Slots Panel")]
     public WandSlotsPanel wandSlotsPanel;
@@ -89,8 +87,6 @@ public class PlayerUI : MonoBehaviour
     private GameObject currentlyDraggedItem;
     private InventorySlotUI dragSourceSlot;
     private int dragSourceIndex = -1;
-    private GameObject tooltipGO;
-    private Component tooltipController; // kept for compatibility if reused
 
     void Start()
     {
@@ -230,17 +226,7 @@ public class PlayerUI : MonoBehaviour
         {
             GameObject go = Instantiate(statusEffectPrefab, statusEffectsRoot);
             float timeVal = kv.Value;
-
-            // Special background for the first (top) effect if available
-            if (idx == 0 && firstEffectBackground != null)
-            {
-                var bg = go.transform.Find("BG");
-                if (bg != null)
-                {
-                    var bgImg = bg.GetComponent<Image>();
-                    if (bgImg != null) bgImg.sprite = firstEffectBackground;
-                }
-            }
+            // No special first-effect styling
 
             if (kv.Key is EffectCarrier carrier)
             {
@@ -327,16 +313,6 @@ public class PlayerUI : MonoBehaviour
         {
             GameObject go = Instantiate(statusEffectHudPrefab, statusEffectsHudRoot);
             float timeVal = kv.Value;
-
-            if (idxHud == 0 && firstEffectBackground != null)
-            {
-                var bg = go.transform.Find("BG");
-                if (bg != null)
-                {
-                    var bgImg = bg.GetComponent<Image>();
-                    if (bgImg != null) bgImg.sprite = firstEffectBackground;
-                }
-            }
 
             if (kv.Key is EffectCarrier carrier)
             {

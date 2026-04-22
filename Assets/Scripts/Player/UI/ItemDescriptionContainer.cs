@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using TMPro;
 
 // Component that represents a description container prefab in the UI.
 // It stores tag color settings and exposes a Populate method to fill
@@ -15,9 +16,10 @@ public class ItemDescriptionContainer : MonoBehaviour
     public Color colorAgility = new Color(0x23 / 255f, 0x9b / 255f, 0x56 / 255f);
 
     [Header("UI Refs")]
-    public Text titleText;
-    public Text descriptionText;
-    public List<Text> lineTexts = new List<Text>(5);
+    public TMP_Text titleText;
+    public TMP_Text descriptionText;
+    public List<TMP_Text> lineTexts = new List<TMP_Text>(5);
+    public List<GameObject> lineBGs = new List<GameObject>(5);
 
     [Header("Wand Slots")]
     public WandSlotsPanel wandSlotsPanelPrefab;
@@ -40,7 +42,9 @@ public class ItemDescriptionContainer : MonoBehaviour
         }
 
         if (descriptionText != null) descriptionText.text = string.Empty;
+
         foreach (var t in lineTexts) { if (t != null) t.text = string.Empty; }
+        foreach (var bg in lineBGs) { if (bg != null) bg.gameObject.SetActive(false); }
 
         var allLines = pickup.GetItemLines();
         if (allLines == null) return;
@@ -65,6 +69,7 @@ public class ItemDescriptionContainer : MonoBehaviour
                 {
                     t.text = data.text;
                     t.color = GetColorForTag(data.tag);
+                    lineBGs[uiLineIndex - 1].gameObject.SetActive(true);
                 }
             }
         }
@@ -81,6 +86,7 @@ public class ItemDescriptionContainer : MonoBehaviour
         if (titleText != null) titleText.text = string.Empty;
         if (descriptionText != null) descriptionText.text = string.Empty;
         foreach (var t in lineTexts) { if (t != null) t.text = string.Empty; }
+        foreach (var bg in lineBGs) { if (bg != null) bg.gameObject.SetActive(false); }
         HideWandSlots();
         gameObject.SetActive(false);
     }

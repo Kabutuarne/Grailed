@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class EquippedItemTitleHUD : MonoBehaviour
 {
@@ -11,9 +12,7 @@ public class EquippedItemTitleHUD : MonoBehaviour
     private CanvasGroup canvasGroup;
 
     [Header("Target Text")]
-    public Text targetText;
-    public string targetTextName = "EquippedItemTitle";
-
+    public TMP_Text targetText;
     private bool prevBackpackOpen;
     private float elapsed = -1f;
     private GameObject prevRightHandItem;
@@ -33,7 +32,6 @@ public class EquippedItemTitleHUD : MonoBehaviour
     {
         playerUI = ui;
         prevBackpackOpen = ui != null && ui.IsBackpackOpen;
-        FindTargetTextIfNeeded();
         SubscribeInventoryEvents();
         prevRightHandItem = (playerUI != null && playerUI.inventory != null) ? playerUI.inventory.rightHandItem : null;
         HideImmediate();
@@ -94,7 +92,6 @@ public class EquippedItemTitleHUD : MonoBehaviour
         if (string.IsNullOrWhiteSpace(title))
             return;
 
-        FindTargetTextIfNeeded();
         if (targetText == null)
         {
             Debug.LogWarning("EquippedItemTitleHUD: No target Text found to display title.");
@@ -165,35 +162,6 @@ public class EquippedItemTitleHUD : MonoBehaviour
             targetText.color = c;
         }
     }
-
-    private void FindTargetTextIfNeeded()
-    {
-        if (targetText != null)
-        {
-            canvasGroup = targetText.GetComponent<CanvasGroup>();
-            if (canvasGroup == null) canvasGroup = targetText.transform.GetComponentInParent<CanvasGroup>();
-            return;
-        }
-
-        Transform searchRoot = (playerUI != null && playerUI.hudRoot != null)
-            ? playerUI.hudRoot.transform
-            : (playerUI != null ? playerUI.transform : transform);
-
-        if (searchRoot == null) return;
-
-        var t = searchRoot.Find(targetTextName);
-        if (t != null)
-        {
-            targetText = t.GetComponent<Text>();
-            if (targetText != null)
-            {
-                canvasGroup = targetText.GetComponent<CanvasGroup>();
-                if (canvasGroup == null) canvasGroup = targetText.transform.GetComponentInParent<CanvasGroup>();
-                SetAlpha(0f);
-            }
-        }
-    }
-
     private void SubscribeInventoryEvents()
     {
         if (playerUI != null && playerUI.inventory != null)

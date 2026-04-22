@@ -166,7 +166,7 @@ Shader "Universal Render Pipeline/Lit (World Space Triplanar)"
             // LitInput.hlsl declares all textures/samplers and UnityPerMaterial CBUFFER.
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
             // Keep these outside UnityPerMaterial to avoid redefining URP's CBUFFER.
             float _WorldScale;
             float _TriplanarSharpness;
