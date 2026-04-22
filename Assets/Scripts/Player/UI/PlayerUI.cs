@@ -64,10 +64,6 @@ public class PlayerUI : MonoBehaviour
     public GameObject selectedPrefabEquipped;
     public ItemDescriptionContainer descriptionContainerInstance;
 
-    // public GameObject highlightedPrefabAccessory;
-    // public GameObject highlightedPrefabBackpack;
-    // public GameObject highlightedPrefabEquipped;
-
     private InventorySlotUI selectedSlot;
     private GameObject selectedMarkerInstance;
     private ItemDescriptionContainer descriptionPanelInstance;

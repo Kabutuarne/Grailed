@@ -54,6 +54,7 @@
     <Compile Include="Assets\Scripts\World\Chest.cs" />
     <Compile Include="Assets\LightingManager_Assets\LightingManager.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\PassiveEffect.cs" />
+    <Compile Include="Assets\Scripts\MenuScripts\PauseMenuManager.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\KnockbackImpactBehaviour.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\AttributeIcon.cs" />
     <Compile Include="Assets\LightingManager_Assets\LightingPreset.cs" />
