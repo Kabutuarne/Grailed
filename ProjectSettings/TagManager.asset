@@ -9,6 +9,8 @@ TagManager:
   - Enemy
   - RoomBounds
   - StartSpawn
+  - StartTransform
+  - RespawnTransform
   layers:
   - Default
   - TransparentFX

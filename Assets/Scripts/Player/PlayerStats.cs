@@ -223,21 +223,30 @@ public class PlayerStats : MonoBehaviour
     {
         yield return new WaitForSeconds(respawnDelay);
 
-        if (respawnPoint != null)
+        // Add 4 hours to the time
+        if (LevelManager.Instance != null)
+            LevelManager.Instance.AddTime(4f);
+
+        // Teleport to respawn point
+        if (LevelManager.Instance != null)
+            LevelManager.Instance.TeleportPlayerToRespawn();
+        else if (respawnPoint != null)
         {
             transform.position = respawnPoint.position;
             transform.rotation = respawnPoint.rotation;
         }
 
+        // Clear status effects
         if (statusEffects != null)
         {
             statusEffects.ClearAllEffects();
             statusEffects.enabled = true;
         }
 
-        health = maxHealth;
-        mana = maxMana;
-        stamina = maxStamina;
+        // Set stats to 10% of max
+        health = maxHealth * 0.1f;
+        mana = maxMana * 0.1f;
+        stamina = maxStamina * 0.1f;
         isDead = false;
     }
 

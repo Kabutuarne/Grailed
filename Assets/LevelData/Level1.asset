@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e7f7bdba046ba34599015f799664f2f, type: 3}
+  m_Name: Level1
+  m_EditorClassIdentifier: Assembly-CSharp::PerLevelCatalog
+  sectionAmount: 25
+  items:
+  - prefab: {fileID: 6960709781126975696, guid: 6fe77a04c91d48e40a817cd0b2b1e80e, type: 3}
+    allowedSpots: 050000000200000004000000
+  - prefab: {fileID: 6960709781126975696, guid: 6fe77a04c91d48e40a817cd0b2b1e80e, type: 3}
+    allowedSpots: 050000000200000004000000
+  - prefab: {fileID: 2367634576012939049, guid: f740cc6526bafee4796de5d973129c49, type: 3}
+    allowedSpots: 050000000200000004000000
+  - prefab: {fileID: 2410281949284357227, guid: cdaad88ff57c0d5478e7625a757e92a6, type: 3}
+    allowedSpots: 050000000200000004000000
+  - prefab: {fileID: 2410081487702474211, guid: df7b1ba7f4ec68846bd71af44e95b471, type: 3}
+    allowedSpots: 050000000200000004000000
+  enemies:
+  - prefab: {fileID: 8185127658728666488, guid: 481dcb819af8f6446bca8e674297dbed, type: 3}
+    allowedSpots: 0200000004000000

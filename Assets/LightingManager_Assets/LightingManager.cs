@@ -5,30 +5,30 @@ using UnityEngine;
 
 namespace Sydewa
 {
-[ExecuteAlways]
-public class LightingManager : MonoBehaviour
-{
+    [ExecuteAlways]
+    public class LightingManager : MonoBehaviour
+    {
         //Credits to "Probably Spoonie" in youtube and his video https://www.youtube.com/watch?v=m9hj9PdO328&ab_channel=ProbablySpoonie
         //He made the original script and i've HEAVILY modified it to fit my needs. 
         //Hopefully this modified version is useful to you
-    #region Parameters
+        #region Parameters
         //Scene References
         [SerializeField] private Light SunDirectionalLight;
         [SerializeField] private LightingPreset Preset;
 
         //Rotation axis
-        public enum RotationAxis{X,Y}
+        public enum RotationAxis { X, Y }
         [SerializeField] private RotationAxis rotationAxis = RotationAxis.X;
 
         [Space(10)]
         //Everything needed for the day cycle
         //morningInterval and afterNoonInterval is from where you consider morning and the after noon starts and ends. Only values from 0 to 1 (to calculate: TimeOfDayYouWant/24 )
-        [Header ("Day Cycle Parameters")]
+        [Header("Day Cycle Parameters")]
         public bool IsDayCycleOn = true;
         public bool RandomStartTime;
         [Range(0, 24)] public float TimeOfDay = 12f;
         [Range(0, 24)] public float StartTime = 12f;
-            //How long the day cycle will be in seconds
+        //How long the day cycle will be in seconds
         [Range(1, 600)] public float CycleDuration = 360f;
         public Vector2 morningInterval = new Vector2(0f, 0.5f);
         public Vector2 afterNoonInterval = new Vector2(0.5f, 1f);
@@ -37,15 +37,15 @@ public class LightingManager : MonoBehaviour
 
         [Space(10)]
 
-        [Header ("Shadows Parameters")]
+        [Header("Shadows Parameters")]
         public bool IsShadowChangeOn;
-        [Range (0f, 1f)]public float shadowStrength = 0.5f;
+        [Range(0f, 1f)] public float shadowStrength = 0.5f;
         private float _shadowStrength;
 
         [Space(10)]
 
         //You can delete everything that uses this parameters if you don't have a custom skybox that you want to edit with this script or just uncheck the IsSkyBoxOn in the inspector and you'll be fine
-        [Header ("Skybox Parameters")]
+        [Header("Skybox Parameters")]
         public bool IsSkyBoxOn;
         public Material skyboxMat;
         public string customPropertyName;
@@ -66,31 +66,31 @@ public class LightingManager : MonoBehaviour
         public bool IsEventsOn;
         //Create events
         public List<EventInfo> events;
-            //The events won't happen EXACTLY at the time you want, but it will be as close as possible. To make the script invoke the event you'll need to have this tolerance. I recommend values from 0.2 and 0.05
-            //but you can experiment and try it yourself. This is only to prevent the script skiping the event because it didn't exactly get to 6pm or whatever the time of the event was. 
+        //The events won't happen EXACTLY at the time you want, but it will be as close as possible. To make the script invoke the event you'll need to have this tolerance. I recommend values from 0.2 and 0.05
+        //but you can experiment and try it yourself. This is only to prevent the script skiping the event because it didn't exactly get to 6pm or whatever the time of the event was. 
         [SerializeField] private float eventsTolerance = 0.2f;
         [SerializeField][Range(0f, 24f)] private float ResetEventsTime = 0.1f;
         private bool DayCycleCompleted;
 
-    #endregion
+        #endregion
 
         private void Start()
         {
-            if(IsDayCycleOn)
+            if (IsDayCycleOn)
             {
-                if(RandomStartTime)
+                if (RandomStartTime)
                 {
                     TimeOfDay = Random.Range(0f, 24f);
-                    Debug.Log("Random Start Time: "+TimeOfDay);
+                    Debug.Log("Random Start Time: " + TimeOfDay);
                 }
-                else if(!RandomStartTime)
+                else if (!RandomStartTime)
                 {
                     TimeOfDay = StartTime;
                     TimeOfDay %= 24;
                 }
             }
 
-            if(IsEventsOn)
+            if (IsEventsOn)
             {
                 ResetEvents();
             }
@@ -104,7 +104,7 @@ public class LightingManager : MonoBehaviour
             if (Application.isPlaying)
             {
                 //(Replace with a reference to your game time if needed)
-                if(IsDayCycleOn)
+                if (IsDayCycleOn)
                 {
                     TimeOfDay += (Time.deltaTime / CycleDuration) * 24f;
                     TimeOfDay %= 24; //Modulus to ensure always between 0-24
@@ -123,7 +123,7 @@ public class LightingManager : MonoBehaviour
 
 
             //Detects when an event should trigger
-            if(IsEventsOn)
+            if (IsEventsOn)
             {
                 foreach (var eventInfo in events)
                 {
@@ -140,10 +140,10 @@ public class LightingManager : MonoBehaviour
                 {
                     DayCycleCompleted = true;
                     ResetEvents();
-                    
+
                     Debug.Log("Day completed + reset");
                 }
-                else if(TimeOfDay > ResetEventsTime)
+                else if (TimeOfDay > ResetEventsTime)
                 {
                     DayCycleCompleted = false;
                 }
@@ -153,7 +153,7 @@ public class LightingManager : MonoBehaviour
         //This function is called whenever we want to reset all events
         public void ResetEvents()
         {
-            foreach(var eventInfo in events)
+            foreach (var eventInfo in events)
             {
                 eventInfo.executed = false;
             }
@@ -198,7 +198,7 @@ public class LightingManager : MonoBehaviour
                     float morningNormalizedTime = (timePercent - morningInterval.x) / (morningInterval.y - morningInterval.x);
                     intensity = Mathf.Lerp(lightIntensity.x, lightIntensity.y, morningNormalizedTime);
 
-                    if(IsSkyBoxOn)
+                    if (IsSkyBoxOn)
                         skyboxParam = Mathf.Lerp(1f, 0f, morningNormalizedTime);
 
                     _shadowStrength = Mathf.Lerp(0f, shadowStrength, morningNormalizedTime);
@@ -210,15 +210,15 @@ public class LightingManager : MonoBehaviour
                     skyboxParam = 0f;
                     _shadowStrength = shadowStrength;
                 }
-                else if(timePercent >= afterNoonInterval.x && timePercent <= afterNoonInterval.y)
+                else if (timePercent >= afterNoonInterval.x && timePercent <= afterNoonInterval.y)
                 {
                     // Afternoon
                     float afternoonNormalizedTime = (timePercent - afterNoonInterval.x) / (afterNoonInterval.y - afterNoonInterval.x);
                     intensity = Mathf.Lerp(lightIntensity.y, lightIntensity.x, afternoonNormalizedTime);
 
-                    if(IsSkyBoxOn)
+                    if (IsSkyBoxOn)
                         skyboxParam = Mathf.Lerp(0f, 1f, afternoonNormalizedTime);
-                        
+
                     _shadowStrength = Mathf.Lerp(0f, shadowStrength, afternoonNormalizedTime);
                 }
 
@@ -228,11 +228,11 @@ public class LightingManager : MonoBehaviour
                     SunDirectionalLight.shadowStrength = _shadowStrength;
 
                 // Set skybox parameter
-                if(IsSkyBoxOn)
+                if (IsSkyBoxOn)
                 {
                     skyboxMat.SetFloat(customPropertyName, skyboxParam);
                 }
-            
+
             }
 
         }
@@ -314,10 +314,10 @@ public class LightingManager : MonoBehaviour
 
             //--------------------------Skybox-------------------------------
 
-            if(skyboxMat != null)
+            if (skyboxMat != null)
                 return;
 
-            if(RenderSettings.skybox != null)
+            if (RenderSettings.skybox != null)
             {
                 skyboxMat = RenderSettings.skybox;
             }
@@ -327,6 +327,17 @@ public class LightingManager : MonoBehaviour
             {
                 UpdateMoonLighting(TimeOfDay / 24f);
             }
+        }
+        public void SetTime(float newTime)
+        {
+            TimeOfDay = newTime;
+            UpdateLighting(TimeOfDay / 24f);
+        }
+        public void AddTime(float hours)
+        {
+            TimeOfDay += hours;
+            TimeOfDay %= 24; // Ensure it stays within 0-24
+            UpdateLighting(TimeOfDay / 24f);
         }
     }
 }

@@ -5826,7 +5826,6 @@ GameObject:
   - component: {fileID: 1169626592240146263}
   - component: {fileID: 2828054887744196837}
   - component: {fileID: 573332252252681379}
-  - component: {fileID: 868801417113942229}
   m_Layer: 0
   m_Name: BigEntrance
   m_TagString: Untagged
@@ -5906,27 +5905,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &868801417113942229
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 629438715878844900}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.65839815, y: 1.7749864, z: 0.14062752}
-  m_Center: {x: 0.29674387, y: 0.8874928, z: 0.019190025}
 --- !u!1 &833010971358507979
 GameObject:
   m_ObjectHideFlags: 0
@@ -29799,9 +29777,10 @@ GameObject:
   - component: {fileID: 6604531245367386674}
   - component: {fileID: 6830827294872951442}
   - component: {fileID: 6580631803748087400}
-  - component: {fileID: 363038895860005514}
+  - component: {fileID: 5146139862323777458}
+  - component: {fileID: 6640151351655351995}
   m_Layer: 0
-  m_Name: BigEntrance
+  m_Name: ExitInteractable
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -29879,7 +29858,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &363038895860005514
+--- !u!65 &5146139862323777458
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -29898,8 +29877,26 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.6583983, y: 1.7749865, z: 0.14062752}
-  m_Center: {x: -0.29671896, y: 0.88749444, z: 0.019206388}
+  m_Size: {x: 1.2659436, y: 1.7749866, z: 0.11400499}
+  m_Center: {x: -0.6004922, y: 0.8874945, z: 0.005895196}
+--- !u!114 &6640151351655351995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6335915321848982780}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf7a9ce22c5408e4ab1431ce9fc5204d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TeleportToSpawnInteractable
+  interactDuration: 5
+  interactionText: Leave castle
+  startSound: {fileID: 0}
+  completeSound: {fileID: 0}
+  audioSource: {fileID: 0}
+  spawnTag: ExitSpawn
 --- !u!1 &6354154791517058296
 GameObject:
   m_ObjectHideFlags: 0
@@ -36074,7 +36071,6 @@ GameObject:
   - component: {fileID: 2551492894269548361}
   - component: {fileID: 8581543626370536735}
   - component: {fileID: 8363585318013204908}
-  - component: {fileID: 2956273023955071707}
   m_Layer: 0
   m_Name: Entrance
   m_TagString: Untagged
@@ -36137,25 +36133,6 @@ MonoBehaviour:
   OnTable: []
   OnCounter: []
   OnOther: []
-  stableRoomId: 0
-  positionQuantize: 0.5
-  chanceNone: 0.25
-  parentToRoom: 1
-  spawnedContainer: {fileID: 0}
---- !u!114 &2956273023955071707
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8420402663440658595}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c7a3f1be0093ae84db64c24271d9eafd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::StartRoomPlayerSpawner
-  playerPrefab: {fileID: 0}
-  spawnPoint: {fileID: 7868903133041963135}
 --- !u!1 &8436574251379969751
 GameObject:
   m_ObjectHideFlags: 0

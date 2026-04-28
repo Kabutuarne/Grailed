@@ -156,10 +156,6 @@ public class PlayerInteractor : MonoBehaviour
             if (TryInteractWith(interactable))
                 return;
         }
-
-        KartographGeneratorInteract kartographGen = hit.collider.GetComponent<KartographGeneratorInteract>();
-        if (kartographGen != null)
-            kartographGen.Interact();
     }
 
     bool TryInteractWith(IInteractable interactable)

@@ -109,6 +109,24 @@ public class EquippedItemTitleHUD : MonoBehaviour
         ShowCurrentEquippedTitle();
     }
 
+    /// <summary>
+    /// Set a custom title text to display on the HUD (for interactables, etc.)
+    /// </summary>
+    public void SetTitle(string text, Color? color = null)
+    {
+        if (targetText == null)
+            return;
+
+        targetText.text = text;
+        if (color.HasValue)
+            targetText.color = color.Value;
+        else
+            targetText.color = Color.white;
+
+        SetAlpha(1f);
+        elapsed = 0f;
+    }
+
     private string BuildEquippedTitle(GameObject item, out Color color)
     {
         color = Color.white;
