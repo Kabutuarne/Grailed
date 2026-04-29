@@ -62,13 +62,14 @@
     <Compile Include="Assets\LightingManager_Assets\LightingPreset.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IInventoryPreviewProvider.cs" />
     <Compile Include="Assets\Scripts\Player\Items\ItemLookPrompt.cs" />
+    <Compile Include="Assets\Scripts\Player\UI\InteractableTextHUD.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerConsume.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\RandomRoomSpawner.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\ButtonAnimator.cs" />
     <Compile Include="Assets\Scripts\Player\UI\ItemDescriptionContainer.cs" />
     <Compile Include="Assets\Scripts\Player\ConsumableItem.cs" />
-    <Compile Include="Assets\Scripts\Player\Items\DecorationItem.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\LevelStartInteractable.cs" />
+    <Compile Include="Assets\Scripts\Player\Items\DecorationItem.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCast.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IItemDisplayName.cs" />
     <Compile Include="Assets\Scripts\Dialog\DialogueData.cs" />
@@ -99,8 +100,8 @@
     <Compile Include="Assets\Scripts\Player\Spells\AOESpell.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\DurationEffect.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\RebindActionUI.cs" />
-    <Compile Include="Assets\Scripts\Player\Effects\PlayerEffect.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\ReturnToLobbyInteractable.cs" />
+    <Compile Include="Assets\Scripts\Player\Effects\PlayerEffect.cs" />
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csDestroyEffect.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ItemTooltipDataUtility.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\Chest.cs" />
@@ -127,7 +128,6 @@
     <Compile Include="Assets\Scripts\Dialog\DialogueUI.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ManaUtility.cs" />
     <Compile Include="Assets\Scripts\Player\UI\EquippedItemTitleHUD.cs" />
-    <Compile Include="Assets\Scripts\World\Interactables\TeleportToLocationInteractable.cs" />
     <Compile Include="Assets\Scripts\Player\UI\CastUI.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\NextButton.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\TeleportToSpawnInteractable.cs" />

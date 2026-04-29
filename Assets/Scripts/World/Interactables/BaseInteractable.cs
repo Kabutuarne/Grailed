@@ -2,7 +2,8 @@ using UnityEngine;
 using System.Collections;
 
 /// <summary>
-/// Base class for interactable objects that display CastUI and text on EquippedItemTitleHUD.
+/// Base class for interactable objects that display CastUI and text via InteractableTextHUD.
+/// Interaction counts down ONLY when Interact input is held. Releases cancel the interaction.
 /// </summary>
 [RequireComponent(typeof(Collider))]
 public abstract class BaseInteractable : MonoBehaviour, IInteractable
@@ -11,7 +12,7 @@ public abstract class BaseInteractable : MonoBehaviour, IInteractable
     [Tooltip("Time to complete the interaction (in seconds)")]
     public float interactDuration = 1f;
 
-    [Tooltip("Text to display on EquippedItemTitleHUD")]
+    [Tooltip("Text to display via InteractableTextHUD")]
     public string interactionText = "Interact";
 
     [Header("Audio")]
@@ -26,6 +27,8 @@ public abstract class BaseInteractable : MonoBehaviour, IInteractable
 
     private Coroutine interactionRoutine;
     private bool isInteracting;
+    private PlayerInputActions inputActions;
+    private float interactionProgress = 0f;
 
     protected virtual void Awake()
     {
@@ -34,6 +37,9 @@ public abstract class BaseInteractable : MonoBehaviour, IInteractable
 
         if (audioSource == null)
             audioSource = gameObject.AddComponent<AudioSource>();
+
+        if (inputActions == null)
+            inputActions = new PlayerInputActions();
     }
 
     public virtual bool CanInteract(GameObject interactor)
@@ -55,6 +61,13 @@ public abstract class BaseInteractable : MonoBehaviour, IInteractable
     private IEnumerator InteractionRoutine(GameObject interactor)
     {
         isInteracting = true;
+        interactionProgress = 0f;
+
+        // Enable input
+        if (inputActions != null)
+        {
+            inputActions.Player.Enable();
+        }
 
         // Show CastUI
         var castUI = FindFirstObjectByType<CastUI>();
@@ -63,21 +76,36 @@ public abstract class BaseInteractable : MonoBehaviour, IInteractable
             castUI.Show(interactDuration, interactDuration);
         }
 
-        // Show interaction text on HUD
-        UpdateHUDText(interactDuration);
-
         // Play start sound
         PlaySound(startSound);
 
-        // Wait for duration
-        float elapsed = 0f;
-        while (elapsed < interactDuration)
+        // Hold-to-interact loop: only progress while input is held
+        while (interactionProgress < interactDuration)
         {
-            elapsed += Time.deltaTime;
+            // Check if input is still held
+            if (inputActions == null || !inputActions.Player.Interact.IsPressed())
+            {
+                // Input released - cancel interaction
+                if (castUI != null)
+                {
+                    castUI.Complete();
+                }
+                isInteracting = false;
+                interactionRoutine = null;
+                yield break;
+            }
+
+            // Progress the interaction
+            interactionProgress += Time.deltaTime;
+            if (interactionProgress > interactDuration)
+                interactionProgress = interactDuration;
+
+            // Update CastUI with remaining time
             if (castUI != null)
             {
-                castUI.UpdateRemaining(interactDuration, interactDuration - elapsed);
+                castUI.UpdateRemaining(interactDuration, interactDuration - interactionProgress);
             }
+
             yield return null;
         }
 
@@ -101,20 +129,6 @@ public abstract class BaseInteractable : MonoBehaviour, IInteractable
     /// Override this to handle what happens when interaction completes
     /// </summary>
     protected abstract void OnInteractComplete(GameObject interactor);
-
-    private void UpdateHUDText(float duration)
-    {
-        var playerUI = FindFirstObjectByType<PlayerUI>();
-        if (playerUI != null)
-        {
-            // Update the EquippedItemTitleHUD to show this interaction text
-            var hud = playerUI.GetComponent<EquippedItemTitleHUD>();
-            if (hud != null)
-            {
-                hud.SetTitle(interactionText);
-            }
-        }
-    }
 
     private void PlaySound(AudioClip clip)
     {
