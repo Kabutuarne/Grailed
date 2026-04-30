@@ -357,7 +357,7 @@ public class WandItem : ItemPickup, IInventoryIconProvider, IInventoryPreviewPro
     {
         PlayerUI ui = GetComponentInParent<PlayerUI>();
         if (ui == null)
-            ui = Object.FindFirstObjectByType<PlayerUI>();
+            ui = FindFirstObjectByType<PlayerUI>();
 
         EquippedItemTitleHUD hud = ui != null ? ui.GetComponent<EquippedItemTitleHUD>() : null;
         if (hud != null)

@@ -29,7 +29,7 @@ namespace Sydewa
         [Range(0, 24)] public float TimeOfDay = 12f;
         [Range(0, 24)] public float StartTime = 12f;
         //How long the day cycle will be in seconds
-        [Range(1, 600)] public float CycleDuration = 360f;
+        [Range(1, 1000)] public float CycleDuration = 1000f;
         public Vector2 morningInterval = new Vector2(0f, 0.5f);
         public Vector2 afterNoonInterval = new Vector2(0.5f, 1f);
         public Vector2 lightIntensity = new Vector2(0f, 1f);

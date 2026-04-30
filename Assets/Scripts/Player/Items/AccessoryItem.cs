@@ -28,11 +28,8 @@ public class Accessory : ItemPickup, ICastPermissionProvider, IInventoryPreviewP
 
     public bool CanCastWhileMoving => canCastWhileMoving;
     public bool CanCastWhileHit => canCastWhileHit;
-    // Use ItemPickup's title/description implementation (fields may be
-    // populated on the base or on legacy derived fields; ItemPickup will
-    // read them via reflection if needed).
 
-    public void OnEquipped(GameObject user)
+    public virtual void OnEquipped(GameObject user)
     {
         if (user == null || equipped)
             return;
@@ -62,7 +59,7 @@ public class Accessory : ItemPickup, ICastPermissionProvider, IInventoryPreviewP
         equipped = true;
     }
 
-    public void OnUnequipped()
+    public virtual void OnUnequipped()
     {
         if (!equipped || owner == null)
         {

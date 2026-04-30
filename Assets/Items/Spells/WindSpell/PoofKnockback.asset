@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::KnockbackImpactBehaviour
   force: 15
   upwardsModifier: 2
-  forceMode: 2
+  forceMode: 1
   useProjectileRadius: 0
   radius: 5
   layerMask:

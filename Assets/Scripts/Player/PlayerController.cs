@@ -470,4 +470,15 @@ public class PlayerController : MonoBehaviour
         if (source != null)
             source.Play();
     }
+    void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        // Notify any DecorationItem we walk into
+        DecorationItem decoration = hit.collider.GetComponent<DecorationItem>();
+        if (decoration != null)
+        {
+            // Build an impulse from the player's movement direction and speed
+            Vector3 impulse = hit.moveDirection * hit.controller.velocity.magnitude;
+            decoration.OnPlayerContact(impulse);
+        }
+    }
 }
