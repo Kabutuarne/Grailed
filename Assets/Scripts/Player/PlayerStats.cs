@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerStats : MonoBehaviour
+public class PlayerStats : MonoBehaviour, IResourceHandler
 {
     [Header("Attributes (affect resources & multipliers)")]
     public float intelligence = 10f;
@@ -97,57 +97,55 @@ public class PlayerStats : MonoBehaviour
             return;
 
         // Passive regen
-        if (mana < maxMana) RestoreMana(manaRegenPerSecond * Time.deltaTime);
-        if (health < maxHealth) Heal(healthRegenPerSecond * Time.deltaTime);
-        if (stamina < maxStamina) RestoreEnergy(staminaRegenPerSecond * Time.deltaTime);
+        if (mana < maxMana) ModifyMana(manaRegenPerSecond * Time.deltaTime);
+        if (health < maxHealth) ModifyHealth(healthRegenPerSecond * Time.deltaTime);
+        if (stamina < maxStamina) ModifyEnergy(staminaRegenPerSecond * Time.deltaTime);
     }
 
-    // ── damage / heal ─────────────────────────────────────────────────────────
+    // ── unified resource modification (IResourceHandler) ──────────────────────
 
-    public void TakeDamage(float amount)
-    {
-        health = Mathf.Clamp(health - amount, 0f, maxHealth);
-        if (health <= 0f) Die();
-    }
-
-    public void Heal(float amount)
+    public void ModifyHealth(float amount)
     {
         health = Mathf.Clamp(health + amount, 0f, maxHealth);
+        if (health <= 0f && !isDead) Die();
     }
 
-    public void RestoreMana(float amount)
+    public void ModifyMana(float amount)
     {
         mana = Mathf.Clamp(mana + amount, 0f, maxMana);
     }
 
-    public void RestoreEnergy(float amount)
+    public void ModifyEnergy(float amount)
     {
         stamina = Mathf.Clamp(stamina + amount, 0f, maxStamina);
     }
 
-    public void ConsumeStamina(float amount)
-    {
-        stamina = Mathf.Clamp(stamina - amount, 0f, maxStamina);
-    }
-
-    // Alias kept for legacy call sites.
-    public void RegenStamina(float amount) => RestoreEnergy(amount);
-
-    public bool TrySpendMana(float amount)
-    {
-        if (mana < amount) return false;
-        mana = Mathf.Clamp(mana - amount, 0f, maxMana);
-        return true;
-    }
-
-    public void SpendMana(float amount) => TrySpendMana(amount);
-
-    public void ClampResourcesToMax()
+    public void ClampResources()
     {
         health = Mathf.Clamp(health, 0f, maxHealth);
         mana = Mathf.Clamp(mana, 0f, maxMana);
         stamina = Mathf.Clamp(stamina, 0f, maxStamina);
     }
+
+    /// <summary>
+    /// Attempts to spend mana. Returns true if sufficient mana was available.
+    /// </summary>
+    public bool TrySpendMana(float amount)
+    {
+        if (mana < amount) return false;
+        ModifyMana(-amount);
+        return true;
+    }
+
+    // ── legacy aliases kept for backwards compatibility ───────────────────────
+
+    public void TakeDamage(float amount) => ModifyHealth(-amount);
+    public void Heal(float amount) => ModifyHealth(amount);
+    public void RestoreMana(float amount) => ModifyMana(amount);
+    public void RestoreEnergy(float amount) => ModifyEnergy(amount);
+    public void ConsumeStamina(float amount) => ModifyEnergy(-amount);
+    public void RegenStamina(float amount) => ModifyEnergy(amount);
+    public void SpendMana(float amount) => TrySpendMana(amount);
 
     // Called by StatusEffects when effects are added/removed so derived maxima
     // can be recalculated while preserving current resource percentages.
@@ -187,7 +185,7 @@ public class PlayerStats : MonoBehaviour
             stamina = Mathf.Clamp(stamina, 0f, newMaxStamina);
         }
 
-        ClampResourcesToMax();
+        ClampResources();
 
         prevMaxHealth = newMaxHealth;
         prevMaxMana = newMaxMana;

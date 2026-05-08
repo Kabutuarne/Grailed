@@ -4,28 +4,17 @@ using UnityEngine;
 public class StatusEffects : MonoBehaviour
 {
     public IReadOnlyList<StatusEffectData> ActiveEffects => effects;
-    public void ClearAllEffects()
-    {
-        // Destroy any spawned runtime particles before clearing
-        for (int i = 0; i < effects.Count; i++)
-        {
-            if (effects[i].runtimeParticleInstance != null)
-            {
-                Destroy(effects[i].runtimeParticleInstance);
-                effects[i].runtimeParticleInstance = null;
-            }
-        }
 
-        effects.Clear();
-        if (stats != null)
-            stats.OnStatusEffectsChanged();
-    }
     private List<StatusEffectData> effects = new List<StatusEffectData>();
-    private PlayerStats stats;
+    private IResourceHandler resourceHandler;
+    private PlayerStats playerStats;   // kept for OnStatusEffectsChanged callback
+    private EnemyStats enemyStats;     // kept for OnStatusEffectsChanged callback
 
     private void Awake()
     {
-        stats = GetComponent<PlayerStats>();
+        resourceHandler = GetComponent<IResourceHandler>();
+        playerStats = GetComponent<PlayerStats>();
+        enemyStats = GetComponent<EnemyStats>();
     }
 
     private void Update()
@@ -47,8 +36,7 @@ public class StatusEffects : MonoBehaviour
                     }
 
                     effects.RemoveAt(i);
-                    if (stats != null)
-                        stats.OnStatusEffectsChanged();
+                    NotifyStatsChanged();
                     continue;
                 }
             }
@@ -93,8 +81,7 @@ public class StatusEffects : MonoBehaviour
             effect.runtimeParticleInstance = go;
         }
 
-        if (stats != null)
-            stats.OnStatusEffectsChanged();
+        NotifyStatsChanged();
     }
 
     public void RemoveEffect(string id)
@@ -114,26 +101,64 @@ public class StatusEffects : MonoBehaviour
             }
         }
 
-        if (removedAny && stats != null)
-            stats.OnStatusEffectsChanged();
+        if (removedAny)
+            NotifyStatsChanged();
     }
+
+    public void ClearAllEffects()
+    {
+        // Destroy any spawned runtime particles before clearing
+        for (int i = 0; i < effects.Count; i++)
+        {
+            if (effects[i].runtimeParticleInstance != null)
+            {
+                Destroy(effects[i].runtimeParticleInstance);
+                effects[i].runtimeParticleInstance = null;
+            }
+        }
+
+        effects.Clear();
+        NotifyStatsChanged();
+    }
+
+    // ── Unified resource application via IResourceHandler ─────────────────────
 
     private void ApplyInstant(StatusEffectData e)
     {
-        if (stats == null) return;
+        if (resourceHandler == null) return;
 
-        stats.Heal(e.healAmount);
-        stats.RestoreMana(e.manaAmount);
-        stats.RestoreEnergy(e.energyAmount);
+        if (e.healAmount != 0f)
+            resourceHandler.ModifyHealth(e.healAmount);
+
+        if (e.manaAmount != 0f)
+            resourceHandler.ModifyMana(e.manaAmount);
+
+        if (e.energyAmount != 0f)
+            resourceHandler.ModifyEnergy(e.energyAmount);
     }
 
     private void ApplyOverTime(StatusEffectData e)
     {
-        if (stats == null) return;
+        if (resourceHandler == null) return;
 
-        stats.Heal(e.healthPerSecond * Time.deltaTime);
-        stats.RestoreMana(e.manaPerSecond * Time.deltaTime);
-        stats.RestoreEnergy(e.energyPerSecond * Time.deltaTime);
+        if (e.healthPerSecond != 0f)
+            resourceHandler.ModifyHealth(e.healthPerSecond * Time.deltaTime);
+
+        if (e.manaPerSecond != 0f)
+            resourceHandler.ModifyMana(e.manaPerSecond * Time.deltaTime);
+
+        if (e.energyPerSecond != 0f)
+            resourceHandler.ModifyEnergy(e.energyPerSecond * Time.deltaTime);
+    }
+
+    // ── Stats changed notification ────────────────────────────────────────────
+
+    private void NotifyStatsChanged()
+    {
+        if (playerStats != null)
+            playerStats.OnStatusEffectsChanged();
+        else if (enemyStats != null)
+            enemyStats.SendMessage("OnStatusEffectsChanged", SendMessageOptions.DontRequireReceiver);
     }
 
     // ===== Aggregation =====

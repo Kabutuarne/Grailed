@@ -12,12 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb28009e064aea442bfd4b2a2dc6fe3e, type: 3}
   m_Name: PoofKnockback
   m_EditorClassIdentifier: Assembly-CSharp::KnockbackImpactBehaviour
-  force: 15
-  upwardsModifier: 2
+  force: 20
+  upwardsModifier: 0
   forceMode: 1
-  useProjectileRadius: 0
+  useProjectileRadius: 1
   radius: 5
   layerMask:
     serializedVersion: 2
-    m_Bits: 479
-  affectKinematicBodies: 0
+    m_Bits: 991
+  butlerStaggerMultiplier: 1.5
+  minButlerStaggerForce: 1
+  playerKnockbackMultiplier: 1
+  affectKinematicBodies: 1
+  affectDeadRagdolls: 1

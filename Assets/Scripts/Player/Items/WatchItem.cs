@@ -1,8 +1,8 @@
 using UnityEngine;
-
+using TMPro;
 public class WatchAccessory : Accessory
 {
-    private DayTimeDisplay _display;
+    private TMP_Text _display;
 
     public override void OnEquipped(GameObject user)
     {
@@ -26,12 +26,12 @@ public class WatchAccessory : Accessory
         base.OnUnequipped();            // effect removal, flag + owner clear
     }
 
-    private DayTimeDisplay FindDisplay(GameObject user)
+    private TMP_Text FindDisplay(GameObject user)
     {
         if (user == null) return null;
 
         // Check the player GameObject and all its children
-        DayTimeDisplay found = user.GetComponentInChildren<DayTimeDisplay>(includeInactive: true);
+        TMP_Text found = user.GetComponentInChildren<DayTimeDisplay>(includeInactive: true)?.timeText;
         return found;
     }
 }

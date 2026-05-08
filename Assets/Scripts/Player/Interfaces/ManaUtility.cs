@@ -2,16 +2,30 @@ using UnityEngine;
 
 public static class ManaUtility
 {
-    // Shared mana spending path used by all spells.
+    /// <summary>
+    /// Shared mana spending path used by all spells.
+    /// Works on any GameObject that has a PlayerStats or uses StatusEffects as fallback.
+    /// </summary>
     public static bool TrySpendMana(GameObject caster, float amount, string fallbackEffectId)
     {
         if (caster == null || amount <= 0f)
             return true;
 
-        PlayerStats stats = caster.GetComponent<PlayerStats>();
-        if (stats != null)
-            return stats.TrySpendMana(amount);
+        // Try IResourceHandler first (works for both PlayerStats and EnemyStats)
+        IResourceHandler resourceHandler = caster.GetComponent<IResourceHandler>();
+        if (resourceHandler != null)
+        {
+            // For player, check if enough mana before spending
+            PlayerStats playerStats = resourceHandler as PlayerStats;
+            if (playerStats != null)
+                return playerStats.TrySpendMana(amount);
 
+            // For enemies, just spend it directly
+            resourceHandler.ModifyMana(-amount);
+            return true;
+        }
+
+        // Fallback: apply as a status effect
         StatusEffects status = caster.GetComponent<StatusEffects>();
         if (status != null)
         {

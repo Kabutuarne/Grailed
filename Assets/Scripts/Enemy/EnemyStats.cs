@@ -14,6 +14,11 @@ public class EnemyStats : MonoBehaviour, IResourceHandler
     public float baseMaxMana = 20f;
     public float baseMaxEnergy = 100f;
 
+    [Header("Regeneration")]
+    public float baseHealthRegen = 0f;
+    public float baseManaRegen = 0f;
+    public float baseEnergyRegen = 0f;
+
     [Header("Current")]
     public float health;
     public float mana;
@@ -24,6 +29,7 @@ public class EnemyStats : MonoBehaviour, IResourceHandler
     public float dropScatterRadius = 1f;
 
     private StatusEffects effects;
+    private bool isDead;
 
     public float EffectiveStrength => strength + (effects?.GetStrengthAdd() ?? 0f);
     public float EffectiveStamina => stamina + (effects?.GetStaminaAdd() ?? 0f);
@@ -34,7 +40,21 @@ public class EnemyStats : MonoBehaviour, IResourceHandler
     public float MaxMana => (EffectiveIntelligence / 10f) * baseMaxMana;
     public float MaxEnergy => (EffectiveStamina / 10f) * baseMaxEnergy;
 
-    public float Health01 => health / MaxHealth;
+    public float Health01 => MaxHealth > 0f ? health / MaxHealth : 0f;
+    public bool IsDead => isDead;
+
+    // Derived regeneration rates
+    public float HealthRegenPerSecond => Mathf.Max(0f,
+        (EffectiveStrength / 10f) * baseHealthRegen *
+        (effects != null ? effects.GetHealthRegenMultiplier() : 1f));
+
+    public float ManaRegenPerSecond => Mathf.Max(0f,
+        (EffectiveIntelligence / 10f) * baseManaRegen *
+        (effects != null ? effects.GetManaRegenMultiplier() : 1f));
+
+    public float EnergyRegenPerSecond => Mathf.Max(0f,
+        (EffectiveStamina / 10f) * baseEnergyRegen *
+        (effects != null ? effects.GetEnergyRegenMultiplier() : 1f));
 
     private void Awake()
     {
@@ -45,21 +65,46 @@ public class EnemyStats : MonoBehaviour, IResourceHandler
         energy = MaxEnergy;
     }
 
-    public void Heal(float amount)
+    private void Update()
     {
-        if (amount <= 0f) return;
-        health = Mathf.Clamp(health + amount, 0f, MaxHealth);
+        if (isDead) return;
+
+        // Check for death
+        if (health <= 0f)
+        {
+            isDead = true;
+            health = 0f;
+            return;
+        }
+
+        // Passive regeneration based on effective stats
+        if (health < MaxHealth) ModifyHealth(HealthRegenPerSecond * Time.deltaTime);
+        if (mana < MaxMana) ModifyMana(ManaRegenPerSecond * Time.deltaTime);
+        if (energy < MaxEnergy) ModifyEnergy(EnergyRegenPerSecond * Time.deltaTime);
     }
 
-    public void RestoreMana(float amount)
+    // ── unified resource modification (IResourceHandler) ──────────────────────
+
+    public void ModifyHealth(float amount)
     {
-        if (amount <= 0f) return;
+        if (isDead && amount <= 0f) return;
+        health = Mathf.Clamp(health + amount, 0f, MaxHealth);
+        if (health <= 0f && !isDead)
+        {
+            isDead = true;
+            health = 0f;
+        }
+    }
+
+    public void ModifyMana(float amount)
+    {
+        if (isDead) return;
         mana = Mathf.Clamp(mana + amount, 0f, MaxMana);
     }
 
-    public void RestoreEnergy(float amount)
+    public void ModifyEnergy(float amount)
     {
-        if (amount <= 0f) return;
+        if (isDead) return;
         energy = Mathf.Clamp(energy + amount, 0f, MaxEnergy);
     }
 
@@ -70,10 +115,18 @@ public class EnemyStats : MonoBehaviour, IResourceHandler
         energy = Mathf.Clamp(energy, 0f, MaxEnergy);
     }
 
+    // ── legacy aliases ────────────────────────────────────────────────────────
+
+    public void TakeDamage(float amount) => ModifyHealth(-amount);
+    public void Heal(float amount) => ModifyHealth(amount);
+    public void RestoreMana(float amount) => ModifyMana(amount);
+    public void RestoreEnergy(float amount) => ModifyEnergy(amount);
+
     public void SpawnDeathDrops()
     {
-        foreach (var prefab in deathDropPrefabs)
+        for (int i = 0; i < deathDropPrefabs.Length; i++)
         {
+            GameObject prefab = deathDropPrefabs[i];
             if (!prefab) continue;
 
             Vector3 pos = transform.position + (Vector3)(Random.insideUnitCircle * dropScatterRadius);
