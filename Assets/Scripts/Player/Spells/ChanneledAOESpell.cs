@@ -83,8 +83,8 @@ public class ChanneledAOESpell : ScriptableObject, IChanneledCastSpell
                 if (hit == null)
                     continue;
 
-                GameObject target = hit.gameObject;
-                if (!appliedTargets.Add(target))
+                GameObject target = EffectCarrier.ResolveEffectTarget(hit.gameObject);
+                if (target == null || !appliedTargets.Add(target))
                     continue;
 
                 spell.effectCarrier.Apply(target);

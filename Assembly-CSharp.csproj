@@ -78,6 +78,7 @@
     <Compile Include="Assets\Scripts\Player\PlayerCast.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IItemDisplayName.cs" />
     <Compile Include="Assets\Scripts\Dialog\DialogueData.cs" />
+    <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonCombat.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\StatusEffectData.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerCombat.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\StatusEffects.cs" />
@@ -92,10 +93,13 @@
     <Compile Include="Assets\Scripts\Player\UI\ItemLineData.cs" />
     <Compile Include="Assets\Scripts\Player\Items\AccessoryItem.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\Door.cs" />
+    <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonDeathHandler.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInteractor.cs" />
     <Compile Include="Assets\52SpecialEffectPack\EffectEditor\ShurikenEffectEditor\csShurikenEffectChanger.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInventory.cs" />
+    <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonKnockbackReciever.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\ChanneledAOESpell.cs" />
+    <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonMovement.cs" />
     <Compile Include="Assets\Scripts\Player\ItemPickup.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IInteractable.cs" />
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csAnimationSpin.cs" />
@@ -115,6 +119,7 @@
     <Compile Include="Assets\PlayerInputActions.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyStats.cs" />
     <Compile Include="Assets\Scripts\Enemy\EyeballAI.cs" />
+    <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonRagdollController.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyKnockbackReciever.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerTargeting.cs" />
     <Compile Include="Assets\Scripts\Player\Items\ScrollItem.cs" />
@@ -126,6 +131,8 @@
     <Compile Include="Assets\Scripts\Dialog\DoorDialogSequence.cs" />
     <Compile Include="Assets\Scripts\Player\UI\WandSlotsPanel.cs" />
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csShowAllEffect.cs" />
+    <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonAnimationController.cs" />
+    <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonAI.cs" />
     <Compile Include="Assets\Scripts\Enemy\Interfaces\IResourceHandler.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ICastPermissionProvider.cs" />
     <Compile Include="Assets\Scripts\Player\Items\WandItem.cs" />
@@ -138,11 +145,13 @@
     <Compile Include="Assets\Scripts\Dialog\DialogueUI.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ManaUtility.cs" />
     <Compile Include="Assets\Scripts\Player\UI\EquippedItemTitleHUD.cs" />
+    <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonIKBridge.cs" />
     <Compile Include="Assets\Scripts\Player\UI\CastUI.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\NextButton.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\TeleportToSpawnInteractable.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\SettingsUI.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\ProjectileImpactBehaviour.cs" />
+    <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonTargeting.cs" />
     <Compile Include="Assets\Scripts\Player\UI\InventorySlotUI.cs" />
     <Compile Include="Assets\Scripts\Player\UI\DayTimeDisplay.cs" />
   </ItemGroup>
@@ -170,6 +179,7 @@
     <None Include="Assets\CFXR Prefabs\Texts\_Make your own text effect.txt" />
     <None Include="Assets\SpellParticles\Cartoon FX Remaster\CFXR Assets\Shaders\CFXR_PASSES.cginc" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
+    <None Include="Assets\Materials\ToonShader.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
     <None Include="Assets\Blood decal pack\readme.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />

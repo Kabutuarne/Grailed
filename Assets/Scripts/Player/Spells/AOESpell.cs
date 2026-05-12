@@ -47,8 +47,8 @@ public class AOESpell : ScriptableObject, IInstantCastSpell
             if (hit == null)
                 continue;
 
-            GameObject target = hit.gameObject;
-            if (!appliedTargets.Add(target))
+            GameObject target = EffectCarrier.ResolveEffectTarget(hit.gameObject);
+            if (target == null || !appliedTargets.Add(target))
                 continue;
 
             effectCarrier.Apply(target);

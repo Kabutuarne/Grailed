@@ -232,8 +232,8 @@ public class ProjectileSpell : ScriptableObject, IInstantCastSpell
                 if (hit == null)
                     continue;
 
-                GameObject target = hit.gameObject;
-                if (!applied.Add(target))
+                GameObject target = EffectCarrier.ResolveEffectTarget(hit.gameObject);
+                if (target == null || !applied.Add(target))
                     continue;
 
                 if (target.CompareTag("Player") || target.CompareTag("Enemy"))
@@ -242,7 +242,7 @@ public class ProjectileSpell : ScriptableObject, IInstantCastSpell
 
             if (impactRadius > 0f)
             {
-                PlayerController[] players = Object.FindObjectsOfType<PlayerController>();
+                PlayerController[] players = Object.FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
                 foreach (PlayerController player in players)
                 {
                     if (player == null)

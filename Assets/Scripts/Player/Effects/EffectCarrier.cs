@@ -38,8 +38,46 @@ public class EffectCarrier : ScriptableObject
         return longest;
     }
 
+    public static GameObject ResolveEffectTarget(GameObject original)
+    {
+        if (original == null)
+            return null;
+
+        if (IsValidEffectTarget(original))
+            return original;
+
+        Transform current = original.transform.parent;
+        while (current != null)
+        {
+            if (IsValidEffectTarget(current.gameObject))
+                return current.gameObject;
+
+            current = current.parent;
+        }
+
+        return original;
+    }
+
+    private static bool IsValidEffectTarget(GameObject target)
+    {
+        if (target == null)
+            return false;
+
+        if (target.CompareTag("Enemy") || target.CompareTag("Player"))
+            return true;
+
+        if (target.GetComponent<StatusEffects>() != null)
+            return true;
+
+        if (target.GetComponent<EnemyStats>() != null)
+            return true;
+
+        return false;
+    }
+
     public void Apply(GameObject user)
     {
+        user = ResolveEffectTarget(user);
         if (user == null || effects == null)
             return;
 
