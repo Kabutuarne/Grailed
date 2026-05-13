@@ -1,10 +1,5 @@
 using UnityEngine;
 
-/// <summary>
-/// Central hub for the Skeleton enemy.
-/// The skeleton starts alive as a ragdoll, wakes when the player enters range,
-/// transitions into the get-up animation, and then chases and attacks normally.
-/// </summary>
 [RequireComponent(typeof(EnemyStats))]
 [RequireComponent(typeof(Rigidbody))]
 [DisallowMultipleComponent]
@@ -22,9 +17,7 @@ public class SkeletonAI : MonoBehaviour
     public SkeletonKnockbackReceiver knockbackReceiver;
 
     [Header("AI Behaviour")]
-    [Tooltip("Time (seconds) the player must remain in range before the skeleton starts getting up.")]
     public float activationDelay = 0f;
-    [Tooltip("Chase speed multiplier used once the skeleton is standing.")]
     public float normalChaseSpeed = 0.7f;
 
     [HideInInspector] public AIState currentState = AIState.Ragdoll;
@@ -38,12 +31,6 @@ public class SkeletonAI : MonoBehaviour
 
     private float activationTimer;
 
-    // ── Calculated Properties ─────────────────────────────────────────────────
-
-    /// <summary>
-    /// The skeleton's effective chase speed. Used by SkeletonAnimationController
-    /// as the reference "1x" speed for the WalkSpeed animator parameter.
-    /// </summary>
     public float WalkSpeed =>
         stats != null
             ? Mathf.Max(0f, (stats.EffectiveStamina / 10f) *
@@ -52,7 +39,13 @@ public class SkeletonAI : MonoBehaviour
                 normalChaseSpeed)
             : 0f;
 
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
+    public float AttackInterval =>
+        Mathf.Max(0.1f, combat != null
+            ? combat.baseAttackInterval / Mathf.Max(0.1f, stats != null ? stats.EffectiveAgility / 10f : 1f)
+            : 1f);
+
+    public float AttackSpeedMultiplier =>
+        stats != null ? Mathf.Max(0.1f, stats.EffectiveAgility / 10f) : 1f;
 
     private void Awake()
     {
@@ -82,20 +75,13 @@ public class SkeletonAI : MonoBehaviour
         rb.constraints = RigidbodyConstraints.FreezeRotation;
     }
 
-    private void Start()
-    {
-        currentState = AIState.Ragdoll;
-    }
+    private void Start() => currentState = AIState.Ragdoll;
 
     private void Update()
     {
         if (isDead) return;
 
-        if (stats.IsDead)
-        {
-            Die();
-            return;
-        }
+        if (stats.IsDead) { Die(); return; }
 
         currentTarget = targeting.AcquireTarget();
 
@@ -109,20 +95,12 @@ public class SkeletonAI : MonoBehaviour
         animationController.Tick();
     }
 
-    // ── State Handlers ────────────────────────────────────────────────────────
-
     private void UpdateRagdoll()
     {
         movement.SetDesiredVelocity(Vector3.zero);
-        if (currentTarget == null)
-        {
-            activationTimer = 0f;
-            Debug.Log($"[{name}] Ragdoll: No target found!");
-            return;
-        }
+        if (currentTarget == null) { activationTimer = 0f; return; }
 
         activationTimer += Time.deltaTime;
-        Debug.Log($"[{name}] Ragdoll: Target found, timer: {activationTimer:F2}/{activationDelay:F2}");
         if (activationTimer >= activationDelay)
             StartGetUp();
     }
@@ -133,22 +111,16 @@ public class SkeletonAI : MonoBehaviour
         activationTimer = 0f;
         ragdollController.RecoverFromRagdoll();
         animationController.TriggerGetUp();
-        Debug.Log($"[{name}] Starting get up animation");
     }
 
     private void UpdateGettingUp()
     {
         movement.SetDesiredVelocity(Vector3.zero);
-        // Completion is handled by OnGetUpFinished(), called from SkeletonAnimationController
     }
 
     private void UpdateChasing()
     {
-        if (currentTarget == null)
-        {
-            movement.SetDesiredVelocity(Vector3.zero);
-            return;
-        }
+        if (currentTarget == null) { movement.SetDesiredVelocity(Vector3.zero); return; }
 
         Vector3 toTarget = currentTarget.position - transform.position;
         toTarget.y = 0f;
@@ -167,21 +139,11 @@ public class SkeletonAI : MonoBehaviour
         combat.TickAttack(currentTarget);
     }
 
-    // ── Callbacks ─────────────────────────────────────────────────────────────
-
-    /// <summary>Called by SkeletonAnimationController when the get-up animation finishes.</summary>
     public void OnGetUpFinished()
     {
         if (currentState == AIState.GettingUp)
-        {
             currentState = AIState.Chasing;
-            Debug.Log($"[{name}] Get up finished, starting chase");
-            // No SetSprinting needed — WalkSpeed feeds the velocity which drives the animator
-        }
     }
-
-
-    // ── Damage / Healing / Effects ────────────────────────────────────────────
 
     public void TakeDamage(float amount)
     {
@@ -211,13 +173,8 @@ public class SkeletonAI : MonoBehaviour
         enabled = false;
     }
 
-    public void OnAnimatorIK(int layerIndex)
-    {
-        animationController.OnAnimatorIK(layerIndex);
-    }
+    public void OnAnimatorIK(int layerIndex) => animationController.OnAnimatorIK(layerIndex);
 
-    private float GetSpeedMultiplier()
-    {
-        return statusEffects != null ? statusEffects.GetSpeedMultiplier() : 1f;
-    }
+    private float GetSpeedMultiplier() =>
+        statusEffects != null ? statusEffects.GetSpeedMultiplier() : 1f;
 }

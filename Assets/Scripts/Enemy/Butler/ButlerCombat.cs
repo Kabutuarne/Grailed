@@ -14,8 +14,11 @@ public class ButlerCombat : MonoBehaviour
     public float baseAttackInterval = 1.5f;
     [Tooltip("Effects applied on successful attack")]
     public EffectCarrier[] attackEffects;
+    public EnemyHitBehaviour[] hitBehaviours;
     public GameObject attackVFX;
     public Vector3 attackVFXOffset = new Vector3(0f, 1f, 0.5f);
+    [Tooltip("Radius for hit detection and behaviour application")]
+    public float hitRadius = 1.5f;
 
     private ButlerAI ai;
     private float attackTimer;
@@ -62,7 +65,9 @@ public class ButlerCombat : MonoBehaviour
             Instantiate(attackVFX, spawnPos, transform.rotation);
         }
 
-        // Apply effects through unified system
+        Vector3 hitPos = transform.position + transform.TransformDirection(attackVFXOffset);
+
+        // Apply EffectCarrier effects
         if (attackEffects != null)
         {
             for (int i = 0; i < attackEffects.Length; i++)
@@ -70,6 +75,18 @@ public class ButlerCombat : MonoBehaviour
                 EffectCarrier carrier = attackEffects[i];
                 if (carrier != null)
                     carrier.Apply(target.gameObject);
+            }
+        }
+
+        // Apply hit behaviours
+        if (hitBehaviours != null && hitBehaviours.Length > 0)
+        {
+            Collider[] hits = Physics.OverlapSphere(hitPos, hitRadius);
+
+            foreach (EnemyHitBehaviour behaviour in hitBehaviours)
+            {
+                if (behaviour != null)
+                    behaviour.Apply(gameObject, hitPos, hits, hitRadius);
             }
         }
     }

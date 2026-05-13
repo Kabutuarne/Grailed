@@ -7,8 +7,6 @@ public class SkeletonRagdollController : MonoBehaviour
     [Header("Ragdoll Setup")]
     [Tooltip("All rigidbodies that should be active while the skeleton is ragdolled.")]
     public Rigidbody[] ragdollBodies;
-    [Tooltip("All colliders on ragdoll bones that should be active while the skeleton is ragdolled.")]
-    public Collider[] ragdollColliders;
     [Tooltip("Main root collider used while the skeleton is standing and chasing.")]
     public Collider mainCollider;
 
@@ -16,6 +14,7 @@ public class SkeletonRagdollController : MonoBehaviour
     private Animator animator;
     private List<(Transform ragdollTransform, Transform animatorBone)> bonePairs;
     private bool isRagdollActive;
+    private Collider[] allRagdollColliders;
 
     public void Initialize(SkeletonAI skeletonAI)
     {
@@ -25,8 +24,7 @@ public class SkeletonRagdollController : MonoBehaviour
         if (mainCollider == null)
             mainCollider = GetComponent<Collider>();
 
-        if (ragdollBodies == null || ragdollBodies.Length == 0 ||
-            ragdollColliders == null || ragdollColliders.Length == 0)
+        if (ragdollBodies == null || ragdollBodies.Length == 0)
         {
             AutoFindRagdollComponents();
         }
@@ -46,8 +44,6 @@ public class SkeletonRagdollController : MonoBehaviour
 
         if (animator != null)
             animator.enabled = false;
-
-        Debug.Log($"[{gameObject.name}] Ragdoll activated with {ragdollBodies?.Length ?? 0} bodies");
     }
 
     public void RecoverFromRagdoll()
@@ -72,7 +68,6 @@ public class SkeletonRagdollController : MonoBehaviour
         transform.rotation = ragdollRootRotation;
 
         isRagdollActive = false;
-        Debug.Log($"[{gameObject.name}] Recovered from ragdoll, starting get up");
     }
 
     public bool IsRagdollActive => isRagdollActive;
@@ -85,7 +80,6 @@ public class SkeletonRagdollController : MonoBehaviour
             {
                 if (body == null) continue;
                 body.isKinematic = !enabled;
-                body.detectCollisions = enabled;
                 body.useGravity = enabled;
                 body.interpolation = enabled ? RigidbodyInterpolation.Interpolate : RigidbodyInterpolation.None;
                 body.collisionDetectionMode = enabled ? CollisionDetectionMode.ContinuousDynamic : CollisionDetectionMode.Discrete;
@@ -98,12 +92,13 @@ public class SkeletonRagdollController : MonoBehaviour
             }
         }
 
-        if (ragdollColliders != null)
+        // Keep all colliders enabled, only disable main collider during ragdoll
+        if (allRagdollColliders != null)
         {
-            foreach (Collider col in ragdollColliders)
+            foreach (Collider col in allRagdollColliders)
             {
-                if (col == null) continue;
-                col.enabled = enabled;
+                if (col == null || col == mainCollider) continue;
+                col.enabled = true; // Always enabled
             }
         }
     }
@@ -197,15 +192,13 @@ public class SkeletonRagdollController : MonoBehaviour
 
         foreach (Collider col in allColliders)
         {
-            if (col == null) continue;
-            if (col.gameObject == gameObject && col == mainCollider) continue;
+            if (col == null || col.gameObject == gameObject) continue;
             if (col.isTrigger) continue;
             colliderList.Add(col);
         }
 
         ragdollBodies = bodyList.ToArray();
-        ragdollColliders = colliderList.ToArray();
-        Debug.Log($"[{gameObject.name}] Auto-found {ragdollBodies.Length} ragdoll bodies and {ragdollColliders.Length} ragdoll colliders");
+        allRagdollColliders = colliderList.ToArray();
     }
 
     private Transform FindMatchingBone(Transform ragdollTransform)

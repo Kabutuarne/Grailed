@@ -73,8 +73,10 @@
     <Compile Include="Assets\Scripts\MenuScripts\ButtonAnimator.cs" />
     <Compile Include="Assets\Scripts\Player\UI\ItemDescriptionContainer.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerAnimationController.cs" />
+    <Compile Include="Assets\Scripts\Enemy\EnemyKnockbackImpactBehaviour.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\LevelStartInteractable.cs" />
     <Compile Include="Assets\Scripts\Player\Items\DecorationItem.cs" />
+    <Compile Include="Assets\Scripts\Enemy\SkeletonLimbHitbox.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCast.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IItemDisplayName.cs" />
     <Compile Include="Assets\Scripts\Dialog\DialogueData.cs" />
@@ -127,6 +129,7 @@
     <Compile Include="Assets\Scripts\Player\Spells\ChanneledProjectileSpell.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerStats.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerIKBridge.cs" />
+    <Compile Include="Assets\Scripts\Enemy\EnemyHitBehaviour.cs" />
     <Compile Include="Assets\52SpecialEffectPack\EffectEditor\ShurikenEffectEditor\csShurikenEffectEditor.cs" />
     <Compile Include="Assets\Scripts\Dialog\DoorDialogSequence.cs" />
     <Compile Include="Assets\Scripts\Player\UI\WandSlotsPanel.cs" />

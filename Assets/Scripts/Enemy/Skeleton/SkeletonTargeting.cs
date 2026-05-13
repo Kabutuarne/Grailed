@@ -34,14 +34,29 @@ public class SkeletonTargeting : MonoBehaviour
 
     private Transform FindClosestPlayer()
     {
-        PlayerStats[] players = FindObjectsByType<PlayerStats>(FindObjectsSortMode.None);
         float bestSqrDistance = detectionRadius * detectionRadius;
         Transform bestTarget = null;
 
-        for (int i = 0; i < players.Length; i++)
+        PlayerStats[] statsPlayers = FindObjectsByType<PlayerStats>(FindObjectsSortMode.None);
+        PlayerController[] controllers = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
+
+        for (int i = 0; i < statsPlayers.Length; i++)
         {
-            PlayerStats player = players[i];
+            PlayerStats player = statsPlayers[i];
             if (player == null) continue;
+
+            float sqrDistance = (player.transform.position - transform.position).sqrMagnitude;
+            if (sqrDistance >= bestSqrDistance) continue;
+
+            bestSqrDistance = sqrDistance;
+            bestTarget = player.transform;
+        }
+
+        for (int i = 0; i < controllers.Length; i++)
+        {
+            PlayerController player = controllers[i];
+            if (player == null) continue;
+            if (player.transform == bestTarget) continue;
 
             float sqrDistance = (player.transform.position - transform.position).sqrMagnitude;
             if (sqrDistance >= bestSqrDistance) continue;
