@@ -20,6 +20,7 @@ public class ButlerAI : MonoBehaviour
     public ButlerAudioController audioController;
     public ButlerDeathHandler deathHandler;
     public EnemyPathing pathing;
+    public BasicRoaming roaming;
 
     [Header("Hitboxes")]
     [Tooltip("ButlerLimbHitbox components on the hand/fist bones.")]
@@ -69,6 +70,7 @@ public class ButlerAI : MonoBehaviour
         audioController = GetComponent<ButlerAudioController>() ?? gameObject.AddComponent<ButlerAudioController>();
         deathHandler = GetComponent<ButlerDeathHandler>() ?? gameObject.AddComponent<ButlerDeathHandler>();
         pathing = GetComponent<EnemyPathing>() ?? gameObject.AddComponent<EnemyPathing>();
+        roaming = GetComponent<BasicRoaming>() ?? gameObject.AddComponent<BasicRoaming>();
 
         // Initialize all sub-components
         movement.Initialize(this);
@@ -78,6 +80,7 @@ public class ButlerAI : MonoBehaviour
         audioController.Initialize(this);
         deathHandler.Initialize(this);
         pathing.Initialize(this);
+        roaming.Initialize(this);
 
         // Initialize limb hitboxes
         foreach (ButlerLimbHitbox hitbox in limbHitboxes)
@@ -101,59 +104,89 @@ public class ButlerAI : MonoBehaviour
 
         if (isDead) return;
 
-        // Tick combat cooldown
         combat.TickCooldown();
-
-        // Acquire target
         currentTarget = targeting.AcquireTarget();
 
-        // Determine state
         if (currentTarget == null)
         {
             currentState = AIState.Idle;
-            movement.SetDesiredVelocity(Vector3.zero);
-            desiredMoveSpeed = 0f;
+            TickRoaming();
         }
         else
         {
             currentState = AIState.Chasing;
-            Vector3 toTarget = currentTarget.position - transform.position;
-            toTarget.y = 0f;
-            float distanceToTarget = toTarget.magnitude;
-
-            // Check if in attack range first
-            if (distanceToTarget <= combat.attackRange)
-            {
-                movement.SetDesiredVelocity(Vector3.zero);
-                desiredMoveSpeed = 0f;
-                combat.TryAttack();
-            }
-            else
-            {
-                // Try to pathfind to target
-                Vector3 desiredVelocity = pathing.GetDesiredVelocityTowards(currentTarget.position, SprintSpeed);
-                if (desiredVelocity.sqrMagnitude > 0.0001f)
-                {
-                    Vector3 desiredFacing = desiredVelocity;
-                    desiredFacing.y = 0f;
-                    if (desiredFacing.sqrMagnitude > 0.0001f)
-                        movement.SetDesiredFacing(desiredFacing.normalized);
-                    movement.SetDesiredVelocity(desiredVelocity);
-                    desiredMoveSpeed = 1f;
-                }
-                else
-                {
-                    // Fallback to direct chase if path not available
-                    Vector3 fallback = toTarget.normalized * SprintSpeed;
-                    movement.SetDesiredFacing(fallback.normalized);
-                    movement.SetDesiredVelocity(fallback);
-                    desiredMoveSpeed = 1f;
-                }
-            }
+            TickChasing();
         }
 
         animationController.Tick();
         audioController.TickMovementAudio();
+    }
+
+    // ── State Ticks ───────────────────────────────────────────────────────────
+
+    private void TickRoaming()
+    {
+        // While jumping, the pathing coroutine owns movement — don't interfere.
+        if (pathing.IsJumping)
+            return;
+
+        Vector3 roamVelocity = roaming.GetRoamVelocity();
+        movement.SetDesiredVelocity(roamVelocity);
+
+        if (roamVelocity.sqrMagnitude > 0.0001f)
+        {
+            Vector3 facing = roamVelocity;
+            facing.y = 0f;
+            if (facing.sqrMagnitude > 0.0001f)
+                movement.SetDesiredFacing(facing.normalized);
+
+            desiredMoveSpeed = 0.5f; // walk blend weight for animation
+        }
+        else
+        {
+            desiredMoveSpeed = 0f;
+        }
+    }
+
+    private void TickChasing()
+    {
+        Vector3 toTarget = currentTarget.position - transform.position;
+        toTarget.y = 0f;
+        float distanceToTarget = toTarget.magnitude;
+
+        // In attack range — stop and swing
+        if (distanceToTarget <= combat.attackRange)
+        {
+            movement.SetDesiredVelocity(Vector3.zero);
+            desiredMoveSpeed = 0f;
+            combat.TryAttack();
+            return;
+        }
+
+        // While jumping the pathing coroutine owns movement — don't interfere.
+        if (pathing.IsJumping)
+            return;
+
+        Vector3 desiredVelocity = pathing.GetDesiredVelocityTowards(currentTarget.position, SprintSpeed);
+
+        if (desiredVelocity.sqrMagnitude > 0.0001f)
+        {
+            Vector3 facing = desiredVelocity;
+            facing.y = 0f;
+            if (facing.sqrMagnitude > 0.0001f)
+                movement.SetDesiredFacing(facing.normalized);
+
+            movement.SetDesiredVelocity(desiredVelocity);
+            desiredMoveSpeed = 1f;
+        }
+        else
+        {
+            // Fallback: path not yet available, go direct
+            Vector3 fallback = toTarget.normalized * SprintSpeed;
+            movement.SetDesiredFacing(toTarget.normalized);
+            movement.SetDesiredVelocity(fallback);
+            desiredMoveSpeed = 1f;
+        }
     }
 
     // ── Public API (called by external systems) ───────────────────────────────

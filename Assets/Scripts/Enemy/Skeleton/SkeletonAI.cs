@@ -125,6 +125,9 @@ public class SkeletonAI : MonoBehaviour
     {
         if (currentTarget == null) { movement.SetDesiredVelocity(Vector3.zero); return; }
 
+        if (pathing.IsJumping)
+            return;
+
         Vector3 toTarget = currentTarget.position - transform.position;
         toTarget.y = 0f;
         float distance = toTarget.magnitude;

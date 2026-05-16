@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6697136913554981}
   - component: {fileID: 6573551367855118757}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: collider (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -66,7 +66,7 @@ GameObject:
   - component: {fileID: 7158620465051210801}
   - component: {fileID: 6974340001143979480}
   - component: {fileID: 2431690854942574696}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: uvs_puszka 3 dcm 2 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -154,7 +154,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8989444271306947269}
   - component: {fileID: 6650097906569713259}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -209,7 +209,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9011004531883130452}
   - component: {fileID: 5726713113172448649}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: collider (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -264,7 +264,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4336581267100557566}
   - component: {fileID: 8125453868072293870}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: collider (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -320,7 +320,7 @@ GameObject:
   - component: {fileID: 4774732565344893328}
   - component: {fileID: 59999143953618632}
   - component: {fileID: 1637641704350067338}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: wskazowki
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -409,7 +409,7 @@ GameObject:
   - component: {fileID: 3416667077708449654}
   - component: {fileID: 7453012749160642069}
   - component: {fileID: 8124258065175785212}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: PocketWatch
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -483,8 +483,7 @@ MonoBehaviour:
   titleColor: {r: 1, g: 1, b: 1, a: 1}
   itemPrefab: {fileID: 5426486870540708314}
   descriptionRows:
-  - text: A rusted pocket watch that technically tells time, but who knows if it
-      is right.
+  - text: A rusted pocket watch that technically tells time, but who knows if correctly.
     tag: 0
   - text: Displays time of day
     tag: 4
@@ -508,7 +507,7 @@ GameObject:
   - component: {fileID: 4171349392704590939}
   - component: {fileID: 2833115463368268540}
   - component: {fileID: 4944028918401744095}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: brak
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -597,7 +596,7 @@ GameObject:
   - component: {fileID: 4274968846395859232}
   - component: {fileID: 5847119582913515058}
   - component: {fileID: 2617555047265028537}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: uvs_cyferblat_1 1.001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -686,7 +685,7 @@ GameObject:
   - component: {fileID: 7255660895607386025}
   - component: {fileID: 6252515043099840814}
   - component: {fileID: 2185968183250749887}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: uvs_cyferblat_1 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}

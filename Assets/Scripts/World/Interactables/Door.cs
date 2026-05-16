@@ -37,7 +37,6 @@ public class Door : BaseInteractable
         closedRotation = transform.localRotation;
         openRotation = closedRotation * Quaternion.Euler(0f, openAngle, 0f);
 
-        // Set default interaction text
         interactionText = "Open Door";
     }
 
@@ -51,13 +50,44 @@ public class Door : BaseInteractable
         doorRoutine = StartCoroutine(RotateDoor(targetOpen));
     }
 
+    // ── AI API ────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Called by EnemyPathing when the enemy needs to pass through this door.
+    /// Safe to call even if the door is already open.
+    /// </summary>
+    public void OpenForEnemy(GameObject enemy)
+    {
+        if (isOpen) return;
+
+        if (doorRoutine != null)
+            StopCoroutine(doorRoutine);
+
+        doorRoutine = StartCoroutine(RotateDoor(true));
+    }
+
+    /// <summary>
+    /// Called by EnemyPathing after the enemy has passed through.
+    /// Safe to call even if the door is already closed.
+    /// </summary>
+    public void CloseForEnemy(GameObject enemy)
+    {
+        if (!isOpen) return;
+
+        if (doorRoutine != null)
+            StopCoroutine(doorRoutine);
+
+        doorRoutine = StartCoroutine(RotateDoor(false));
+    }
+
+    // ── Internal ──────────────────────────────────────────────────────────────
+
     private IEnumerator RotateDoor(bool targetOpen)
     {
         Quaternion startRot = transform.localRotation;
         Quaternion endRot = targetOpen ? openRotation : closedRotation;
         float duration = Mathf.Max(0.01f, animationDuration);
 
-        // Play door move start sound
         if (startSound != null && audioSource != null)
             audioSource.PlayOneShot(startSound);
 
@@ -83,7 +113,6 @@ public class Door : BaseInteractable
 
         isOpen = targetOpen;
 
-        // Play door finish sound
         if (completeSound != null && audioSource != null)
             audioSource.PlayOneShot(completeSound);
 
@@ -109,18 +138,15 @@ public class Door : BaseInteractable
 
         foreach (var c in hits)
         {
-            if (c == null || c == doorCollider)
-                continue;
+            if (c == null || c == doorCollider) continue;
 
             Rigidbody rb = c.attachedRigidbody;
-            if (rb == null || rb.isKinematic)
-                continue;
+            if (rb == null || rb.isKinematic) continue;
 
             Vector3 r = rb.worldCenterOfMass - doorPos;
             r.y = 0f;
 
-            if (r.sqrMagnitude < 0.0001f)
-                continue;
+            if (r.sqrMagnitude < 0.0001f) continue;
 
             Vector3 omega = Vector3.up * omegaRadPerSec;
             Vector3 tangential = Vector3.Cross(omega, r);
@@ -128,8 +154,7 @@ public class Door : BaseInteractable
             if (tangential.sqrMagnitude < 0.000001f)
                 tangential = r.normalized;
 
-            Vector3 impulse = tangential.normalized * pushStrength;
-            rb.AddForce(impulse, ForceMode.VelocityChange);
+            rb.AddForce(tangential.normalized * pushStrength, ForceMode.VelocityChange);
         }
     }
 

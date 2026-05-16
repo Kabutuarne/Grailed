@@ -148,6 +148,7 @@
     <Compile Include="Assets\Scripts\MenuScripts\SaveSlotManager.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerStaggerRig.cs" />
     <Compile Include="Assets\Scripts\Dialog\DialogueUI.cs" />
+    <Compile Include="Assets\Scripts\Enemy\BasicRoaming.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ManaUtility.cs" />
     <Compile Include="Assets\Scripts\Player\UI\EquippedItemTitleHUD.cs" />
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonIKBridge.cs" />
