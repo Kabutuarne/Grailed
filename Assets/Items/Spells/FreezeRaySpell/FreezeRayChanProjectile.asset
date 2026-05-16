@@ -24,4 +24,6 @@ MonoBehaviour:
   aimRayDistance: 50
   aimRayMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 959
+  impactBehaviours:
+  - {fileID: 11400000, guid: a45d7370d398421429f058712f74a28d, type: 2}

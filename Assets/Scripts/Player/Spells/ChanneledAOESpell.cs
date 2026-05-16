@@ -15,6 +15,9 @@ public class ChanneledAOESpell : ScriptableObject, IChanneledCastSpell
     public GameObject channelParticlePrefab;
     public Vector3 effectOffset = Vector3.zero;
 
+    [Header("Impact Behaviours")]
+    public SpellImpactBehaviour[] impactBehaviours;
+
     public float CastTime => castTime;
 
     public IChannelCastRuntime StartChannel(GameObject caster)
@@ -72,9 +75,6 @@ public class ChanneledAOESpell : ScriptableObject, IChanneledCastSpell
             if (channelParticleInstance != null)
                 channelParticleInstance.transform.position = effectCenter;
 
-            if (spell.effectCarrier == null)
-                return;
-
             Collider[] hits = Physics.OverlapSphere(effectCenter, spell.radius);
             HashSet<GameObject> appliedTargets = new HashSet<GameObject>();
 
@@ -87,8 +87,11 @@ public class ChanneledAOESpell : ScriptableObject, IChanneledCastSpell
                 if (target == null || !appliedTargets.Add(target))
                     continue;
 
-                spell.effectCarrier.Apply(target);
+                if (spell.effectCarrier != null)
+                    spell.effectCarrier.Apply(target);
             }
+
+            ApplyImpactBehaviours(effectCenter, hits);
         }
 
         private void BeginChannel()
@@ -100,6 +103,24 @@ public class ChanneledAOESpell : ScriptableObject, IChanneledCastSpell
 
             if (spell.channelParticlePrefab != null)
                 channelParticleInstance = Instantiate(spell.channelParticlePrefab, effectCenter, Quaternion.identity);
+        }
+
+        private void ApplyImpactBehaviours(Vector3 effectCenter, Collider[] hits)
+        {
+            if (spell == null || spell.impactBehaviours == null || spell.impactBehaviours.Length == 0)
+                return;
+
+            foreach (SpellImpactBehaviour behaviour in spell.impactBehaviours)
+            {
+                if (behaviour == null)
+                    continue;
+
+                try
+                {
+                    behaviour.Apply(caster, effectCenter, hits, spell.radius);
+                }
+                catch { }
+            }
         }
 
         public void StopChannel()

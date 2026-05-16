@@ -76,7 +76,6 @@
     <Compile Include="Assets\Scripts\Enemy\EnemyKnockbackImpactBehaviour.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\LevelStartInteractable.cs" />
     <Compile Include="Assets\Scripts\Player\Items\DecorationItem.cs" />
-    <Compile Include="Assets\Scripts\Enemy\SkeletonLimbHitbox.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCast.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IItemDisplayName.cs" />
     <Compile Include="Assets\Scripts\Dialog\DialogueData.cs" />
@@ -88,6 +87,7 @@
     <Compile Include="Assets\Scripts\Player\Effects\InstantEffect.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\EffectCarrier.cs" />
     <Compile Include="Assets\Scripts\Player\UI\WandSlotOverlay.cs" />
+    <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonLimbHitbox.cs" />
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csParticleMove.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerAudioController.cs" />
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csMouseOrbit.cs" />
@@ -138,6 +138,7 @@
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonAI.cs" />
     <Compile Include="Assets\Scripts\Enemy\Interfaces\IResourceHandler.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ICastPermissionProvider.cs" />
+    <Compile Include="Assets\Scripts\Enemy\Butler\ButlerLimbHitbox.cs" />
     <Compile Include="Assets\Scripts\Player\Items\WandItem.cs" />
     <Compile Include="Assets\Scripts\Enemy\Interfaces\IEffectTarget.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />

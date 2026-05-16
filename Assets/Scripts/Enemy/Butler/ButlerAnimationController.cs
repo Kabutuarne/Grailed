@@ -10,7 +10,7 @@ public class ButlerAnimationController : MonoBehaviour
 {
     [Header("Animation")]
     public string animWalkSpeed = "WalkSpeed";
-    public string animWalkDirection = "WalkDirection"; // NEW: Controls animation direction (-1 to 1)
+    public string animWalkDirection = "WalkDirection";
     public string animAttackTrig = "Attack";
     public string animMirrorBool = "MirrorAttack";
     [Tooltip("How fast the animation speed blend responds")]
@@ -19,6 +19,10 @@ public class ButlerAnimationController : MonoBehaviour
     public float directionBlendSpeed = 6f;
     [Tooltip("Maximum animation speed multiplier when moving faster than sprint speed")]
     public float maxAnimationMultiplier = 2f;
+
+    [Header("Animation Layers")]
+    [Tooltip("Base layer containing the attack state")]
+    public int attackLayerIndex = 0;
 
     [Header("IK Settings")]
     [Tooltip("Enable head look-at IK to track target")]
@@ -36,11 +40,27 @@ public class ButlerAnimationController : MonoBehaviour
     [Tooltip("How much the body follows the head turn")]
     [Range(0f, 1f)] public float bodyWeight = 0.15f;
 
+    [Header("Attack Hand IK")]
+    [Tooltip("Enable IK to pull the punching hand toward the player during the strike phase.")]
+    public bool attackHandIKEnabled = true;
+    [Tooltip("Normalized time range within the Attack state where IK is active. " +
+            "0.2–0.6 covers the strike, skipping windup and follow-through.")]
+    public float attackIKStartNorm = 0.2f;
+    public float attackIKPeakNorm = 0.4f;
+    public float attackIKEndNorm = 0.65f;
+    [Tooltip("Max IK weight at peak. Keep below 0.7 to avoid rubber-arm look.")]
+    [Range(0f, 1f)] public float attackIKMaxWeight = 0.55f;
+    [Tooltip("Height offset above the player's root to target (chest level).")]
+    public float attackIKTargetHeight = 0.9f;
+
     private ButlerAI ai;
     private Animator animator;
     private float currentLookWeight;
     private Vector3 lastPosition;
     private Vector3 currentVelocity;
+    private bool wasInAttackState;
+    private AvatarIKGoal activePunchHand = AvatarIKGoal.RightHand;
+    private bool mirrorAttack;
 
     public void Initialize(ButlerAI butlerAI)
     {
@@ -113,6 +133,27 @@ public class ButlerAnimationController : MonoBehaviour
             float nextDirection = Mathf.MoveTowards(currentDirection, targetDirection, Time.deltaTime * directionBlendSpeed);
             animator.SetFloat(animWalkDirection, nextDirection);
         }
+
+        // Track attack state for end notification
+        TrackAttackState();
+    }
+
+    /// <summary>
+    /// Detects when the animator leaves an "Attack"-tagged state on the attack layer
+    /// and notifies ButlerCombat so it can disarm hitboxes and reset attack state.
+    /// The attack animation state must have its Tag set to "Attack" in the Animator.
+    /// </summary>
+    private void TrackAttackState()
+    {
+        if (ai?.combat == null) return;
+
+        AnimatorStateInfo info = animator.GetCurrentAnimatorStateInfo(attackLayerIndex);
+        bool inAttackState = info.IsTag("Attack") && !animator.IsInTransition(attackLayerIndex);
+
+        if (wasInAttackState && !inAttackState)
+            ai.combat.OnAttackAnimationEnd();
+
+        wasInAttackState = inAttackState;
     }
 
     /// <summary>
@@ -122,6 +163,10 @@ public class ButlerAnimationController : MonoBehaviour
     {
         if (animator == null) return;
 
+        // Capture which hand punches THIS swing before flipping
+        activePunchHand = mirror ? AvatarIKGoal.LeftHand : AvatarIKGoal.RightHand;
+        mirrorAttack = mirror;
+
         if (!string.IsNullOrEmpty(animMirrorBool))
             animator.SetBool(animMirrorBool, mirror);
 
@@ -130,12 +175,13 @@ public class ButlerAnimationController : MonoBehaviour
     }
 
     /// <summary>
-    /// Called by ButlerIKBridge or directly from OnAnimatorIK.
+    /// Called by ButlerAI via OnAnimatorIK.
     /// </summary>
     public void OnAnimatorIK(int layerIndex)
     {
         if (ai == null || ai.isDead || animator == null) return;
 
+        // ── Head look IK ─────────────────────────────────────────────────────
         Transform lookTarget = null;
 
         if (enableLookIK && ai.currentState == ButlerAI.AIState.Chasing && ai.currentTarget != null)
@@ -157,6 +203,49 @@ public class ButlerAnimationController : MonoBehaviour
         else
         {
             animator.SetLookAtWeight(0f);
+        }
+
+        // ── Attack hand IK ────────────────────────────────────────────────────
+        if (attackHandIKEnabled && ai.currentTarget != null)
+        {
+            AnimatorStateInfo info = animator.GetCurrentAnimatorStateInfo(attackLayerIndex);
+
+            if (info.IsTag("Attack"))
+            {
+                float t = info.normalizedTime % 1f; // loop-safe
+
+                // Triangle ramp: 0 at start → 1 at peak → 0 at end
+                float ikWeight = 0f;
+                if (t >= attackIKStartNorm && t <= attackIKEndNorm)
+                {
+                    if (t <= attackIKPeakNorm)
+                        ikWeight = Mathf.InverseLerp(attackIKStartNorm, attackIKPeakNorm, t);
+                    else
+                        ikWeight = Mathf.InverseLerp(attackIKEndNorm, attackIKPeakNorm, t);
+
+                    ikWeight *= attackIKMaxWeight;
+                }
+
+                // Get the closest point on the player's collider surface to avoid phasing through
+                Vector3 targetPos = ai.currentTarget.position + Vector3.up * attackIKTargetHeight;
+                Collider targetCollider = ai.currentTarget.GetComponent<Collider>();
+                if (targetCollider != null)
+                {
+                    Vector3 closestPoint = targetCollider.ClosestPoint(transform.position);
+                    // Offset slightly outward from the surface to hit properly
+                    Vector3 dirFromTarget = (transform.position - ai.currentTarget.position).normalized;
+                    targetPos = closestPoint + dirFromTarget * 0.05f;
+                }
+
+                animator.SetIKPositionWeight(activePunchHand, ikWeight);
+                animator.SetIKPosition(activePunchHand, targetPos);
+            }
+            else
+            {
+                // Outside attack state — zero out both hand IK goals
+                animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 0f);
+                animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0f);
+            }
         }
     }
 }

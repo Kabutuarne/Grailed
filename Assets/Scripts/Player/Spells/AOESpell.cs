@@ -14,6 +14,9 @@ public class AOESpell : ScriptableObject, IInstantCastSpell
     [Header("Effect")]
     public EffectCarrier effectCarrier;
 
+    [Header("Impact Behaviours")]
+    public SpellImpactBehaviour[] impactBehaviours;
+
     [Header("Visuals")]
     public GameObject castingParticlePrefab;
     public Vector3 effectOffset = Vector3.zero;
@@ -28,7 +31,7 @@ public class AOESpell : ScriptableObject, IInstantCastSpell
     // Triggers a single AOE cast. Returns true if mana was spent and effect applied.
     public bool TriggerCast(GameObject caster)
     {
-        if (caster == null || effectCarrier == null)
+        if (caster == null)
             return false;
 
         if (!ManaUtility.TrySpendMana(caster, manaCost, "aoe_spell_cost"))
@@ -51,9 +54,29 @@ public class AOESpell : ScriptableObject, IInstantCastSpell
             if (target == null || !appliedTargets.Add(target))
                 continue;
 
-            effectCarrier.Apply(target);
+            if (effectCarrier != null)
+                effectCarrier.Apply(target);
         }
 
+        ApplyImpactBehaviours(caster, effectCenter, hits);
         return true;
+    }
+
+    private void ApplyImpactBehaviours(GameObject caster, Vector3 effectCenter, Collider[] hits)
+    {
+        if (impactBehaviours == null || impactBehaviours.Length == 0)
+            return;
+
+        foreach (SpellImpactBehaviour behaviour in impactBehaviours)
+        {
+            if (behaviour == null)
+                continue;
+
+            try
+            {
+                behaviour.Apply(caster, effectCenter, hits, radius);
+            }
+            catch { }
+        }
     }
 }

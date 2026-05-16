@@ -18,6 +18,9 @@ public class ChanneledProjectileSpell : ScriptableObject, IChanneledCastSpell
     public float aimRayDistance = 200f;
     public LayerMask aimRayMask = ~0;
 
+    [Header("Impact Behaviours")]
+    public SpellImpactBehaviour[] impactBehaviours;
+
     public float CastTime => castTime;
 
     public IChannelCastRuntime StartChannel(GameObject caster)
@@ -125,7 +128,9 @@ public class ChanneledProjectileSpell : ScriptableObject, IChanneledCastSpell
                 hitEffectInstance = null;
             }
 
-            UpdateTargetEffect(hasHit ? hitInfo.collider.gameObject : null);
+            GameObject newTarget = hasHit ? hitInfo.collider.gameObject : null;
+            UpdateTargetEffect(newTarget);
+            ApplyImpactBehaviours(origin, aimDir, hitPoint, hasHit ? new Collider[] { hitInfo.collider } : System.Array.Empty<Collider>());
         }
 
         private void BeginChannel()
@@ -171,6 +176,24 @@ public class ChanneledProjectileSpell : ScriptableObject, IChanneledCastSpell
             if (hitTarget != null)
             {
                 try { spell.passiveEffect.Apply(hitTarget); } catch { }
+            }
+        }
+
+        private void ApplyImpactBehaviours(Vector3 origin, Vector3 aimDir, Vector3 hitPoint, Collider[] hits)
+        {
+            if (spell == null || spell.impactBehaviours == null || spell.impactBehaviours.Length == 0)
+                return;
+
+            foreach (SpellImpactBehaviour behaviour in spell.impactBehaviours)
+            {
+                if (behaviour == null)
+                    continue;
+
+                try
+                {
+                    behaviour.Apply(caster, hitPoint, hits, 0f);
+                }
+                catch { }
             }
         }
 

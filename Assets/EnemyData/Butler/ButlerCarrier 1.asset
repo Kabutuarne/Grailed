@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EffectCarrier
   effects:
   - {fileID: 11400000, guid: d5687592f91e0164b9f1031205652dd2, type: 2}
-  title: Effect
+  title: ButtlerPunch
   icon: {fileID: 0}
   description: 
   particlePrefab: {fileID: 0}
   particleYOffset: -3.2
-  breaksCast: 0
+  breaksCast: 1

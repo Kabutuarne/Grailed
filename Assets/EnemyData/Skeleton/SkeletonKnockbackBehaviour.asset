@@ -12,13 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f8b18100770a3947807f46b78fc363e, type: 3}
   m_Name: SkeletonKnockbackBehaviour
   m_EditorClassIdentifier: Assembly-CSharp::EnemyKnockbackImpactBehaviour
-  force: 5
-  upwardsModifier: 0
+  force: 150
+  upwardsModifier: 4
   forceMode: 1
-  useAttackRadius: 0
+  useAttackRadius: 1
   radius: 36.65
   layerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 255
   playerKnockbackMultiplier: 1
-  affectKinematicBodies: 0

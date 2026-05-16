@@ -240,7 +240,7 @@ public class PlayerUI : MonoBehaviour
                 var titleTransform = go.transform.Find("Title");
                 if (titleTransform != null)
                 {
-                    var titleText = titleTransform.GetComponent<Text>();
+                    var titleText = titleTransform.GetComponent<TMP_Text>();
                     if (titleText != null)
                         titleText.text = carrier.title ?? carrier.name;
                 }
@@ -249,7 +249,7 @@ public class PlayerUI : MonoBehaviour
                 var timeTransform = go.transform.Find("Time");
                 if (timeTransform != null)
                 {
-                    var timeText = timeTransform.GetComponent<Text>();
+                    var timeText = timeTransform.GetComponent<TMP_Text>();
                     if (timeText != null)
                         timeText.text = timeVal > 0f ? $"{Mathf.CeilToInt(timeVal)}s" : "";
                 }
@@ -259,7 +259,7 @@ public class PlayerUI : MonoBehaviour
                 var titleTransform = go.transform.Find("Title");
                 if (titleTransform != null)
                 {
-                    var titleText = titleTransform.GetComponent<Text>();
+                    var titleText = titleTransform.GetComponent<TMP_Text>();
                     if (titleText != null)
                         titleText.text = kv.Key.ToString();
                 }
@@ -267,7 +267,7 @@ public class PlayerUI : MonoBehaviour
                 var timeTransform = go.transform.Find("Time");
                 if (timeTransform != null)
                 {
-                    var timeText = timeTransform.GetComponent<Text>();
+                    var timeText = timeTransform.GetComponent<TMP_Text>();
                     if (timeText != null)
                         timeText.text = timeVal < 0f ? "ON" : $"{Mathf.CeilToInt(timeVal)}s";
                 }
@@ -324,7 +324,7 @@ public class PlayerUI : MonoBehaviour
                 var titleTransform = go.transform.Find("Title");
                 if (titleTransform != null)
                 {
-                    var titleText = titleTransform.GetComponent<Text>();
+                    var titleText = titleTransform.GetComponent<TMP_Text>();
                     if (titleText != null)
                         titleText.text = carrier.title ?? carrier.name;
                 }
@@ -332,7 +332,7 @@ public class PlayerUI : MonoBehaviour
                 var timeTransform = go.transform.Find("Time");
                 if (timeTransform != null)
                 {
-                    var timeText = timeTransform.GetComponent<Text>();
+                    var timeText = timeTransform.GetComponent<TMP_Text>();
                     if (timeText != null)
                         timeText.text = timeVal > 0f ? $"{Mathf.CeilToInt(timeVal)}s" : "";
                 }
@@ -342,7 +342,7 @@ public class PlayerUI : MonoBehaviour
                 var titleTransform = go.transform.Find("Title");
                 if (titleTransform != null)
                 {
-                    var titleText = titleTransform.GetComponent<Text>();
+                    var titleText = titleTransform.GetComponent<TMP_Text>();
                     if (titleText != null)
                         titleText.text = kv.Key.ToString();
                 }
@@ -350,7 +350,7 @@ public class PlayerUI : MonoBehaviour
                 var timeTransform = go.transform.Find("Time");
                 if (timeTransform != null)
                 {
-                    var timeText = timeTransform.GetComponent<Text>();
+                    var timeText = timeTransform.GetComponent<TMP_Text>();
                     if (timeText != null)
                         timeText.text = timeVal < 0f ? "ON" : $"{Mathf.CeilToInt(timeVal)}s";
                 }

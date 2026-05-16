@@ -20,6 +20,10 @@ public class ButlerAI : MonoBehaviour
     public ButlerAudioController audioController;
     public ButlerDeathHandler deathHandler;
 
+    [Header("Hitboxes")]
+    [Tooltip("ButlerLimbHitbox components on the hand/fist bones.")]
+    public ButlerLimbHitbox[] limbHitboxes;
+
     // ── Shared State (read by sub-components) ─────────────────────────────────
     [HideInInspector] public AIState currentState = AIState.Idle;
     [HideInInspector] public Transform currentTarget;
@@ -72,6 +76,10 @@ public class ButlerAI : MonoBehaviour
         audioController.Initialize(this);
         deathHandler.Initialize(this);
 
+        // Initialize limb hitboxes
+        foreach (ButlerLimbHitbox hitbox in limbHitboxes)
+            hitbox?.Initialize(combat);
+
         // Initialize knockback receiver and ensure proper Rigidbody settings
         ButlerKnockbackReceiver knockbackReceiver = GetComponent<ButlerKnockbackReceiver>()
             ?? gameObject.AddComponent<ButlerKnockbackReceiver>();
@@ -122,7 +130,7 @@ public class ButlerAI : MonoBehaviour
             {
                 movement.SetDesiredVelocity(Vector3.zero);
                 desiredMoveSpeed = 0f;
-                combat.TryAttack(currentTarget);
+                combat.TryAttack();
             }
         }
 

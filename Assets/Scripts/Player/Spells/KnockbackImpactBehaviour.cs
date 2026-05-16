@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections;
 
 [CreateAssetMenu(menuName = "DungeonBroker/SpellBehaviours/Knockback", fileName = "NewKnockbackBehaviour")]
-public class KnockbackImpactBehaviour : ProjectileImpactBehaviour
+public class KnockbackImpactBehaviour : SpellImpactBehaviour
 {
     [Header("Knockback Settings")]
     [Tooltip("Base force strength applied to targets")]

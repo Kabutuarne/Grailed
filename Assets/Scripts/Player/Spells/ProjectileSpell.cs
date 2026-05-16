@@ -43,7 +43,7 @@ public class ProjectileSpell : ScriptableObject, IInstantCastSpell
     public GameObject hitParticlePrefab;
 
     [Header("Impact Behaviours")]
-    public ProjectileImpactBehaviour[] impactBehaviours;
+    public SpellImpactBehaviour[] impactBehaviours;
 
     public float CastTime => castTime;
 
@@ -269,7 +269,7 @@ public class ProjectileSpell : ScriptableObject, IInstantCastSpell
             if (parentSpell == null || parentSpell.impactBehaviours == null)
                 return;
 
-            foreach (ProjectileImpactBehaviour behaviour in parentSpell.impactBehaviours)
+            foreach (SpellImpactBehaviour behaviour in parentSpell.impactBehaviours)
             {
                 if (behaviour == null)
                     continue;
