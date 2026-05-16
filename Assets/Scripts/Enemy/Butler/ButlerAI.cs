@@ -19,6 +19,7 @@ public class ButlerAI : MonoBehaviour
     public ButlerAnimationController animationController;
     public ButlerAudioController audioController;
     public ButlerDeathHandler deathHandler;
+    public EnemyPathing pathing;
 
     [Header("Hitboxes")]
     [Tooltip("ButlerLimbHitbox components on the hand/fist bones.")]
@@ -67,6 +68,7 @@ public class ButlerAI : MonoBehaviour
         animationController = GetComponent<ButlerAnimationController>() ?? gameObject.AddComponent<ButlerAnimationController>();
         audioController = GetComponent<ButlerAudioController>() ?? gameObject.AddComponent<ButlerAudioController>();
         deathHandler = GetComponent<ButlerDeathHandler>() ?? gameObject.AddComponent<ButlerDeathHandler>();
+        pathing = GetComponent<EnemyPathing>() ?? gameObject.AddComponent<EnemyPathing>();
 
         // Initialize all sub-components
         movement.Initialize(this);
@@ -75,6 +77,7 @@ public class ButlerAI : MonoBehaviour
         animationController.Initialize(this);
         audioController.Initialize(this);
         deathHandler.Initialize(this);
+        pathing.Initialize(this);
 
         // Initialize limb hitboxes
         foreach (ButlerLimbHitbox hitbox in limbHitboxes)
@@ -118,19 +121,34 @@ public class ButlerAI : MonoBehaviour
             toTarget.y = 0f;
             float distanceToTarget = toTarget.magnitude;
 
-            if (distanceToTarget > 0.05f)
-                movement.SetDesiredFacing(toTarget.normalized);
-
-            if (distanceToTarget > combat.attackRange)
-            {
-                movement.SetDesiredVelocity(toTarget.normalized * SprintSpeed);
-                desiredMoveSpeed = 1f;
-            }
-            else
+            // Check if in attack range first
+            if (distanceToTarget <= combat.attackRange)
             {
                 movement.SetDesiredVelocity(Vector3.zero);
                 desiredMoveSpeed = 0f;
                 combat.TryAttack();
+            }
+            else
+            {
+                // Try to pathfind to target
+                Vector3 desiredVelocity = pathing.GetDesiredVelocityTowards(currentTarget.position, SprintSpeed);
+                if (desiredVelocity.sqrMagnitude > 0.0001f)
+                {
+                    Vector3 desiredFacing = desiredVelocity;
+                    desiredFacing.y = 0f;
+                    if (desiredFacing.sqrMagnitude > 0.0001f)
+                        movement.SetDesiredFacing(desiredFacing.normalized);
+                    movement.SetDesiredVelocity(desiredVelocity);
+                    desiredMoveSpeed = 1f;
+                }
+                else
+                {
+                    // Fallback to direct chase if path not available
+                    Vector3 fallback = toTarget.normalized * SprintSpeed;
+                    movement.SetDesiredFacing(fallback.normalized);
+                    movement.SetDesiredVelocity(fallback);
+                    desiredMoveSpeed = 1f;
+                }
             }
         }
 

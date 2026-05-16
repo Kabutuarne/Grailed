@@ -14,7 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EffectCarrier
   effects:
   - {fileID: 11400000, guid: 5c6860f8a67d7e24ba065454bf779549, type: 2}
-  - {fileID: 11400000, guid: 5c6860f8a67d7e24ba065454bf779549, type: 2}
   title: Effect
   icon: {fileID: 0}
   description: 

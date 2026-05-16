@@ -86,16 +86,23 @@ public class SkeletonCombat : MonoBehaviour
         if (!isAttacking) return;
         if (!hitThisSwing.Add(other.gameObject)) return;
 
+        // Only apply effects to players
+        PlayerController playerController = other.GetComponentInParent<PlayerController>();
+        if (playerController == null) return;
+
         foreach (EffectCarrier carrier in attackEffects)
             carrier?.Apply(other.gameObject);
 
-        if (hitBehaviours != null && hitBehaviours.Length > 0)
+        // if (hitBehaviours != null && hitBehaviours.Length > 0)
         {
             Vector3 hitPos = other.ClosestPoint(transform.position);
             Collider[] hits = { other };
-
+            Debug.Log("hello? ");
             foreach (EnemyHitBehaviour behaviour in hitBehaviours)
+            {
                 behaviour?.Apply(gameObject, hitPos, hits, hitBehaviourRadius);
+                Debug.Log("SKELETON HIT THIS STUPID FUCKING PLAYER WITH " + behaviour);
+            }
         }
     }
 

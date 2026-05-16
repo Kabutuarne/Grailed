@@ -44,7 +44,6 @@ public class SkeletonMovement : MonoBehaviour
         if (finalVelocity.sqrMagnitude > 0.0001f)
         {
             Vector3 next = rb.position + finalVelocity * Time.fixedDeltaTime;
-            next.y = rb.position.y;
             rb.MovePosition(next);
         }
 

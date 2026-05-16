@@ -15,6 +15,7 @@ public class SkeletonAI : MonoBehaviour
     public SkeletonRagdollController ragdollController;
     public SkeletonDeathHandler deathHandler;
     public SkeletonKnockbackReceiver knockbackReceiver;
+    public EnemyPathing pathing;
 
     [Header("AI Behaviour")]
     public float activationDelay = 0f;
@@ -61,6 +62,7 @@ public class SkeletonAI : MonoBehaviour
         ragdollController = GetComponent<SkeletonRagdollController>() ?? gameObject.AddComponent<SkeletonRagdollController>();
         deathHandler = GetComponent<SkeletonDeathHandler>() ?? gameObject.AddComponent<SkeletonDeathHandler>();
         knockbackReceiver = GetComponent<SkeletonKnockbackReceiver>() ?? gameObject.AddComponent<SkeletonKnockbackReceiver>();
+        pathing = GetComponent<EnemyPathing>() ?? gameObject.AddComponent<EnemyPathing>();
 
         movement.Initialize(this);
         targeting.Initialize(this);
@@ -69,6 +71,7 @@ public class SkeletonAI : MonoBehaviour
         ragdollController.Initialize(this);
         deathHandler.Initialize(this);
         knockbackReceiver.Initialize(this);
+        pathing.Initialize(this);
 
         rb.isKinematic = false;
         rb.useGravity = true;
@@ -128,8 +131,20 @@ public class SkeletonAI : MonoBehaviour
 
         if (distance > 0.05f)
         {
-            movement.SetDesiredFacing(toTarget.normalized);
-            movement.SetDesiredVelocity(toTarget.normalized * WalkSpeed);
+            Vector3 desiredVelocity = pathing.GetDesiredVelocityTowards(currentTarget.position, WalkSpeed);
+            if (desiredVelocity.sqrMagnitude > 0.0001f)
+            {
+                Vector3 desiredFacing = desiredVelocity;
+                desiredFacing.y = 0f;
+                if (desiredFacing.sqrMagnitude > 0.0001f)
+                    movement.SetDesiredFacing(desiredFacing.normalized);
+                movement.SetDesiredVelocity(desiredVelocity);
+            }
+            else
+            {
+                movement.SetDesiredFacing(toTarget.normalized);
+                movement.SetDesiredVelocity(toTarget.normalized * WalkSpeed);
+            }
         }
         else
         {

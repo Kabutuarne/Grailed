@@ -15,17 +15,10 @@ public class ButlerLimbHitbox : MonoBehaviour
     public void Initialize(ButlerCombat butlerCombat)
     {
         combat = butlerCombat;
-
-        // Ensure collider is NOT a trigger so it generates physics contacts
-        Collider collider = GetComponent<Collider>();
-        collider.isTrigger = false;
-        collider.providesContacts = true;
-
-        // Ensure rigidbody is configured correctly for contact detection
         Rigidbody rb = GetComponent<Rigidbody>();
-        rb.isKinematic = true;      // Don't let physics move the bone
-        rb.detectCollisions = true; // Must detect collisions for contacts to work
-        rb.useGravity = false;      // Bones are animated, not gravity-driven
+        rb.isKinematic = false;
+        rb.detectCollisions = true;
+        rb.useGravity = false;
     }
 
     public void Arm() => armed = true;
@@ -34,12 +27,24 @@ public class ButlerLimbHitbox : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         if (!armed || combat == null) return;
+
+        // Prevent hitting own parent (the butler itself)
+        if (collision.collider.transform.IsChildOf(transform.parent) ||
+            collision.collider.transform.parent == transform.parent)
+            return;
+
         combat.OnLimbHit(collision.collider);
     }
 
     private void OnCollisionStay(Collision collision)
     {
         if (!armed || combat == null) return;
+
+        // Prevent hitting own parent (the butler itself)
+        if (collision.collider.transform.IsChildOf(transform.parent) ||
+            collision.collider.transform.parent == transform.parent)
+            return;
+
         combat.OnLimbHit(collision.collider);
     }
 }

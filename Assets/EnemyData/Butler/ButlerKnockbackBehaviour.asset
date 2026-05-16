@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f8b18100770a3947807f46b78fc363e, type: 3}
   m_Name: ButlerKnockbackBehaviour
   m_EditorClassIdentifier: Assembly-CSharp::EnemyKnockbackImpactBehaviour
-  force: 200
-  upwardsModifier: 10
+  force: 10
+  upwardsModifier: 1
   forceMode: 1
-  useAttackRadius: 1
+  useAttackRadius: 0
   radius: 36.65
   layerMask:
     serializedVersion: 2

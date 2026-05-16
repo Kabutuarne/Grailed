@@ -4571,6 +4571,7 @@ GameObject:
   - component: {fileID: 8609487003943046554}
   - component: {fileID: 5016698377827138692}
   - component: {fileID: 8982589621032612217}
+  - component: {fileID: 1325747041137983951}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -4787,6 +4788,24 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: -1, z: 0}
+--- !u!114 &1325747041137983951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4547268057884637444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12dc662afc8942345b93bbf187aa225f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DayTimeDisplay
+  lightingManager: {fileID: 0}
+  timeText: {fileID: 7177621145344713609}
+  warningThreshold: 18
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  warningColor: {r: 1, g: 0, b: 0, a: 1}
+  showSeconds: 0
 --- !u!1 &4556611080725356677
 GameObject:
   m_ObjectHideFlags: 0

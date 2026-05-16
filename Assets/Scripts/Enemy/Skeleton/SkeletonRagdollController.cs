@@ -79,10 +79,14 @@ public class SkeletonRagdollController : MonoBehaviour
             foreach (Rigidbody body in ragdollBodies)
             {
                 if (body == null) continue;
+                if (body.TryGetComponent<SkeletonLimbHitbox>(out var hitbox) && !enabled)
+                {
+                    continue; // Don't change kinematic state of limb hitboxes, they control that themselves
+                }
                 body.isKinematic = !enabled;
                 body.useGravity = enabled;
-                body.interpolation = enabled ? RigidbodyInterpolation.Interpolate : RigidbodyInterpolation.None;
-                body.collisionDetectionMode = enabled ? CollisionDetectionMode.ContinuousDynamic : CollisionDetectionMode.Discrete;
+                // body.interpolation = enabled ? RigidbodyInterpolation.Interpolate : RigidbodyInterpolation.None;
+                // body.collisionDetectionMode = enabled ? CollisionDetectionMode.Continuous : CollisionDetectionMode.Discrete;
 
                 if (enabled)
                 {
@@ -113,7 +117,6 @@ public class SkeletonRagdollController : MonoBehaviour
     {
         if (ai?.rb == null) return;
         ai.rb.isKinematic = true;
-        ai.rb.detectCollisions = false;
         ai.rb.useGravity = false;
     }
 
@@ -121,7 +124,6 @@ public class SkeletonRagdollController : MonoBehaviour
     {
         if (ai?.rb == null) return;
         ai.rb.isKinematic = false;
-        ai.rb.detectCollisions = true;
         ai.rb.useGravity = true;
     }
 

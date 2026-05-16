@@ -78,11 +78,16 @@ public class ButlerCombat : MonoBehaviour
 
     /// <summary>
     /// Called by ButlerLimbHitbox on trigger contact during an armed swing.
+    /// Only applies effects to objects with PlayerController component (players only).
     /// </summary>
     public void OnLimbHit(Collider other)
     {
         if (!isAttacking) return;
         if (!hitThisSwing.Add(other.gameObject)) return;
+
+        // Only apply effects to players
+        PlayerController playerController = other.GetComponentInParent<PlayerController>();
+        if (playerController == null) return;
 
         // Apply EffectCarrier effects
         if (attackEffects != null)

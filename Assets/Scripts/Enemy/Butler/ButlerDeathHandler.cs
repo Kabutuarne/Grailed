@@ -140,21 +140,17 @@ public class ButlerDeathHandler : MonoBehaviour
             {
                 if (body == null) continue;
                 body.isKinematic = !enabled;
-                body.detectCollisions = enabled;
                 body.useGravity = enabled;
 
                 if (enabled)
                 {
                     body.linearVelocity = Vector3.zero;
                     body.angularVelocity = Vector3.zero;
-                    body.interpolation = RigidbodyInterpolation.Interpolate;
-                    body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
                 }
             }
         }
 
-        // Ensure ragdoll colliders are enabled. Keep child colliders active
-        // (main/root collider is handled separately during death).
+        // Ensure ragdoll colliders are enabled.
         if (ragdollColliders != null)
         {
             foreach (Collider col in ragdollColliders)
