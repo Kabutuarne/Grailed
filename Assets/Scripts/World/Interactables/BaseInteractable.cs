@@ -27,7 +27,7 @@ public abstract class BaseInteractable : MonoBehaviour, IInteractable
 
     private Coroutine interactionRoutine;
     private bool isInteracting;
-    private PlayerInputActions inputActions;
+    private static PlayerInputActions s_inputActions;
     private float interactionProgress = 0f;
 
     protected virtual void Awake()
@@ -38,8 +38,12 @@ public abstract class BaseInteractable : MonoBehaviour, IInteractable
         if (audioSource == null)
             audioSource = gameObject.AddComponent<AudioSource>();
 
-        if (inputActions == null)
-            inputActions = new PlayerInputActions();
+        // Ensure a shared input actions instance is available and enabled.
+        if (s_inputActions == null)
+        {
+            s_inputActions = new PlayerInputActions();
+            try { s_inputActions.Player.Enable(); } catch { }
+        }
     }
 
     public virtual bool CanInteract(GameObject interactor)
@@ -63,11 +67,7 @@ public abstract class BaseInteractable : MonoBehaviour, IInteractable
         isInteracting = true;
         interactionProgress = 0f;
 
-        // Enable input
-        if (inputActions != null)
-        {
-            inputActions.Player.Enable();
-        }
+        // Use shared input actions for checking the 'Interact' hold state.
 
         // Show CastUI
         var castUI = FindFirstObjectByType<CastUI>();
@@ -83,12 +83,12 @@ public abstract class BaseInteractable : MonoBehaviour, IInteractable
         while (interactionProgress < interactDuration)
         {
             // Check if input is still held
-            if (inputActions == null || !inputActions.Player.Interact.IsPressed())
+            if (s_inputActions == null || !s_inputActions.Player.Interact.IsPressed())
             {
                 // Input released - cancel interaction
                 if (castUI != null)
                 {
-                    castUI.Complete();
+                    castUI.Interrupt();
                 }
                 isInteracting = false;
                 interactionRoutine = null;

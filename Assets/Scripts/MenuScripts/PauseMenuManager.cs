@@ -85,6 +85,28 @@ public class PauseMenuManager : MonoBehaviour
 
         if (pauseRoot != null) pauseRoot.SetActive(true);
 
+        // When opening the pause menu, default back to the Main panel
+        // so settings don't remain active across closes/re-opens.
+        if (settingsPanel != null) settingsPanel.SetActive(false);
+        if (mainPanel != null) mainPanel.SetActive(true);
+
+        // Disable gameplay input while paused to prevent casting/actions
+        // from triggering. Keep the Pause action enabled so the player
+        // can unpause with the same input.
+        if (input != null)
+        {
+            try
+            {
+                input.Player.Disable();
+                input.Player.Pause.Enable();
+            }
+            catch { }
+        }
+
+        // Ensure any CastUI is hidden while paused (prevents flash on clicks)
+        var cast = FindFirstObjectByType<CastUI>();
+        if (cast != null) cast.Hide();
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
@@ -104,17 +126,45 @@ public class PauseMenuManager : MonoBehaviour
         if (pauseTime) Time.timeScale = Mathf.Max(previousTimeScale, 1f);
         AudioListener.pause = false;
 
+        // Decide whether other UI is still blocking gameplay (e.g. MissionPicker or backpack)
+        var missionPicker = FindFirstObjectByType<MissionPickerUI>();
+        var playerUi = FindFirstObjectByType<PlayerUI>();
+        bool blockingUI = (missionPicker != null && missionPicker.IsOpen) ||
+                          (playerUi != null && playerUi.IsBackpackOpen) ||
+                          (settingsPanel != null && settingsPanel.activeInHierarchy);
+
+        // If blocking UI remains open, keep gameplay controls disabled but keep Pause action available.
+        if (input != null)
+        {
+            try
+            {
+                if (blockingUI)
+                {
+                    input.Player.Disable();
+                    input.Player.Pause.Enable();
+                }
+                else
+                {
+                    input.Player.Enable();
+                }
+            }
+            catch { }
+        }
+
         if (settingsPanel != null) settingsPanel.SetActive(false);
         if (pauseRoot != null) pauseRoot.SetActive(false);
 
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        if (!blockingUI)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
 
-        // Restore player UI canvas
-        SetGameCanvasActive(true);
+            // Restore player UI canvas
+            SetGameCanvasActive(true);
 
-        var pc = FindFirstObjectByType<PlayerController>();
-        if (pc != null) pc.SetControlLocked(false);
+            var pc = FindFirstObjectByType<PlayerController>();
+            if (pc != null) pc.SetControlLocked(false);
+        }
     }
 
     // Attempt to hide/show the player UI without deactivating the GameObject that may
@@ -137,7 +187,7 @@ public class PauseMenuManager : MonoBehaviour
             {
                 cg.interactable = active;
                 cg.blocksRaycasts = active;
-                cg.alpha = active ? 1f : 1f;
+                cg.alpha = active ? 1f : 0f;
             }
 
             return;

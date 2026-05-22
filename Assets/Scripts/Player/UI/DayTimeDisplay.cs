@@ -25,8 +25,8 @@ public class DayTimeDisplay : MonoBehaviour
 
     private void Awake()
     {
-        enabled = false; // will be set to active when a watch/clock accessory is equipped
-
+        // DayTimeDisplay stays enabled to keep time updates running.
+        // The watch accessory toggles the visibility of the text component.
         if (lightingManager == null)
             lightingManager = FindFirstObjectByType<LightingManager>();
 

@@ -1,7 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// Exit interactable. When interacted with in a level, returns player to lobby with all items and stats.
+/// Exit interactable. When interacted with in a mission scene, marks the current mission
+/// as complete and returns the player to the lobby.
 /// </summary>
 public class ReturnToLobbyInteractable : BaseInteractable
 {
@@ -11,7 +12,9 @@ public class ReturnToLobbyInteractable : BaseInteractable
 
     protected override void OnInteractComplete(GameObject interactor)
     {
-        // Load the lobby scene (preserves player state through scene manager or save system)
+        // Mark the active mission complete before leaving the scene.
+        MissionManager.Instance?.EndCurrentMission();
+
         UnityEngine.SceneManagement.SceneManager.LoadScene(lobbySceneName);
     }
 }

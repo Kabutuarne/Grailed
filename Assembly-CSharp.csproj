@@ -68,6 +68,7 @@
     <Compile Include="Assets\Scripts\Player\Items\ItemLookPrompt.cs" />
     <Compile Include="Assets\Scripts\Player\UI\InteractableTextHUD.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerConsume.cs" />
+    <Compile Include="Assets\Scripts\GameLogic\MissionEntryUI.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\RandomRoomSpawner.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerAI.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\ButtonAnimator.cs" />
@@ -80,11 +81,13 @@
     <Compile Include="Assets\Scripts\Player\Interfaces\IItemDisplayName.cs" />
     <Compile Include="Assets\Scripts\Dialog\DialogueData.cs" />
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonCombat.cs" />
+    <Compile Include="Assets\Scripts\GameLogic\MissionPickerUI.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\StatusEffectData.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerCombat.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\StatusEffects.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerDeathHandler.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\InstantEffect.cs" />
+    <Compile Include="Assets\Scripts\GameLogic\MissionData.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\EffectCarrier.cs" />
     <Compile Include="Assets\Scripts\Player\UI\WandSlotOverlay.cs" />
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonLimbHitbox.cs" />
@@ -107,6 +110,7 @@
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csAnimationSpin.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Player\UI\InventoryPreviewRenderer.cs" />
+    <Compile Include="Assets\Scripts\GameLogic\MissionManager.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IInventoryIconProvider.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\SpellAimUtility.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\MainMenuManager.cs" />
@@ -122,6 +126,7 @@
     <Compile Include="Assets\Scripts\Enemy\EnemyStats.cs" />
     <Compile Include="Assets\Scripts\Enemy\EyeballAI.cs" />
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonRagdollController.cs" />
+    <Compile Include="Assets\Scripts\World\Interactables\MissionBoardInteractable.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyPathing.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyKnockbackReciever.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerTargeting.cs" />

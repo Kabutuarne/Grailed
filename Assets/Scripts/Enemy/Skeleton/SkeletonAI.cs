@@ -18,6 +18,9 @@ public class SkeletonAI : MonoBehaviour
     public EnemyPathing pathing;
 
     [Header("AI Behaviour")]
+    public bool useRandomActivationDelay = true;
+    public float activationDelayMin = 0.5f;
+    public float activationDelayMax = 2f;
     public float activationDelay = 0f;
     public float normalChaseSpeed = 0.7f;
 
@@ -31,6 +34,7 @@ public class SkeletonAI : MonoBehaviour
     [HideInInspector] public Animator animator;
 
     private float activationTimer;
+    private Transform lastSeenTargetWhileRagdoll;
 
     public float WalkSpeed =>
         stats != null
@@ -101,7 +105,23 @@ public class SkeletonAI : MonoBehaviour
     private void UpdateRagdoll()
     {
         movement.SetDesiredVelocity(Vector3.zero);
-        if (currentTarget == null) { activationTimer = 0f; return; }
+        if (currentTarget == null)
+        {
+            lastSeenTargetWhileRagdoll = null;
+            activationTimer = 0f;
+            return;
+        }
+
+        // When we first notice a target while ragdolled, optionally pick a random activation delay
+        if (lastSeenTargetWhileRagdoll != currentTarget)
+        {
+            activationTimer = 0f;
+            if (useRandomActivationDelay && currentTarget.CompareTag("Player"))
+            {
+                activationDelay = Mathf.Max(0f, Random.Range(activationDelayMin, activationDelayMax));
+            }
+            lastSeenTargetWhileRagdoll = currentTarget;
+        }
 
         activationTimer += Time.deltaTime;
         if (activationTimer >= activationDelay)

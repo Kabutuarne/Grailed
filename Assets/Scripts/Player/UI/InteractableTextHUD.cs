@@ -52,7 +52,10 @@ public class InteractableTextHUD : MonoBehaviour
             if (lookedAt != null)
             {
                 // Looking at something — show immediately, stop any fade
-                targetText.text = ((BaseInteractable)lookedAt).interactionText;
+                if (lookedAt is BaseInteractable baseInteractable)
+                    targetText.text = baseInteractable.interactionText;
+                else
+                    targetText.text = "Interact";
                 SetAlpha(1f);
                 fadeElapsed = -1f;
             }
@@ -79,7 +82,7 @@ public class InteractableTextHUD : MonoBehaviour
     {
         Ray ray = mainCamera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
         if (Physics.Raycast(ray, out RaycastHit hit, raycastDistance, interactableLayer))
-            return hit.collider.GetComponent<IInteractable>();
+            return hit.collider.GetComponentInParent<IInteractable>();
 
         return null;
     }

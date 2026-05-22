@@ -2,25 +2,25 @@ using UnityEngine;
 using TMPro;
 public class WatchAccessory : Accessory
 {
-    private TMP_Text _display;
+    private TMP_Text _timeText;
 
     public override void OnEquipped(GameObject user)
     {
         base.OnEquipped(user);          // status effects, equipped flag, owner assignment
 
-        _display = FindDisplay(user);
-        if (_display != null)
-            _display.enabled = true;
+        _timeText = FindDisplay(user);
+        if (_timeText != null)
+            _timeText.enabled = true;
         else
             Debug.LogWarning("[WatchAccessory] No DayTimeDisplay found on player.");
     }
 
     public override void OnUnequipped()
     {
-        if (_display != null)
+        if (_timeText != null)
         {
-            _display.enabled = false;
-            _display = null;
+            _timeText.enabled = false;
+            _timeText = null;
         }
 
         base.OnUnequipped();            // effect removal, flag + owner clear

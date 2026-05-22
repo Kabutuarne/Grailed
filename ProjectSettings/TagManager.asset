@@ -12,6 +12,7 @@ TagManager:
   - StartTransform
   - RespawnTransform
   - UIDayTimeDispaly
+  - ExitSpawn
   layers:
   - Default
   - TransparentFX

@@ -8,40 +8,54 @@ using Unity.Cinemachine;
 ///
 ///   [Intro] ──Signal──> [Talk Loop] ──Signal (repeating)──> [End Section]
 ///
-/// The talk loop mirrors audio behaviour: it runs while a line is typing and pauses
-/// cleanly at the end of the current loop when typing finishes. It resumes when the
-/// next line starts. Once all dialogue is done the end section plays instead of looping.
+/// The talk loop runs while a line is typing and pauses cleanly at the end of the
+/// current loop when typing finishes. It resumes when the next line starts.
+/// Once all dialogue is done the end section plays instead of looping.
 ///
-/// Signal Receiver on the Timeline should call:
-///   • OnIntroFinished()  — placed at the end of the intro section
-///   • OnTalkLoopEnd()    — placed at the end of the talk loop section
+/// Timeline Signal Receiver should call:
+///   • OnIntroFinished()  — at the end of the intro section
+///   • OnTalkLoopEnd()    — at the end of the talk loop section
 ///
-/// Set the inspector times to match where each section begins in your Timeline asset.
+/// Per-line animation: assign a Animator and a set of AnimationClips to the Speaker
+/// header. Each new dialogue line cross-fades into the next clip in the array,
+/// cycling back to the start. Leave the array empty to skip this behaviour.
 /// </summary>
 public class DoorDialogueSequence : MonoBehaviour, IInteractable
 {
+    // ── Inspector ─────────────────────────────────────────────────────────────
+
     [Header("Scene Start Timing")]
     [SerializeField] private float knockStartDelay = 7f;
     [SerializeField] private float knockInterval = 3f;
     [SerializeField] private float interactionUnlockDelay = 10f;
 
     [Header("Sequence")]
-    [SerializeField] private bool oneShot = true;
-    [SerializeField] private DialogueUI dialogueUI;
-    [SerializeField] private DialogueData dialogueData;
+    [SerializeField] private bool oneShot = false;
+    [SerializeField] protected DialogueUI dialogueUI;
+    [SerializeField] protected DialogueData dialogueData;
+
+    [Header("Mission")]
+    [Tooltip("Mission to unlock after this dialogue finishes. Leave empty for sequences that don't grant a mission.")]
+    [SerializeField] private MissionData missionToUnlock;
+
+    [Header("Speaker")]
+    [Tooltip("Animator on the speaking character. Used to play per-line animation clips.")]
+    [SerializeField] private Animator speakerAnimator;
+    [Tooltip("Clips cycled through on each new dialogue line. Leave empty to skip.")]
+    [SerializeField] private AnimationClip[] talkAnimations;
 
     [Header("Timeline")]
     [Tooltip("Single PlayableDirector containing intro, talk loop, and end sections.")]
     [SerializeField] private PlayableDirector sequenceTimeline;
 
     [Header("Talk Loop Speed")]
-    [Tooltip("Playback speed of the timeline during the talk loop. 1 = normal, 0.5 = half speed.")]
+    [Tooltip("Playback speed during the talk loop. 1 = normal.")]
     [SerializeField][Min(0.01f)] private float talkLoopSpeed = 0.5f;
 
     [Header("Timeline Section Times")]
-    [Tooltip("Where the talk loop section begins. Jump here when the intro finishes.")]
+    [Tooltip("Where the talk loop section begins.")]
     [SerializeField] private double talkLoopStartTime = 2.0;
-    [Tooltip("Where the end section begins. Jump here once dialogue is complete.")]
+    [Tooltip("Where the end section begins.")]
     [SerializeField] private double endSectionStartTime = 6.0;
 
     [Header("Player References")]
@@ -65,37 +79,34 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
 
     private bool hasPlayed;
     private bool sequenceRunning;
-    private bool isLoopingSpeech;    // true while the talk loop section is active
-    private bool lineTypingActive;   // true while the current line is still being typed
-    private bool dialogueFinished;   // true once all lines have been displayed
+    private bool isLoopingSpeech;
+    private bool lineTypingActive;
+    private bool dialogueFinished;
 
     private Coroutine knockCoroutine;
     private bool canBeInteractedWith;
+    private int talkAnimIndex;
 
     // ── IInteractable ─────────────────────────────────────────────────────────
 
     public bool CanInteract(GameObject interactor)
-    {
-        return canBeInteractedWith && !sequenceRunning && !(oneShot && hasPlayed);
-    }
+        => canBeInteractedWith && !sequenceRunning && !(oneShot && hasPlayed);
 
     public void Interact(GameObject interactor)
     {
-        if (!CanInteract(interactor))
-            return;
-
-        StartSequence();
+        if (CanInteract(interactor))
+            StartSequence();
     }
 
     // ── Unity Lifecycle ───────────────────────────────────────────────────────
 
-    private void Start()
+    protected virtual void Start()
     {
         SetupInitialCameraState();
         StartCoroutine(SceneStartRoutine());
     }
 
-    private void OnDisable()
+    protected virtual void OnDisable()
     {
         if (sequenceTimeline != null)
             sequenceTimeline.stopped -= OnSequenceTimelineStopped;
@@ -103,7 +114,6 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
 
     // ── Scene Start / Knocking ────────────────────────────────────────────────
 
-    // Delays the knock sound and then unlocks interaction after the configured times.
     private IEnumerator SceneStartRoutine()
     {
         canBeInteractedWith = false;
@@ -112,7 +122,6 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
             interactionPromptObject.SetActive(false);
 
         yield return new WaitForSeconds(knockStartDelay);
-
         knockCoroutine = StartCoroutine(KnockLoopRoutine());
 
         float remainingToUnlock = Mathf.Max(0f, interactionUnlockDelay - knockStartDelay);
@@ -144,6 +153,7 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
         isLoopingSpeech = false;
         lineTypingActive = false;
         dialogueFinished = false;
+        talkAnimIndex = 0;
 
         StopKnocking();
         LockPlayer(true);
@@ -153,15 +163,11 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
 
         SwitchToCinematicCamera();
 
-        // Play the timeline from the beginning; the intro Signal will fire OnIntroFinished().
         sequenceTimeline.time = 0.0;
         sequenceTimeline.Play();
     }
 
-    /// <summary>
-    /// Called by the Timeline Signal Receiver at the end of the intro section.
-    /// Jumps to the talk loop and starts dialogue.
-    /// </summary>
+    /// <summary>Called by Timeline Signal Receiver at the end of the intro section.</summary>
     public void OnIntroFinished()
     {
         if (!sequenceRunning || isLoopingSpeech)
@@ -171,7 +177,6 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
         lineTypingActive = false;
         dialogueFinished = false;
 
-        // Jump to the talk loop section and apply the reduced speed.
         sequenceTimeline.time = talkLoopStartTime;
         SetTimelineSpeed(talkLoopSpeed);
         sequenceTimeline.Play();
@@ -179,12 +184,7 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
         StartDialogue();
     }
 
-    /// <summary>
-    /// Called by the Timeline Signal Receiver at the end of the talk loop section.
-    /// - If the current line is still typing: loop back (keep animating).
-    /// - If typing just finished but more dialogue remains: pause and wait for the next line.
-    /// - If all dialogue is done: exit the loop and play the end section.
-    /// </summary>
+    /// <summary>Called by Timeline Signal Receiver at the end of the talk loop section.</summary>
     public void OnTalkLoopEnd()
     {
         if (!sequenceRunning || !isLoopingSpeech)
@@ -192,31 +192,26 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
 
         if (lineTypingActive)
         {
-            // Line still in progress — loop back.
+            // Line still typing — loop back and keep animating.
             sequenceTimeline.time = talkLoopStartTime;
         }
         else if (!dialogueFinished)
         {
-            // Line finished but more lines remain — pause until the next line starts.
+            // Line done, more to come — pause until the next line starts.
             sequenceTimeline.Pause();
         }
         else
         {
-            // All dialogue done — restore normal speed, exit the loop and play the end section.
-            isLoopingSpeech = false;
-            SetTimelineSpeed(1f);
-            sequenceTimeline.time = endSectionStartTime;
-            sequenceTimeline.stopped += OnSequenceTimelineStopped;
+            ExitTalkLoop();
         }
     }
 
     // ── Dialogue ──────────────────────────────────────────────────────────────
 
-    private void StartDialogue()
+    protected virtual void StartDialogue()
     {
         if (dialogueUI != null && dialogueData != null)
         {
-            // Subscribe to per-line events to drive the talk loop the same way audio is driven.
             dialogueUI.OnLineStarted += OnLineStarted;
             dialogueUI.OnLineTypingComplete += OnLineTypingComplete;
             dialogueUI.StartDialogue(dialogueData, OnDialogueFinished);
@@ -227,10 +222,11 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
         }
     }
 
-    // A new line has started typing — resume the loop if it was paused.
     private void OnLineStarted()
     {
         lineTypingActive = true;
+
+        PlayNextTalkAnimation();
 
         if (isLoopingSpeech && sequenceTimeline != null)
         {
@@ -239,16 +235,12 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
         }
     }
 
-    // The current line finished typing — the loop will pause itself at the next signal.
     private void OnLineTypingComplete()
     {
         lineTypingActive = false;
     }
 
-    // All lines done — unsubscribe and let the next OnTalkLoopEnd signal exit the loop.
-    // If the timeline is already paused (the last line finished before the loop signal fired),
-    // exit the loop immediately instead of waiting for a signal that will never come.
-    private void OnDialogueFinished()
+    protected virtual void OnDialogueFinished()
     {
         if (dialogueUI != null)
         {
@@ -259,15 +251,26 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
         lineTypingActive = false;
         dialogueFinished = true;
 
+        if (missionToUnlock != null)
+            MissionManager.Instance?.UnlockMission(missionToUnlock);
+
+        // If the timeline is already paused (last line finished before the loop signal fired),
+        // exit immediately rather than waiting for a signal that will never arrive.
         if (isLoopingSpeech && sequenceTimeline != null &&
             sequenceTimeline.state == PlayState.Paused)
         {
-            isLoopingSpeech = false;
-            SetTimelineSpeed(1f);
-            sequenceTimeline.time = endSectionStartTime;
-            sequenceTimeline.stopped += OnSequenceTimelineStopped;
-            sequenceTimeline.Play();
+            ExitTalkLoop();
         }
+    }
+
+    // Restore normal speed, jump to the end section, play to completion.
+    private void ExitTalkLoop()
+    {
+        isLoopingSpeech = false;
+        SetTimelineSpeed(1f);
+        sequenceTimeline.time = endSectionStartTime;
+        sequenceTimeline.stopped += OnSequenceTimelineStopped;
+        sequenceTimeline.Play();
     }
 
     // ── Timeline End ──────────────────────────────────────────────────────────
@@ -283,7 +286,6 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
 
     private void EndSequence()
     {
-        // Safety unsubscribe in case EndSequence is called before dialogue finishes normally.
         if (dialogueUI != null)
         {
             dialogueUI.OnLineStarted -= OnLineStarted;
@@ -300,16 +302,26 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
         LockPlayer(false);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── Speaker Animation ─────────────────────────────────────────────────────
 
-    // Sets the playback speed of the timeline via the root playable.
-    // Only valid while the timeline is playing (graph must be valid).
-    private void SetTimelineSpeed(float speed)
+    // Cross-fades to the next clip in talkAnimations, cycling back to index 0.
+    private void PlayNextTalkAnimation()
     {
-        if (sequenceTimeline == null)
+        if (speakerAnimator == null || talkAnimations == null || talkAnimations.Length == 0)
             return;
 
-        if (!sequenceTimeline.playableGraph.IsValid())
+        AnimationClip clip = talkAnimations[talkAnimIndex % talkAnimations.Length];
+        talkAnimIndex++;
+
+        if (clip != null)
+            speakerAnimator.CrossFadeInFixedTime(clip.name, 0.1f);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private void SetTimelineSpeed(float speed)
+    {
+        if (sequenceTimeline == null || !sequenceTimeline.playableGraph.IsValid())
             return;
 
         sequenceTimeline.playableGraph.GetRootPlayable(0).SetSpeed(speed);
