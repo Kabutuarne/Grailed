@@ -33,6 +33,7 @@ public class MissionPickerUI : MonoBehaviour
     [SerializeField] private PlayerUI playerUI;
 
     private MissionData selectedMission;
+    private MissionEntryUI selectedEntry;
     private readonly List<MissionEntryUI> spawnedEntries = new List<MissionEntryUI>();
 
     private void Awake()
@@ -97,6 +98,7 @@ public class MissionPickerUI : MonoBehaviour
 
         ClearSpawnedEntries();
         selectedMission = null;
+        selectedEntry = null;
         UpdateSelectedMissionDetails();
 
         var missions = MissionManager.Instance?.GetAvailableMissions() ?? Array.Empty<MissionData>();
@@ -113,9 +115,17 @@ public class MissionPickerUI : MonoBehaviour
         }
     }
 
-    private void OnMissionEntrySelected(MissionData mission)
+    private void OnMissionEntrySelected(MissionData mission, MissionEntryUI entry)
     {
         selectedMission = mission;
+        selectedEntry = entry;
+
+        foreach (var spawned in spawnedEntries)
+        {
+            if (spawned != null)
+                spawned.SetSelected(spawned == selectedEntry);
+        }
+
         UpdateSelectedMissionDetails();
     }
 
