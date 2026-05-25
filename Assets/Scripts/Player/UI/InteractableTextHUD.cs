@@ -15,6 +15,7 @@ public class InteractableTextHUD : MonoBehaviour
     private CanvasGroup canvasGroup;
     private IInteractable currentLookedAtInteractable;
     private float fadeElapsed = -1f;
+    private bool overrideTextActive;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
@@ -41,7 +42,7 @@ public class InteractableTextHUD : MonoBehaviour
 
     private void Update()
     {
-        if (mainCamera == null || targetText == null) return;
+        if (overrideTextActive || mainCamera == null || targetText == null) return;
 
         IInteractable lookedAt = GetLookedAtInteractable();
 
@@ -87,12 +88,37 @@ public class InteractableTextHUD : MonoBehaviour
         return null;
     }
 
+    public void ShowCustomText(string text)
+    {
+        if (targetText == null)
+            Initialize();
+
+        if (targetText == null)
+            return;
+
+        targetText.text = text;
+        SetAlpha(1f);
+        fadeElapsed = -1f;
+        overrideTextActive = true;
+        currentLookedAtInteractable = null;
+    }
+
+    public void HideCustomText()
+    {
+        if (!overrideTextActive)
+            return;
+
+        HideImmediate();
+        overrideTextActive = false;
+    }
+
     private void HideImmediate()
     {
         SetAlpha(0f);
         targetText.text = "";
         fadeElapsed = -1f;
         currentLookedAtInteractable = null;
+        overrideTextActive = false;
     }
 
     private void SetAlpha(float a)

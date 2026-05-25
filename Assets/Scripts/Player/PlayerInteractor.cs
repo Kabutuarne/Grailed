@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using TMPro;
 
 public class PlayerInteractor : MonoBehaviour
 {
@@ -19,26 +18,18 @@ public class PlayerInteractor : MonoBehaviour
     [Tooltip("If true, prevents world interaction when the pointer is over any UI.")]
     public bool uiPointerSafe = true;
 
-    [Header("World Text")]
-    public Vector3 textOffset = new Vector3(0f, 1.5f, 0f);
-    public float textScale = 0.05f;
-    public bool billboardTextToCamera = true;
-    public float textFontSize = 8f;
-
     private PlayerInputActions input;
     private PlayerInventory inventory;
     private ItemPickup lookedAtItem;
     private bool lastBackpackOpen;
     private bool interactionLocked;
 
-    private GameObject worldTextObject;
-    private TextMeshPro worldText;
+    private InteractableTextHUD interactableTextHUD;
 
     void Awake()
     {
         input = new PlayerInputActions();
         inventory = GetComponent<PlayerInventory>();
-        CreateWorldText();
     }
 
     void OnEnable()
@@ -59,7 +50,9 @@ public class PlayerInteractor : MonoBehaviour
     {
         lastBackpackOpen = playerUI != null && playerUI.IsBackpackOpen;
         ApplyInputState(lastBackpackOpen);
-        HideWorldText();
+
+        interactableTextHUD = FindFirstObjectByType<InteractableTextHUD>();
+        interactableTextHUD?.HideCustomText();
     }
 
     void Update()
@@ -93,13 +86,11 @@ public class PlayerInteractor : MonoBehaviour
 
         if (lookedAtItem != null)
         {
-            UpdateWorldTextPosition();
-
-            if (billboardTextToCamera && cam != null && worldTextObject != null)
-            {
-                worldTextObject.transform.forward =
-                    worldTextObject.transform.position - cam.transform.position;
-            }
+            interactableTextHUD?.ShowCustomText($"Pick up [{GetItemTitle(lookedAtItem)}]");
+        }
+        else
+        {
+            interactableTextHUD?.HideCustomText();
         }
 
         if (input != null &&
@@ -241,15 +232,13 @@ public class PlayerInteractor : MonoBehaviour
     void SetLookedAtItem(ItemPickup newItem)
     {
         ClearCurrentItemVisuals();
-
         lookedAtItem = newItem;
-        ShowWorldText(GetItemTitle(lookedAtItem), lookedAtItem.transform.position + textOffset);
     }
 
     void ClearCurrentItemVisuals()
     {
         lookedAtItem = null;
-        HideWorldText();
+        interactableTextHUD?.HideCustomText();
     }
 
     string GetItemTitle(ItemPickup itemPickup)
@@ -272,49 +261,4 @@ public class PlayerInteractor : MonoBehaviour
             : itemPickup.gameObject.name;
     }
 
-    void CreateWorldText()
-    {
-        worldTextObject = new GameObject("ItemHoverWorldText");
-        worldTextObject.transform.SetParent(null);
-        worldTextObject.transform.localScale = Vector3.one * textScale;
-
-        worldText = worldTextObject.AddComponent<TextMeshPro>();
-        worldText.alignment = TextAlignmentOptions.Center;
-        worldText.fontSize = textFontSize;
-        worldText.text = "";
-        worldText.color = Color.white;
-        worldText.outlineWidth = 0.2f;
-
-        worldTextObject.SetActive(false);
-    }
-
-    void ShowWorldText(string text, Vector3 position)
-    {
-        if (worldTextObject == null || worldText == null)
-            return;
-
-        worldText.text = text;
-        worldTextObject.transform.position = position;
-        worldTextObject.SetActive(true);
-    }
-
-    void HideWorldText()
-    {
-        if (worldTextObject != null)
-            worldTextObject.SetActive(false);
-    }
-
-    void UpdateWorldTextPosition()
-    {
-        if (lookedAtItem == null || worldTextObject == null)
-            return;
-
-        worldTextObject.transform.position = lookedAtItem.transform.position + textOffset;
-    }
-
-    void OnDestroy()
-    {
-        if (worldTextObject != null)
-            Destroy(worldTextObject);
-    }
 }
