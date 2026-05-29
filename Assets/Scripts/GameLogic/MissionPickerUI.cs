@@ -170,10 +170,12 @@ public class MissionPickerUI : MonoBehaviour
 
         if (playerUI != null)
         {
+            // Keep the main HUD visible at all times. The mission picker is a modal overlay,
+            // so the HUD should not be turned off by opening it.
             if (playerUI.hudRoot != null)
-                playerUI.hudRoot.SetActive(!freeze);
+                playerUI.hudRoot.SetActive(true);
 
-            // Close backpack if open
+            // Close backpack if open while the picker is active.
             if (freeze && playerUI.IsBackpackOpen && playerUI.backpackRoot != null)
                 playerUI.backpackRoot.SetActive(false);
         }

@@ -124,7 +124,6 @@
     <Compile Include="Assets\Scripts\World\Interactables\Chest.cs" />
     <Compile Include="Assets\PlayerInputActions.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyStats.cs" />
-    <Compile Include="Assets\Scripts\Enemy\EyeballAI.cs" />
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonRagdollController.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\MissionBoardInteractable.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyPathing.cs" />

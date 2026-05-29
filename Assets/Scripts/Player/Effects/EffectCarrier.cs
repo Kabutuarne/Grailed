@@ -13,7 +13,7 @@ public class EffectCarrier : ScriptableObject
     public string description;
 
     [Header("Visuals")]
-    [Tooltip("Optional: Particle prefab to spawn on the player while this effect is active (duration effects only)")]
+    [Tooltip("Particle prefab to spawn on the player while this effect is active (duration effects only)")]
     public GameObject particlePrefab;
     [Tooltip("Vertical Y offset (local) applied when the particle prefab is spawned on the player.")]
     public float particleYOffset = -3.2f;

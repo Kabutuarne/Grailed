@@ -27,6 +27,9 @@ public class DayTimeDisplay : MonoBehaviour
     {
         // DayTimeDisplay stays enabled to keep time updates running.
         // The watch accessory toggles the visibility of the text component.
+        if (timeText != null)
+            timeText.gameObject.SetActive(false);
+
         if (lightingManager == null)
             lightingManager = FindFirstObjectByType<LightingManager>();
 

@@ -84,13 +84,15 @@ public class PlayerUI : MonoBehaviour
     private InventorySlotUI dragSourceSlot;
     private int dragSourceIndex = -1;
 
+    void OnEnable()
+    {
+        RestoreDefaultUIVisibility();
+        SubscribeInventoryEvents();
+    }
+
     void Start()
     {
-        if (backpackRoot != null)
-            backpackRoot.SetActive(false);
-
-        if (inventory != null)
-            inventory.OnInventoryChanged += HandleInventoryChanged;
+        RestoreDefaultUIVisibility();
 
         uiCanvas = GetComponentInParent<Canvas>();
         if (uiCanvas == null)
@@ -102,13 +104,50 @@ public class PlayerUI : MonoBehaviour
             descriptionPanelInstance.gameObject.SetActive(false);
     }
 
+    void OnDisable()
+    {
+        UnsubscribeInventoryEvents();
+    }
+
     void OnDestroy()
     {
-        if (inventory != null)
-            inventory.OnInventoryChanged -= HandleInventoryChanged;
+        UnsubscribeInventoryEvents();
 
         if (dragIconGO != null)
             Destroy(dragIconGO);
+    }
+
+    private void SubscribeInventoryEvents()
+    {
+        if (inventory != null)
+            inventory.OnInventoryChanged += HandleInventoryChanged;
+    }
+
+    private void UnsubscribeInventoryEvents()
+    {
+        if (inventory != null)
+            inventory.OnInventoryChanged -= HandleInventoryChanged;
+    }
+
+    private void RestoreDefaultUIVisibility()
+    {
+        if (hudRoot != null)
+            hudRoot.SetActive(true);
+
+        if (backpackRoot != null)
+            backpackRoot.SetActive(false);
+
+        if (descriptionPanelInstance != null)
+            descriptionPanelInstance.gameObject.SetActive(false);
+
+        if (wandSlotsPanel != null)
+            wandSlotsPanel.gameObject.SetActive(false);
+
+        if (dragIconGO != null)
+        {
+            Destroy(dragIconGO);
+            dragIconGO = null;
+        }
     }
 
     void Update()
@@ -145,8 +184,6 @@ public class PlayerUI : MonoBehaviour
         // and UpdateSelectionForSlot. Avoid auto-hiding on mouse release here.
     }
 
-    // Tooltip system removed: no per-item tooltip rendering
-
     private GameObject GetItemFromSlot(InventorySlotUI slot)
     {
         if (slot == null || slot.inventory == null)
@@ -176,188 +213,119 @@ public class PlayerUI : MonoBehaviour
         return null;
     }
 
+    private void SetText(TMP_Text field, string value)
+    {
+        if (field != null)
+            field.text = value;
+    }
+
+    private Dictionary<object, float> BuildStatusEffectEntries()
+    {
+        var entries = new Dictionary<object, float>();
+
+        foreach (StatusEffectData e in statusEffects.ActiveEffects)
+        {
+            if (e.hideInUI)
+                continue;
+
+            if (e.carrier != null)
+            {
+                float current = entries.ContainsKey(e.carrier) ? entries[e.carrier] : 0f;
+                entries[e.carrier] = e.IsInfinite ? -1f : Mathf.Max(current, e.timer);
+            }
+            else
+            {
+                entries[e.id + "_" + Guid.NewGuid()] = e.IsInfinite ? -1f : e.timer;
+            }
+        }
+
+        return entries;
+    }
+
+    private void PopulateStatusEffectEntry(GameObject entry, object key, float timeVal)
+    {
+        Image iconImage = GetChildComponent<Image>(entry, "Icon");
+        TMP_Text titleText = GetChildComponent<TMP_Text>(entry, "Title");
+        TMP_Text timeText = GetChildComponent<TMP_Text>(entry, "Time");
+
+        if (key is EffectCarrier carrier)
+        {
+            if (iconImage != null && carrier.icon != null)
+                iconImage.sprite = carrier.icon;
+
+            if (titleText != null)
+                titleText.text = carrier.title ?? carrier.name;
+
+            if (timeText != null)
+                timeText.text = timeVal > 0f ? $"{Mathf.CeilToInt(timeVal)}s" : "";
+        }
+        else
+        {
+            if (titleText != null)
+                titleText.text = key.ToString();
+
+            if (timeText != null)
+                timeText.text = timeVal < 0f ? "ON" : $"{Mathf.CeilToInt(timeVal)}s";
+        }
+    }
+
+    private static T GetChildComponent<T>(GameObject root, string childName) where T : Component
+    {
+        if (root == null)
+            return null;
+
+        var child = root.transform.Find(childName);
+        if (child != null)
+            return child.GetComponent<T>();
+
+        return root.GetComponentInChildren<T>();
+    }
+
+    private void UpdateStatusEffectPanel(Transform parent, GameObject prefab)
+    {
+        if (parent == null || prefab == null || statusEffects == null)
+            return;
+
+        foreach (Transform child in parent)
+            Destroy(child.gameObject);
+
+        foreach (var kv in BuildStatusEffectEntries())
+        {
+            var entry = Instantiate(prefab, parent);
+            PopulateStatusEffectEntry(entry, kv.Key, kv.Value);
+        }
+    }
+
+    private void UpdateSlotItem(InventorySlotUI slot, GameObject item, int slotIndex)
+    {
+        if (slot == null)
+            return;
+
+        if (currentlyDraggedItem != null && dragSourceSlot == slot)
+            item = null;
+
+        slot.SetItem(item, slotIndex, inventory);
+        EnsurePersistentSelectedMarker(slot, item != null);
+    }
+
     void UpdateBars()
     {
-        if (hudHealthText != null)
-            hudHealthText.text = $"{Mathf.RoundToInt(stats.health)} / {Mathf.RoundToInt(stats.maxHealth)}";
-        if (hudManaText != null)
-            hudManaText.text = $"{Mathf.RoundToInt(stats.mana)} / {Mathf.RoundToInt(stats.maxMana)}";
-        if (hudEnergyText != null)
-            hudEnergyText.text = $"{Mathf.RoundToInt(stats.stamina)} / {Mathf.RoundToInt(stats.maxStamina)}";
+        if (stats == null)
+            return;
+
+        SetText(hudHealthText, $"{Mathf.RoundToInt(stats.health)} / {Mathf.RoundToInt(stats.maxHealth)}");
+        SetText(hudManaText, $"{Mathf.RoundToInt(stats.mana)} / {Mathf.RoundToInt(stats.maxMana)}");
+        SetText(hudEnergyText, $"{Mathf.RoundToInt(stats.stamina)} / {Mathf.RoundToInt(stats.maxStamina)}");
     }
 
     void UpdateStatusEffects()
     {
-        if (statusEffectsRoot == null || statusEffectPrefab == null || statusEffects == null)
-            return;
-
-        foreach (Transform child in statusEffectsRoot)
-            Destroy(child.gameObject);
-
-        // Build a display dictionary from the new ActiveEffects list.
-        // Key = carrier ScriptableObject (groups stacks) or a unique string for carrier-less effects.
-        // Value = longest remaining timer (-1 = infinite).
-        var entries = new Dictionary<object, float>();
-
-        foreach (StatusEffectData e in statusEffects.ActiveEffects)
-        {
-            if (e.hideInUI)
-                continue;
-
-            if (e.carrier != null)
-            {
-                float current = entries.ContainsKey(e.carrier) ? entries[e.carrier] : 0f;
-                entries[e.carrier] = e.IsInfinite ? -1f : Mathf.Max(current, e.timer);
-            }
-            else
-            {
-                // No carrier – use a unique key so each instance gets its own row.
-                string key = e.id + "_" + Guid.NewGuid();
-                entries[key] = e.IsInfinite ? -1f : e.timer;
-            }
-        }
-
-        int idx = 0;
-        foreach (var kv in entries)
-        {
-            GameObject go = Instantiate(statusEffectPrefab, statusEffectsRoot);
-            float timeVal = kv.Value;
-            // No special first-effect styling
-
-            if (kv.Key is EffectCarrier carrier)
-            {
-                // Icon
-                Image iconImage = null;
-                var iconTransform = go.transform.Find("Icon");
-                if (iconTransform != null)
-                    iconImage = iconTransform.GetComponent<Image>();
-                if (iconImage == null)
-                    iconImage = go.GetComponentInChildren<Image>();
-                if (iconImage != null && carrier.icon != null)
-                    iconImage.sprite = carrier.icon;
-
-                // Title
-                var titleTransform = go.transform.Find("Title");
-                if (titleTransform != null)
-                {
-                    var titleText = titleTransform.GetComponent<TMP_Text>();
-                    if (titleText != null)
-                        titleText.text = carrier.title ?? carrier.name;
-                }
-
-                // Time
-                var timeTransform = go.transform.Find("Time");
-                if (timeTransform != null)
-                {
-                    var timeText = timeTransform.GetComponent<TMP_Text>();
-                    if (timeText != null)
-                        timeText.text = timeVal > 0f ? $"{Mathf.CeilToInt(timeVal)}s" : "";
-                }
-            }
-            else
-            {
-                var titleTransform = go.transform.Find("Title");
-                if (titleTransform != null)
-                {
-                    var titleText = titleTransform.GetComponent<TMP_Text>();
-                    if (titleText != null)
-                        titleText.text = kv.Key.ToString();
-                }
-
-                var timeTransform = go.transform.Find("Time");
-                if (timeTransform != null)
-                {
-                    var timeText = timeTransform.GetComponent<TMP_Text>();
-                    if (timeText != null)
-                        timeText.text = timeVal < 0f ? "ON" : $"{Mathf.CeilToInt(timeVal)}s";
-                }
-            }
-
-            idx++;
-        }
+        UpdateStatusEffectPanel(statusEffectsRoot, statusEffectPrefab);
     }
 
     void UpdateStatusEffectsHUD()
     {
-        if (statusEffectsHudRoot == null || statusEffectHudPrefab == null || statusEffects == null)
-            return;
-
-        foreach (Transform child in statusEffectsHudRoot)
-            Destroy(child.gameObject);
-
-        var entries = new Dictionary<object, float>();
-
-        foreach (StatusEffectData e in statusEffects.ActiveEffects)
-        {
-            if (e.hideInUI)
-                continue;
-
-            if (e.carrier != null)
-            {
-                float current = entries.ContainsKey(e.carrier) ? entries[e.carrier] : 0f;
-                entries[e.carrier] = e.IsInfinite ? -1f : Mathf.Max(current, e.timer);
-            }
-            else
-            {
-                string key = e.id + "_" + Guid.NewGuid();
-                entries[key] = e.IsInfinite ? -1f : e.timer;
-            }
-        }
-
-        int idxHud = 0;
-        foreach (var kv in entries)
-        {
-            GameObject go = Instantiate(statusEffectHudPrefab, statusEffectsHudRoot);
-            float timeVal = kv.Value;
-
-            if (kv.Key is EffectCarrier carrier)
-            {
-                Image iconImage = null;
-                var iconTransform = go.transform.Find("Icon");
-                if (iconTransform != null)
-                    iconImage = iconTransform.GetComponent<Image>();
-                if (iconImage == null)
-                    iconImage = go.GetComponentInChildren<Image>();
-                if (iconImage != null && carrier.icon != null)
-                    iconImage.sprite = carrier.icon;
-
-                var titleTransform = go.transform.Find("Title");
-                if (titleTransform != null)
-                {
-                    var titleText = titleTransform.GetComponent<TMP_Text>();
-                    if (titleText != null)
-                        titleText.text = carrier.title ?? carrier.name;
-                }
-
-                var timeTransform = go.transform.Find("Time");
-                if (timeTransform != null)
-                {
-                    var timeText = timeTransform.GetComponent<TMP_Text>();
-                    if (timeText != null)
-                        timeText.text = timeVal > 0f ? $"{Mathf.CeilToInt(timeVal)}s" : "";
-                }
-            }
-            else
-            {
-                var titleTransform = go.transform.Find("Title");
-                if (titleTransform != null)
-                {
-                    var titleText = titleTransform.GetComponent<TMP_Text>();
-                    if (titleText != null)
-                        titleText.text = kv.Key.ToString();
-                }
-
-                var timeTransform = go.transform.Find("Time");
-                if (timeTransform != null)
-                {
-                    var timeText = timeTransform.GetComponent<TMP_Text>();
-                    if (timeText != null)
-                        timeText.text = timeVal < 0f ? "ON" : $"{Mathf.CeilToInt(timeVal)}s";
-                }
-            }
-
-            idxHud++;
-        }
+        UpdateStatusEffectPanel(statusEffectsHudRoot, statusEffectHudPrefab);
     }
 
     void UpdateHands()
@@ -365,15 +333,7 @@ public class PlayerUI : MonoBehaviour
         if (inventory == null)
             return;
 
-        if (rightHandSlot != null)
-        {
-            GameObject handItem = inventory.rightHandItem;
-            if (currentlyDraggedItem != null && dragSourceSlot == rightHandSlot && dragSourceSlot.slotType == InventorySlotUI.SlotType.RightHand)
-                handItem = null;
-
-            rightHandSlot.SetItem(handItem, -1, inventory);
-            EnsurePersistentSelectedMarker(rightHandSlot, handItem != null);
-        }
+        UpdateSlotItem(rightHandSlot, inventory.rightHandItem, -1);
     }
 
     void UpdateBackpackSlots()
@@ -383,20 +343,9 @@ public class PlayerUI : MonoBehaviour
 
         for (int i = 0; i < backpackSlots.Length; i++)
         {
-            var slot = backpackSlots[i];
-            if (slot == null)
-                continue;
-
-            GameObject item = (inventory.backpack != null && i < inventory.backpack.Length)
-                ? inventory.backpack[i]
-                : null;
-
-            // If dragging and this is the source backpack slot, show it as empty while dragging
-            if (currentlyDraggedItem != null && dragSourceSlot == slot && dragSourceSlot.slotType == InventorySlotUI.SlotType.Backpack)
-                item = null;
-
-            slot.SetItem(item, i, inventory);
-            EnsurePersistentSelectedMarker(slot, item != null);
+            UpdateSlotItem(backpackSlots[i],
+                inventory.backpack != null && i < inventory.backpack.Length ? inventory.backpack[i] : null,
+                i);
         }
     }
 
@@ -454,17 +403,7 @@ public class PlayerUI : MonoBehaviour
 
         int len = Mathf.Min(accessorySlots.Length, inventory.accessories.Length);
         for (int i = 0; i < len; i++)
-        {
-            var slot = accessorySlots[i];
-            if (slot == null) continue;
-            GameObject item = inventory.accessories[i];
-            // If dragging and this is the source accessory slot, show it as empty while dragging
-            if (currentlyDraggedItem != null && dragSourceSlot == slot && dragSourceSlot.slotType == InventorySlotUI.SlotType.Accessory)
-                item = null;
-
-            slot.SetItem(item, i, inventory);
-            EnsurePersistentSelectedMarker(slot, item != null);
-        }
+            UpdateSlotItem(accessorySlots[i], inventory.accessories[i], i);
     }
 
     void UpdateCharacterSheet()
@@ -472,26 +411,86 @@ public class PlayerUI : MonoBehaviour
         if (stats == null)
             return;
 
-        if (healthText != null)
-            healthText.text = $"{Mathf.RoundToInt(stats.health)} / {Mathf.RoundToInt(stats.maxHealth)}";
+        SetText(healthText, $"{Mathf.RoundToInt(stats.health)} / {Mathf.RoundToInt(stats.maxHealth)}");
+        SetText(manaText, $"{Mathf.RoundToInt(stats.mana)} / {Mathf.RoundToInt(stats.maxMana)}");
+        SetText(staminaText, $"{Mathf.RoundToInt(stats.stamina)} / {Mathf.RoundToInt(stats.maxStamina)}");
+        SetText(intelligenceText, Mathf.RoundToInt(stats.effectiveIntelligence).ToString());
+        SetText(strengthText, Mathf.RoundToInt(stats.effectiveStrength).ToString());
+        SetText(staminaAttrText, Mathf.RoundToInt(stats.effectiveStaminaAttr).ToString());
+        SetText(agilityText, Mathf.RoundToInt(stats.effectiveAgility).ToString());
+    }
 
-        if (manaText != null)
-            manaText.text = $"{Mathf.RoundToInt(stats.mana)} / {Mathf.RoundToInt(stats.maxMana)}";
+    private bool IsPickupStillInInventory(ItemPickup pickup)
+    {
+        if (pickup == null || inventory == null)
+            return false;
 
-        if (staminaText != null)
-            staminaText.text = $"{Mathf.RoundToInt(stats.stamina)} / {Mathf.RoundToInt(stats.maxStamina)}";
+        GameObject item = pickup.gameObject;
+        if (inventory.rightHandItem == item)
+            return true;
 
-        if (intelligenceText != null)
-            intelligenceText.text = $"{Mathf.RoundToInt(stats.effectiveIntelligence)}";
+        if (inventory.backpack != null)
+        {
+            foreach (var it in inventory.backpack)
+                if (it == item)
+                    return true;
+        }
 
-        if (strengthText != null)
-            strengthText.text = $"{Mathf.RoundToInt(stats.effectiveStrength)}";
+        if (inventory.accessories != null)
+        {
+            foreach (var it in inventory.accessories)
+                if (it == item)
+                    return true;
+        }
 
-        if (staminaAttrText != null)
-            staminaAttrText.text = $"{Mathf.RoundToInt(stats.effectiveStaminaAttr)}";
+        return IsPickupInWandInventory(item);
+    }
 
-        if (agilityText != null)
-            agilityText.text = $"{Mathf.RoundToInt(stats.effectiveAgility)}";
+    private bool IsPickupInWandInventory(GameObject item)
+    {
+        if (item == null || inventory == null)
+            return false;
+
+        if (inventory.rightHandItem != null)
+        {
+            var wand = inventory.rightHandItem.GetComponent<WandItem>();
+            if (wand != null)
+            {
+                for (int i = 0; i < wand.SlotCount; i++)
+                    if (wand.GetSlotItem(i) == item)
+                        return true;
+            }
+        }
+
+        if (inventory.backpack != null)
+        {
+            foreach (var it in inventory.backpack)
+            {
+                if (it == null) continue;
+                var wand = it.GetComponent<WandItem>();
+                if (wand == null) continue;
+
+                for (int i = 0; i < wand.SlotCount; i++)
+                    if (wand.GetSlotItem(i) == item)
+                        return true;
+            }
+        }
+
+        if (inventory.accessories != null)
+        {
+            foreach (var it in inventory.accessories)
+            {
+                if (it == null) continue;
+                var wand = it.GetComponent<WandItem>();
+                if (wand == null) continue;
+
+                for (int i = 0; i < wand.SlotCount; i++)
+                    if (wand.GetSlotItem(i) == item)
+                        return true;
+            }
+        }
+
+        return false;
     }
 
     void HandleInventoryChanged()
@@ -500,77 +499,11 @@ public class PlayerUI : MonoBehaviour
         UpdateHands();
         UpdateAccessories();
 
-        // If the description panel is showing an item that no longer exists in the
-        // player's inventory (was dropped/consumed), clear the description and selection.
-        if (descriptionPanelInstance != null && descriptionPanelInstance.CurrentPickup != null)
+        if (descriptionPanelInstance != null && descriptionPanelInstance.CurrentPickup != null &&
+            !IsPickupStillInInventory(descriptionPanelInstance.CurrentPickup))
         {
-            ItemPickup cur = descriptionPanelInstance.CurrentPickup;
-            bool present = false;
-
-            // Right hand
-            if (inventory != null && inventory.rightHandItem == cur.gameObject) present = true;
-
-            // Backpack
-            if (!present && inventory != null && inventory.backpack != null)
-            {
-                foreach (var it in inventory.backpack) if (it == cur.gameObject) { present = true; break; }
-            }
-
-            // Accessories
-            if (!present && inventory != null && inventory.accessories != null)
-            {
-                foreach (var it in inventory.accessories) if (it == cur.gameObject) { present = true; break; }
-            }
-
-            // Wand internals (scan any wand items inside inventory)
-            if (!present && inventory != null)
-            {
-                // check right hand
-                if (!present && inventory.rightHandItem != null)
-                {
-                    var w = inventory.rightHandItem.GetComponent<WandItem>();
-                    if (w != null)
-                    {
-                        for (int i = 0; i < w.SlotCount; i++) if (w.GetSlotItem(i) == cur.gameObject) { present = true; break; }
-                    }
-                }
-
-                // check backpack
-                if (!present && inventory.backpack != null)
-                {
-                    foreach (var it in inventory.backpack)
-                    {
-                        if (it == null) continue;
-                        var w2 = it.GetComponent<WandItem>();
-                        if (w2 != null)
-                        {
-                            for (int i = 0; i < w2.SlotCount; i++) if (w2.GetSlotItem(i) == cur.gameObject) { present = true; break; }
-                            if (present) break;
-                        }
-                    }
-                }
-
-                // check accessories
-                if (!present && inventory.accessories != null)
-                {
-                    foreach (var it in inventory.accessories)
-                    {
-                        if (it == null) continue;
-                        var w3 = it.GetComponent<WandItem>();
-                        if (w3 != null)
-                        {
-                            for (int i = 0; i < w3.SlotCount; i++) if (w3.GetSlotItem(i) == cur.gameObject) { present = true; break; }
-                            if (present) break;
-                        }
-                    }
-                }
-            }
-
-            if (!present)
-            {
-                DeselectCurrentSlot();
-                descriptionPanelInstance.Clear();
-            }
+            DeselectCurrentSlot();
+            descriptionPanelInstance.Clear();
         }
     }
 
@@ -750,8 +683,6 @@ public class PlayerUI : MonoBehaviour
         if (overlayComp != null)
             overlayComp.ForceDisable();
     }
-
-    // Sprite-based icon lookup removed; previews use RenderTexture via InventoryPreviewRenderer.
 
     public void HandleDrop(InventorySlotUI targetSlot)
     {

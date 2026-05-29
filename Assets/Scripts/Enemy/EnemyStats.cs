@@ -115,13 +115,6 @@ public class EnemyStats : MonoBehaviour, IResourceHandler
         energy = Mathf.Clamp(energy, 0f, MaxEnergy);
     }
 
-    // ── legacy aliases ────────────────────────────────────────────────────────
-
-    public void TakeDamage(float amount) => ModifyHealth(-amount);
-    public void Heal(float amount) => ModifyHealth(amount);
-    public void RestoreMana(float amount) => ModifyMana(amount);
-    public void RestoreEnergy(float amount) => ModifyEnergy(amount);
-
     public void SpawnDeathDrops()
     {
         for (int i = 0; i < deathDropPrefabs.Length; i++)

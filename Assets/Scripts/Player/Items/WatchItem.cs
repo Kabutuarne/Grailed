@@ -2,36 +2,56 @@ using UnityEngine;
 using TMPro;
 public class WatchAccessory : Accessory
 {
+    private DayTimeDisplay _display;
     private TMP_Text _timeText;
 
     public override void OnEquipped(GameObject user)
     {
-        base.OnEquipped(user);          // status effects, equipped flag, owner assignment
+        base.OnEquipped(user);
 
-        _timeText = FindDisplay(user);
-        if (_timeText != null)
-            _timeText.enabled = true;
+        FindDisplay(user);
+
+        if (_display != null)
+        {
+            _display.enabled = true;
+
+            if (_timeText != null)
+            {
+                _timeText.enabled = true;
+                _timeText.gameObject.SetActive(true);
+            }
+        }
         else
+        {
             Debug.LogWarning("[WatchAccessory] No DayTimeDisplay found on player.");
+        }
     }
 
     public override void OnUnequipped()
     {
-        if (_timeText != null)
+        if (_display != null)
         {
-            _timeText.enabled = false;
-            _timeText = null;
+            _display.enabled = true;
+
+            if (_timeText != null)
+            {
+                _timeText.enabled = true;
+                _timeText.gameObject.SetActive(false);
+            }
         }
 
-        base.OnUnequipped();            // effect removal, flag + owner clear
+        _display = null;
+        _timeText = null;
+
+        base.OnUnequipped();
     }
 
-    private TMP_Text FindDisplay(GameObject user)
+    private void FindDisplay(GameObject user)
     {
-        if (user == null) return null;
+        if (user == null)
+            return;
 
-        // Check the player GameObject and all its children
-        TMP_Text found = user.GetComponentInChildren<DayTimeDisplay>(includeInactive: true)?.timeText;
-        return found;
+        _display = user.GetComponentInChildren<DayTimeDisplay>(includeInactive: true);
+        _timeText = _display != null ? _display.timeText : null;
     }
 }

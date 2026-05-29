@@ -383,7 +383,7 @@ MonoBehaviour:
   canCastWhileMoving: 0
   canCastWhileHit: 0
   inventoryIcon: {fileID: 0}
-  renderModel: {fileID: 5232976284296873379}
+  renderModel: {fileID: 5426486870540708314, guid: 0fbc31a8f3cf9a24b98647950d1c925d, type: 3}
   previewRotation: {x: 0, y: 180, z: 0}
   previewScale: 30
 --- !u!1 &5259857580069780606

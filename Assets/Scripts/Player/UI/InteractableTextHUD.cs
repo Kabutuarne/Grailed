@@ -28,6 +28,12 @@ public class InteractableTextHUD : MonoBehaviour
         hud.Initialize();
     }
 
+    private void OnEnable()
+    {
+        Initialize();
+        HideImmediate();
+    }
+
     public void Initialize()
     {
         mainCamera = Camera.main;

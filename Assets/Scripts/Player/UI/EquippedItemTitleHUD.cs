@@ -28,6 +28,18 @@ public class EquippedItemTitleHUD : MonoBehaviour
         hud.Initialize(ui);
     }
 
+    private void OnEnable()
+    {
+        if (playerUI == null)
+        {
+            var ui = Object.FindFirstObjectByType<PlayerUI>();
+            if (ui != null)
+                Initialize(ui);
+        }
+
+        HideImmediate();
+    }
+
     public void Initialize(PlayerUI ui)
     {
         playerUI = ui;

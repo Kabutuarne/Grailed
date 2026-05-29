@@ -137,16 +137,6 @@ public class PlayerStats : MonoBehaviour, IResourceHandler
         return true;
     }
 
-    // ── legacy aliases kept for backwards compatibility ───────────────────────
-
-    public void TakeDamage(float amount) => ModifyHealth(-amount);
-    public void Heal(float amount) => ModifyHealth(amount);
-    public void RestoreMana(float amount) => ModifyMana(amount);
-    public void RestoreEnergy(float amount) => ModifyEnergy(amount);
-    public void ConsumeStamina(float amount) => ModifyEnergy(-amount);
-    public void RegenStamina(float amount) => ModifyEnergy(amount);
-    public void SpendMana(float amount) => TrySpendMana(amount);
-
     // Called by StatusEffects when effects are added/removed so derived maxima
     // can be recalculated while preserving current resource percentages.
     public void OnStatusEffectsChanged()

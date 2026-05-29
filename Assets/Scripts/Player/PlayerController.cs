@@ -188,7 +188,7 @@ public class PlayerController : MonoBehaviour
         );
 
         if (stats != null)
-            stats.RegenStamina(stats.staminaRegenPerSecond * Time.deltaTime);
+            stats.ModifyEnergy(stats.staminaRegenPerSecond * Time.deltaTime);
 
         externalVelocity = Vector3.MoveTowards(
             externalVelocity,
@@ -292,7 +292,7 @@ public class PlayerController : MonoBehaviour
             );
 
             if (stats != null)
-                stats.RegenStamina(stats.staminaRegenPerSecond * Time.deltaTime);
+                stats.ModifyEnergy(stats.staminaRegenPerSecond * Time.deltaTime);
 
             isCrouching = false;
 
@@ -351,9 +351,9 @@ public class PlayerController : MonoBehaviour
         if (stats != null)
         {
             if (sprinting && horizontalMove.sqrMagnitude > 0.001f)
-                stats.ConsumeStamina(staminaUsePerSecond * Time.deltaTime);
+                stats.ModifyEnergy(-staminaUsePerSecond * Time.deltaTime);
             else if (grounded && !sprintHeld)
-                stats.RegenStamina(stats.staminaRegenPerSecond * Time.deltaTime);
+                stats.ModifyEnergy(stats.staminaRegenPerSecond * Time.deltaTime);
         }
 
         externalVelocity = Vector3.MoveTowards(
