@@ -98,6 +98,13 @@ public class MissionManager : MonoBehaviour
             return;
 
         currentMission = mission;
+
+        // Set the active level catalog so the level loader/generator can pick it up
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.ActiveLevel = mission.levelCatalog;
+        }
+
         Debug.Log($"[MissionManager] Starting mission: {mission.title}  →  scene: {mission.sceneName}");
         SceneManager.LoadScene(mission.sceneName);
     }

@@ -38,9 +38,19 @@ public class LevelManager : MonoBehaviour
     {
         currentCatalog = catalog;
 
+        Debug.Log($"[LevelManager] Starting generation for catalog '{catalog.name}' with {catalog.items?.Count ?? 0} item entries and {catalog.enemies?.Count ?? 0} enemy entries.");
+
         // Set time to 9 AM
         if (lightingManager != null)
             lightingManager.SetTime(9f);
+
+        // Lock player controls while generation is running
+        PlayerController scenePlayerController = null;
+        var playerObjBefore = GameObject.FindWithTag("Player");
+        if (playerObjBefore != null)
+            scenePlayerController = playerObjBefore.GetComponent<PlayerController>();
+        if (scenePlayerController != null)
+            scenePlayerController.SetControlLocked(true);
 
         // Configure and generate level
         if (generator != null)
@@ -63,11 +73,20 @@ public class LevelManager : MonoBehaviour
             yield return new WaitUntil(() => generationDone);
         }
 
+        // Allow the scene one frame to settle and for generated spawner objects to become available.
+        yield return null;
+
         // Spawn items and enemies
         EntitySpawner.PopulateLevel(catalog);
 
         // Teleport player to spawn
         TeleportPlayerToSpawn();
+
+        Debug.Log("[LevelManager] Level generation and entity population complete.");
+
+        // Unlock player controls now generation/teleport is complete
+        if (scenePlayerController != null)
+            scenePlayerController.SetControlLocked(false);
     }
 
     public void TeleportPlayerToSpawn()
