@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Rendering;
 using UnityEngine.EventSystems;
+// using UnityEngine.SceneManagement;
 
 public class InventorySlotUI : MonoBehaviour,
     IPointerEnterHandler,
@@ -41,6 +42,8 @@ public class InventorySlotUI : MonoBehaviour,
     void Awake()
     {
         playerUI = GetComponentInParent<PlayerUI>();
+        if (playerUI == null)
+            playerUI = FindAnyObjectByType<PlayerUI>();
     }
     private bool isSelected;
     private Vector3 desiredScale = Vector3.one;
@@ -94,11 +97,24 @@ public class InventorySlotUI : MonoBehaviour,
             var previewProvider = item.GetComponent<IInventoryPreviewProvider>();
             if (previewProvider != null && previewProvider.PreviewPrefab != null && InventoryPreviewRenderer.Instance != null)
             {
-                RenderTexture rt = InventoryPreviewRenderer.Instance.RenderPreview(previewProvider);
-                if (rt != null)
+                try
                 {
-                    previewRaw.texture = rt;
-                    previewRaw.enabled = true;
+                    RenderTexture rt = InventoryPreviewRenderer.Instance.RenderPreview(previewProvider);
+                    if (rt != null)
+                    {
+                        previewRaw.texture = rt;
+                        previewRaw.enabled = true;
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning($"Failed to render preview for item: {ex.Message}");
+                    // Fall back to placeholder if rendering fails
+                    if (placeholderTexture != null)
+                    {
+                        previewRaw.texture = placeholderTexture;
+                        previewRaw.enabled = true;
+                    }
                 }
             }
         }

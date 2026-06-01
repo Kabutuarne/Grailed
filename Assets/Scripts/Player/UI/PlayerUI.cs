@@ -77,7 +77,7 @@ public class PlayerUI : MonoBehaviour
 
     public bool IsBackpackOpen => backpackRoot != null && backpackRoot.activeSelf;
 
-    private Canvas uiCanvas;
+    public Canvas uiCanvas { get; set; }
     private GameObject dragIconGO;
     private UnityEngine.UI.RawImage dragIconRaw;
     private GameObject currentlyDraggedItem;
@@ -94,12 +94,28 @@ public class PlayerUI : MonoBehaviour
     {
         RestoreDefaultUIVisibility();
 
-        uiCanvas = GetComponentInParent<Canvas>();
+        // Allow persistence manager to inject UI references, or find them ourselves
         if (uiCanvas == null)
-            uiCanvas = FindFirstObjectByType<Canvas>();
+        {
+            uiCanvas = GetComponentInParent<Canvas>();
+            if (uiCanvas == null)
+                uiCanvas = FindFirstObjectByType<Canvas>();
+        }
+
+        // Cache player references
+        if (stats == null)
+            stats = GetComponentInParent<PlayerStats>();
+
+        if (inventory == null)
+            inventory = GetComponentInParent<PlayerInventory>();
+
+        if (statusEffects == null)
+            statusEffects = GetComponentInParent<StatusEffects>();
 
         // Use the existing description container instance if assigned
-        descriptionPanelInstance = descriptionContainerInstance;
+        if (descriptionPanelInstance == null)
+            descriptionPanelInstance = descriptionContainerInstance;
+
         if (descriptionPanelInstance != null)
             descriptionPanelInstance.gameObject.SetActive(false);
     }
@@ -109,9 +125,25 @@ public class PlayerUI : MonoBehaviour
         UnsubscribeInventoryEvents();
     }
 
-    void OnDestroy()
+    /// <summary>
+    /// Called by PlayerPersistenceManager after binding UI elements.
+    /// This initializes the UI display with the current inventory state.
+    /// </summary>
+    public void RebindComplete()
     {
+        // Ensure description panel is set
+        if (descriptionPanelInstance == null)
+            descriptionPanelInstance = descriptionContainerInstance;
+
+        // Force UI refresh with current inventory state
+        if (inventory != null)
+        {
+            HandleInventoryChanged();
+        }
+
+        RestoreDefaultUIVisibility();
         UnsubscribeInventoryEvents();
+        SubscribeInventoryEvents();
 
         if (dragIconGO != null)
             Destroy(dragIconGO);
@@ -120,7 +152,10 @@ public class PlayerUI : MonoBehaviour
     private void SubscribeInventoryEvents()
     {
         if (inventory != null)
+        {
+            inventory.OnInventoryChanged -= HandleInventoryChanged;
             inventory.OnInventoryChanged += HandleInventoryChanged;
+        }
     }
 
     private void UnsubscribeInventoryEvents()

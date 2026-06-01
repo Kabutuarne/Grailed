@@ -81,6 +81,8 @@ public class PlayerController : MonoBehaviour
     void Awake()
     {
         controller = GetComponent<CharacterController>();
+        if (controller == null)
+            controller = gameObject.AddComponent<CharacterController>();
 
         stats = GetComponent<PlayerStats>();
         statusEffects = GetComponent<StatusEffects>();
@@ -127,6 +129,12 @@ public class PlayerController : MonoBehaviour
 
         controller.height = standingHeight;
         controller.center = new Vector3(0, standingHeight / 2f, 0);
+
+        if (playerUI == null)
+            playerUI = GetComponentInChildren<PlayerUI>();
+
+        if (playerUI == null)
+            playerUI = Object.FindFirstObjectByType<PlayerUI>();
 
         wasGrounded = controller.isGrounded;
         fallOriginY = transform.position.y;

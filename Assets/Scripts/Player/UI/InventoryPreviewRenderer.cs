@@ -19,12 +19,36 @@ public class InventoryPreviewRenderer : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
 
+        // Persist this renderer across scene changes so it's available when player persists
+        DontDestroyOnLoad(gameObject);
+
+        InitializePreviewSystem();
+    }
+
+    void OnEnable()
+    {
+        // Recreate preview system if it was destroyed during scene transitions
+        if (cam == null || previewRoot == null)
+        {
+            InitializePreviewSystem();
+        }
+    }
+
+    private void InitializePreviewSystem()
+    {
+        // Clean up old preview root if it exists
+        if (previewRoot != null)
+        {
+            DestroyImmediate(previewRoot.gameObject);
+        }
+
         previewRoot = new GameObject("PreviewRoot").transform;
+        previewRoot.SetParent(transform, false);
         previewRoot.position = new Vector3(9999, 9999, 9999);
 
         // Setup Camera
         GameObject camGO = new GameObject("PreviewCamera");
-        camGO.transform.SetParent(previewRoot);
+        camGO.transform.SetParent(previewRoot, false);
         cam = camGO.AddComponent<Camera>();
 
         // URP Specific Setup
@@ -34,8 +58,10 @@ public class InventoryPreviewRenderer : MonoBehaviour
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = backgroundColor;
         cam.enabled = false; // We trigger it manually
+        cam.allowHDR = false;
+        cam.allowMSAA = false;
         cam.nearClipPlane = 0.01f;
-        cam.farClipPlane = 100f;
+        cam.farClipPlane = 1000f; // For some reason this one specific fucking item really needs it to be 1k instead of 100 fml
 
         // Setup Light (Crucial: 3D models need light to be visible)
         GameObject lightGO = new GameObject("PreviewLight");
@@ -50,7 +76,22 @@ public class InventoryPreviewRenderer : MonoBehaviour
         if (provider == null || provider.PreviewPrefab == null)
             return null;
 
-        RenderTexture rt = new RenderTexture(textureSize, textureSize, 16, RenderTextureFormat.ARGB32);
+        // Ensure preview system is initialized and camera is valid
+        if (cam == null || previewRoot == null)
+        {
+            InitializePreviewSystem();
+        }
+
+        // Double-check camera wasn't destroyed
+        if (cam == null)
+        {
+            Debug.LogWarning("InventoryPreviewRenderer: Failed to initialize preview camera");
+            return null;
+        }
+
+        RenderTexture rt = new RenderTexture(textureSize, textureSize, 16, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
+        rt.useMipMap = false;
+        rt.autoGenerateMips = false;
         rt.Create();
 
         GameObject inst = Instantiate(provider.PreviewPrefab, previewRoot);

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using TMPro;
 using Sydewa;
 
@@ -40,8 +41,30 @@ public class DayTimeDisplay : MonoBehaviour
             Debug.LogError("[DayTimeDisplay] timeText is not assigned.");
     }
 
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Refresh LightingManager reference when a new scene loads
+        lightingManager = FindFirstObjectByType<LightingManager>();
+        if (lightingManager == null)
+            Debug.LogWarning($"[DayTimeDisplay] No LightingManager found in scene '{scene.name}'.");
+    }
+
     private void Update()
     {
+        // Fallback: if lightingManager is lost, try to find it again
+        if (lightingManager == null)
+            lightingManager = FindFirstObjectByType<LightingManager>();
+
         if (lightingManager == null || timeText == null)
             return;
 

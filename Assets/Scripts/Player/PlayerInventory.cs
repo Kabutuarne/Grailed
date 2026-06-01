@@ -35,6 +35,10 @@ public class PlayerInventory : MonoBehaviour
         ItemPickup pickup = item.GetComponent<ItemPickup>();
         if (pickup != null && rightHandItem == null)
         {
+            // Ensure the item is parented to the player so it persists across scenes
+            if (item.transform.parent != transform)
+                item.transform.SetParent(transform, true);
+
             // Use the item's hold transform if available (handles position/rotation/scale offsets).
             pickup.ApplyHeldTransform(rightHand);
 
@@ -59,6 +63,10 @@ public class PlayerInventory : MonoBehaviour
         {
             if (backpack[i] == null)
             {
+                // Ensure the item is parented to the player so it persists across scenes
+                if (item.transform.parent != transform)
+                    item.transform.SetParent(transform, true);
+
                 backpack[i] = item;
                 item.SetActive(false);
                 PlaySound(pickupSound);
@@ -114,7 +122,7 @@ public class PlayerInventory : MonoBehaviour
             {
                 if (backpack[i] == null)
                 {
-                    rightHandItem.transform.SetParent(null, true);
+                    rightHandItem.transform.SetParent(transform, true);
                     backpack[i] = rightHandItem;
                     rightHandItem.SetActive(false);
                     rightHandItem = null;
@@ -135,6 +143,10 @@ public class PlayerInventory : MonoBehaviour
             OnInventoryChanged?.Invoke();
             return;
         }
+
+        // Ensure item is parented to player for persistence
+        if (item.transform.parent != transform)
+            item.transform.SetParent(transform, true);
 
         var pick = item.GetComponent<ItemPickup>();
         if (pick != null)
@@ -179,7 +191,12 @@ public class PlayerInventory : MonoBehaviour
             if (wandPrev != null)
                 wandPrev.SelectedIndex = -1;
 
-            handItem.transform.SetParent(null, true);
+            // Ensure item stays parented to player
+            if (handItem.transform.parent != transform)
+                handItem.transform.SetParent(transform, true);
+            else
+                handItem.transform.SetParent(transform, true);
+
             handItem.SetActive(false);
             backpack[backpackIndex] = handItem;
         }
@@ -190,6 +207,10 @@ public class PlayerInventory : MonoBehaviour
 
         if (backpackItem != null)
         {
+            // Ensure item stays parented to player
+            if (backpackItem.transform.parent != transform)
+                backpackItem.transform.SetParent(transform, true);
+
             var pick = backpackItem.GetComponent<ItemPickup>();
             if (pick != null)
                 pick.ApplyHeldTransform(rightHand);
