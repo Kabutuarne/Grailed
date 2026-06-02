@@ -8,7 +8,7 @@ public class Door : BaseInteractable
 {
     [Header("Rotation")]
     [Tooltip("Degrees to rotate on local Y when opened")]
-    public float openAngle = 90f;
+    private float openAngle = 90f;
 
     [Header("Animation")]
     [Tooltip("Seconds to fully open or close")]

@@ -43,5 +43,5 @@ MonoBehaviour:
   - prefab: {fileID: 98299272384648802, guid: 3adbc1072ff6a9944bbe3c4178d35184, type: 3}
     allowedSpots: 00000000
   enemies:
-  - prefab: {fileID: 3814426333869209777, guid: 562eb8d4ca71b1841a7845be6d2166ea, type: 3}
-    allowedSpots: 04000000
+  - prefab: {fileID: 8184876609305448741, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
+    allowedSpots: 02000000

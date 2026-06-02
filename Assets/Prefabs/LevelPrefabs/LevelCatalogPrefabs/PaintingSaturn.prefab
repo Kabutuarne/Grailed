@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 2119587240221475272}
   m_Layer: 10
   m_Name: PaintingSaturn
-  m_TagString: Untagged
+  m_TagString: Painting
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

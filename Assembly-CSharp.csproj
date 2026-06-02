@@ -89,6 +89,7 @@
     <Compile Include="Assets\Scripts\Player\Interfaces\IItemDisplayName.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\Types\QuaternionSave.cs" />
     <Compile Include="Assets\Scripts\Dialog\DialogueData.cs" />
+    <Compile Include="Assets\Scripts\World\Interactables\NewSceneInteract.cs" />
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonCombat.cs" />
     <Compile Include="Assets\Scripts\GameLogic\MissionPickerUI.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\StatusEffectData.cs" />

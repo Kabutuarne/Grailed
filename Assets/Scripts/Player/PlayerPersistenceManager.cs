@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 /// <summary>
 /// Persists player-related data across scene changes.
@@ -14,6 +15,10 @@ public class PlayerPersistenceManager : MonoBehaviour
     [Header("Persistence Settings")]
     [SerializeField] private bool persistAcrossScenes = true;
     [SerializeField] private bool logPersistenceEvents = false;
+
+    [Header("Spawn Settings")]
+    [SerializeField] private string spawnPointTag = "PlayerSpawnPoint";
+    [SerializeField] private float spawnDelay = 0.1f; // Small delay to ensure scene is fully loaded
 
     // ── player references ─────────────────────────────────────────────────────
     private PlayerStats playerStats;
@@ -32,6 +37,9 @@ public class PlayerPersistenceManager : MonoBehaviour
     private InventorySlotUI[] cachedBackpackSlots;
     private InventorySlotUI[] cachedAccessorySlots;
     private ItemDescriptionContainer cachedDescriptionContainer;
+
+    // Track if this is the first time loading
+    private bool isFirstLoad = true;
 
     // ── lifecycle ─────────────────────────────────────────────────────────────
 
@@ -160,6 +168,88 @@ public class PlayerPersistenceManager : MonoBehaviour
             Debug.Log($"Player persistence set to: {shouldPersist}");
     }
 
+    /// <summary>
+    /// Moves the player to a spawn point with the specified tag.
+    /// Uses a coroutine to ensure scene objects are initialized.
+    /// </summary>
+    public void MovePlayerToSpawnPoint(string customTag = null)
+    {
+        StartCoroutine(MovePlayerToSpawnPointCoroutine(customTag));
+    }
+
+    /// <summary>
+    /// Coroutine that handles the actual player movement to spawn point.
+    /// Includes a delay to ensure scene objects are initialized.
+    /// </summary>
+    private IEnumerator MovePlayerToSpawnPointCoroutine(string customTag = null)
+    {
+        // Wait for scene to fully initialize
+        yield return new WaitForSeconds(spawnDelay);
+
+        string tagToUse = customTag ?? spawnPointTag;
+
+        if (logPersistenceEvents)
+            Debug.Log($"Attempting to move player to spawn point with tag: {tagToUse}");
+
+        // Find spawn point by tag
+        GameObject spawnPoint = GameObject.FindGameObjectWithTag(tagToUse);
+
+        // Find the actual player GameObject (the child with PlayerController)
+        GameObject playerObject = null;
+
+        if (playerController != null)
+        {
+            playerObject = playerController.gameObject;
+        }
+        else
+        {
+            // Try to find PlayerController in children
+            playerController = GetComponentInChildren<PlayerController>();
+            if (playerController != null)
+            {
+                playerObject = playerController.gameObject;
+            }
+        }
+
+        // If we still don't have a player object, use this gameObject
+        if (playerObject == null)
+        {
+            playerObject = gameObject;
+            if (logPersistenceEvents)
+                Debug.LogWarning("Could not find PlayerController, moving the manager GameObject instead");
+        }
+
+        // Store the current position before moving (for potential undo)
+        Vector3 previousPosition = playerObject.transform.position;
+
+        // Hardcoded target position
+        Vector3 targetPosition = new Vector3(-2.56f, 3.76f, 9.56f);
+
+        // Use spawn point rotation if available, otherwise keep current rotation
+        Quaternion targetRotation = spawnPoint != null ? spawnPoint.transform.rotation : playerObject.transform.rotation;
+
+        // Handle CharacterController if it exists on the player
+        CharacterController characterController = playerObject.GetComponent<CharacterController>();
+        if (characterController != null)
+        {
+            // Disable and re-enable to reset the CharacterController's internal state
+            characterController.enabled = false;
+            playerObject.transform.position = targetPosition;
+            playerObject.transform.rotation = targetRotation;
+            characterController.enabled = true;
+        }
+        else
+        {
+            // No CharacterController, just move directly
+            playerObject.transform.position = targetPosition;
+            playerObject.transform.rotation = targetRotation;
+        }
+
+        if (logPersistenceEvents)
+            Debug.Log($"Player moved from {previousPosition} to {targetPosition}" +
+                      (spawnPoint != null ? $" (using spawn point '{tagToUse}')" : " (no spawn point found, using default position)"));
+    }
+
     // ── Cached UI accessors ───────────────────────────────────────────────────
 
     public Canvas GetCachedCanvas() => cachedCanvas;
@@ -181,7 +271,7 @@ public class PlayerPersistenceManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         // Destroy this persistent object when returning to the main menu
-        if (scene.name == "MainMenuScene")
+        if (scene.name == "MainMenuScene" || scene.name == "MainTestScene")
         {
             if (logPersistenceEvents)
                 Debug.Log("MainMenuScene loaded. Destroying PlayerPersistenceManager.");
@@ -192,8 +282,34 @@ public class PlayerPersistenceManager : MonoBehaviour
         }
 
         if (logPersistenceEvents)
-            Debug.Log($"Scene '{scene.name}' loaded. Caching UI elements...");
+            Debug.Log($"Scene '{scene.name}' loaded. Handling player positioning and UI caching...");
 
+        // Handle positioning when loading the CabinScene
+        if (scene.name == "CabinScene")
+        {
+            // Check if we have a stored spawn point from returning from a mission
+            if (PlayerPrefs.HasKey("LastSpawnPointTag"))
+            {
+                string spawnTag = PlayerPrefs.GetString("LastSpawnPointTag");
+                if (logPersistenceEvents)
+                    Debug.Log($"Found stored spawn point tag: {spawnTag}. Moving player to spawn point.");
+
+                // Move player to the stored spawn point
+                MovePlayerToSpawnPoint(spawnTag);
+
+                // Clear the stored spawn point after use
+                PlayerPrefs.DeleteKey("LastSpawnPointTag");
+            }
+            else
+            {
+                // No stored spawn point means this is the first load or returning from main menu
+                // Player will stay at their current position (which should be the scene's default position)
+                if (logPersistenceEvents)
+                    Debug.Log("No stored spawn point found. Player will remain at current position.");
+            }
+        }
+
+        // Cache UI elements for the new scene
         CacheUIElements();
         BindUIToPlayerUI();
     }

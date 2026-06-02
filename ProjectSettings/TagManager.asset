@@ -13,6 +13,8 @@ TagManager:
   - RespawnTransform
   - UIDayTimeDispaly
   - ExitSpawn
+  - Painting
+  - PlayerSpawnPoint
   layers:
   - Default
   - TransparentFX

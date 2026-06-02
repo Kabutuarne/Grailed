@@ -138,10 +138,10 @@ public class MissionPickerUI : MonoBehaviour
             selectedDescriptionText.text = selectedMission != null ? selectedMission.description : "Choose one of the available missions to see the details.";
 
         if (selectedAssignedByText != null)
-            selectedAssignedByText.text = selectedMission != null ? $"Assigned by: {selectedMission.assignedBy}" : string.Empty;
+            selectedAssignedByText.text = selectedMission != null ? $"By: {selectedMission.assignedBy}" : string.Empty;
 
         if (selectedDifficultyText != null)
-            selectedDifficultyText.text = selectedMission != null ? $"Difficulty: {selectedMission.DifficultyRoman}" : string.Empty;
+            selectedDifficultyText.text = selectedMission != null ? $"{selectedMission.DifficultyRoman}" : string.Empty;
 
         if (startMissionButton != null)
             startMissionButton.interactable = selectedMission != null;

@@ -35,7 +35,7 @@ public class MissionEntryUI : MonoBehaviour, IPointerEnterHandler, IPointerExitH
             titleText.text = mission != null ? mission.title : "Unknown Mission";
 
         if (assignedByText != null)
-            assignedByText.text = mission != null ? $"Assigned by {mission.assignedBy}" : string.Empty;
+            assignedByText.text = mission != null ? $"By {mission.assignedBy}" : string.Empty;
 
         if (difficultyText != null)
             difficultyText.text = mission != null ? mission.DifficultyRoman : string.Empty;

@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 8736762328841497422}
   m_Layer: 10
   m_Name: PaintingForest
-  m_TagString: Untagged
+  m_TagString: Painting
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

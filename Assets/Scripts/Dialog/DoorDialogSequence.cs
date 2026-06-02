@@ -34,6 +34,16 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
     [SerializeField] protected DialogueUI dialogueUI;
     [SerializeField] protected DialogueData dialogueData;
 
+    [Header("Conditional Dialogue")]
+    [Tooltip("If set, the sequence will check for an item with this tag before playing dialogue.")]
+    [SerializeField] private string conditionItemTag;
+    [Tooltip("Dialogue to play when the condition item IS present (found in scene or player inventory).")]
+    [SerializeField] private DialogueData conditionalDialoguePresent;
+    [Tooltip("Dialogue to play when the condition item IS NOT present.")]
+    [SerializeField] private DialogueData conditionalDialogueAbsent;
+    [Tooltip("If true, the condition item will be destroyed after the sequence finishes (only if present).")]
+    [SerializeField] private bool destroyConditionItemOnComplete = true;
+
     [Header("Mission")]
     [Tooltip("Mission to unlock after this dialogue finishes. Leave empty for sequences that don't grant a mission.")]
     [SerializeField] private MissionData missionToUnlock;
@@ -87,6 +97,9 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
     private bool canBeInteractedWith;
     private int talkAnimIndex;
 
+    // Store the condition item GameObject for destruction later
+    private GameObject conditionItemRef;
+
     // ── IInteractable ─────────────────────────────────────────────────────────
 
     public bool CanInteract(GameObject interactor)
@@ -102,14 +115,94 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
 
     protected virtual void Start()
     {
+        AutoFindComponents();
         SetupInitialCameraState();
         StartCoroutine(SceneStartRoutine());
+    }
+
+    protected virtual void OnEnable()
+    {
+        if (sequenceTimeline != null)
+            sequenceTimeline.stopped += OnSequenceTimelineStopped;
     }
 
     protected virtual void OnDisable()
     {
         if (sequenceTimeline != null)
             sequenceTimeline.stopped -= OnSequenceTimelineStopped;
+    }
+
+    // ── Auto Component Finding ────────────────────────────────────────────────
+
+    private void AutoFindComponents()
+    {
+        if (dialogueUI == null)
+            dialogueUI = FindFirstObjectByType<DialogueUI>();
+
+        if (sequenceTimeline == null)
+        {
+            sequenceTimeline = GetComponent<PlayableDirector>();
+            if (sequenceTimeline == null)
+                sequenceTimeline = GetComponentInChildren<PlayableDirector>();
+        }
+
+        if (playerController == null)
+        {
+            if (PlayerPersistenceManager.Instance != null)
+                playerController = PlayerPersistenceManager.Instance.GetPlayerController();
+
+            if (playerController == null)
+            {
+                GameObject player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null)
+                    playerController = player.GetComponent<PlayerController>();
+            }
+        }
+
+        if (playerInteractor == null)
+        {
+            if (PlayerPersistenceManager.Instance != null)
+            {
+                var persistentPlayer = PlayerPersistenceManager.Instance.gameObject;
+                playerInteractor = persistentPlayer.GetComponent<PlayerInteractor>();
+            }
+
+            if (playerInteractor == null)
+            {
+                GameObject player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null)
+                    playerInteractor = player.GetComponent<PlayerInteractor>();
+            }
+        }
+
+        if (playerVirtualCamera == null)
+            playerVirtualCamera = FindFirstObjectByType<CinemachineCamera>();
+
+        if (cinematicVirtualCamera == null && playerVirtualCamera != null)
+        {
+            var allCams = FindObjectsByType<CinemachineCamera>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (var cam in allCams)
+            {
+                if (cam != playerVirtualCamera)
+                {
+                    cinematicVirtualCamera = cam;
+                    break;
+                }
+            }
+        }
+
+        if (knockAudioSource == null)
+            knockAudioSource = GetComponent<AudioSource>();
+
+        if (interactionPromptObject == null)
+        {
+            Transform promptTransform = transform.Find("InteractionPrompt");
+            if (promptTransform != null)
+                interactionPromptObject = promptTransform.gameObject;
+        }
+
+        if (speakerAnimator == null)
+            speakerAnimator = GetComponentInChildren<Animator>();
     }
 
     // ── Scene Start / Knocking ────────────────────────────────────────────────
@@ -145,6 +238,154 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
         }
     }
 
+    // ── Condition Checking ────────────────────────────────────────────────────
+
+    private GameObject FindConditionItem()
+    {
+        if (string.IsNullOrEmpty(conditionItemTag))
+            return null;
+
+        // First, check the scene for any GameObject with the tag
+        GameObject sceneItem = GameObject.FindGameObjectWithTag(conditionItemTag);
+        if (sceneItem != null)
+            return sceneItem;
+
+        // If not found in scene, check player inventory via PlayerPersistenceManager
+        PlayerInventory playerInventory = null;
+
+        if (PlayerPersistenceManager.Instance != null)
+            playerInventory = PlayerPersistenceManager.Instance.GetPlayerInventory();
+
+        if (playerInventory == null)
+            playerInventory = FindFirstObjectByType<PlayerInventory>();
+
+        if (playerInventory == null)
+            return null;
+
+        // Check right hand slot
+        if (playerInventory.rightHandItem != null &&
+            playerInventory.rightHandItem.CompareTag(conditionItemTag))
+        {
+            return playerInventory.rightHandItem;
+        }
+
+        // Check backpack slots
+        for (int i = 0; i < playerInventory.backpack.Length; i++)
+        {
+            if (playerInventory.backpack[i] != null &&
+                playerInventory.backpack[i].CompareTag(conditionItemTag))
+            {
+                return playerInventory.backpack[i];
+            }
+        }
+
+        // Check accessory slots
+        for (int i = 0; i < playerInventory.accessories.Length; i++)
+        {
+            if (playerInventory.accessories[i] != null &&
+                playerInventory.accessories[i].CompareTag(conditionItemTag))
+            {
+                return playerInventory.accessories[i];
+            }
+        }
+
+        return null;
+    }
+
+    private void DestroyConditionItem()
+    {
+        if (conditionItemRef == null)
+            return;
+
+        PlayerInventory playerInventory = null;
+        if (PlayerPersistenceManager.Instance != null)
+            playerInventory = PlayerPersistenceManager.Instance.GetPlayerInventory();
+
+        if (playerInventory == null)
+            playerInventory = FindFirstObjectByType<PlayerInventory>();
+
+        if (conditionItemRef.transform.parent == null ||
+            (playerInventory != null && conditionItemRef.transform.parent != playerInventory.transform))
+        {
+            Destroy(conditionItemRef);
+            return;
+        }
+
+        if (playerInventory != null)
+        {
+            if (playerInventory.rightHandItem == conditionItemRef)
+                playerInventory.rightHandItem = null;
+
+            for (int i = 0; i < playerInventory.backpack.Length; i++)
+            {
+                if (playerInventory.backpack[i] == conditionItemRef)
+                {
+                    playerInventory.backpack[i] = null;
+                    break;
+                }
+            }
+
+            for (int i = 0; i < playerInventory.accessories.Length; i++)
+            {
+                if (playerInventory.accessories[i] == conditionItemRef)
+                {
+                    var acc = conditionItemRef.GetComponent<Accessory>();
+                    if (acc != null)
+                        acc.OnUnequipped();
+                    playerInventory.accessories[i] = null;
+                    break;
+                }
+            }
+        }
+
+        Destroy(conditionItemRef);
+        conditionItemRef = null;
+    }
+
+    /// <summary>
+    /// Gets the appropriate dialogue data based on whether the mission has been played.
+    /// - If mission has NOT been played yet: use dialogueData (first time)
+    /// - If mission HAS been played: check condition item and use conditionalDialoguePresent or conditionalDialogueAbsent
+    /// </summary>
+    private DialogueData GetConditionalDialogue()
+    {
+        // Check if this mission has been played before using MissionManager
+        bool hasMissionBeenPlayed = false;
+
+        if (missionToUnlock != null && MissionManager.Instance != null)
+        {
+            hasMissionBeenPlayed = MissionManager.Instance.HasMissionBeenPlayed(missionToUnlock);
+        }
+
+        // If mission has NOT been played yet (first time), always use the main dialogue data
+        if (!hasMissionBeenPlayed)
+        {
+            Debug.Log($"[DoorDialogueSequence] Mission '{missionToUnlock?.title}' has not been played yet, using first-time dialogue.");
+            return dialogueData;
+        }
+
+        // Mission has been played before - use conditional dialogues based on item presence
+        Debug.Log($"[DoorDialogueSequence] Mission '{missionToUnlock?.title}' has been played before, checking for condition item.");
+
+        // Check for condition item
+        if (string.IsNullOrEmpty(conditionItemTag))
+        {
+            Debug.Log($"[DoorDialogueSequence] No condition item tag set, using default dialogue.");
+            return dialogueData;
+        }
+
+        conditionItemRef = FindConditionItem();
+
+        if (conditionItemRef != null)
+        {
+            Debug.Log($"[DoorDialogueSequence] Condition item found with tag '{conditionItemTag}', using conditional present dialogue.");
+            return conditionalDialoguePresent != null ? conditionalDialoguePresent : dialogueData;
+        }
+
+        Debug.Log($"[DoorDialogueSequence] Condition item NOT found with tag '{conditionItemTag}', using conditional absent dialogue.");
+        return conditionalDialogueAbsent != null ? conditionalDialogueAbsent : dialogueData;
+    }
+
     // ── Sequence Control ──────────────────────────────────────────────────────
 
     private void StartSequence()
@@ -163,11 +404,17 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
 
         SwitchToCinematicCamera();
 
-        sequenceTimeline.time = 0.0;
-        sequenceTimeline.Play();
+        if (sequenceTimeline != null)
+        {
+            sequenceTimeline.time = 0.0;
+            sequenceTimeline.Play();
+        }
+        else
+        {
+            StartDialogue();
+        }
     }
 
-    /// <summary>Called by Timeline Signal Receiver at the end of the intro section.</summary>
     public void OnIntroFinished()
     {
         if (!sequenceRunning || isLoopingSpeech)
@@ -177,14 +424,16 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
         lineTypingActive = false;
         dialogueFinished = false;
 
-        sequenceTimeline.time = talkLoopStartTime;
-        SetTimelineSpeed(talkLoopSpeed);
-        sequenceTimeline.Play();
+        if (sequenceTimeline != null)
+        {
+            sequenceTimeline.time = talkLoopStartTime;
+            SetTimelineSpeed(talkLoopSpeed);
+            sequenceTimeline.Play();
+        }
 
         StartDialogue();
     }
 
-    /// <summary>Called by Timeline Signal Receiver at the end of the talk loop section.</summary>
     public void OnTalkLoopEnd()
     {
         if (!sequenceRunning || !isLoopingSpeech)
@@ -192,13 +441,13 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
 
         if (lineTypingActive)
         {
-            // Line still typing — loop back and keep animating.
-            sequenceTimeline.time = talkLoopStartTime;
+            if (sequenceTimeline != null)
+                sequenceTimeline.time = talkLoopStartTime;
         }
         else if (!dialogueFinished)
         {
-            // Line done, more to come — pause until the next line starts.
-            sequenceTimeline.Pause();
+            if (sequenceTimeline != null)
+                sequenceTimeline.Pause();
         }
         else
         {
@@ -210,11 +459,13 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
 
     protected virtual void StartDialogue()
     {
-        if (dialogueUI != null && dialogueData != null)
+        DialogueData dialogueToUse = GetConditionalDialogue();
+
+        if (dialogueUI != null && dialogueToUse != null)
         {
             dialogueUI.OnLineStarted += OnLineStarted;
             dialogueUI.OnLineTypingComplete += OnLineTypingComplete;
-            dialogueUI.StartDialogue(dialogueData, OnDialogueFinished);
+            dialogueUI.StartDialogue(dialogueToUse, OnDialogueFinished);
         }
         else
         {
@@ -225,7 +476,6 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
     private void OnLineStarted()
     {
         lineTypingActive = true;
-
         PlayNextTalkAnimation();
 
         if (isLoopingSpeech && sequenceTimeline != null)
@@ -254,8 +504,6 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
         if (missionToUnlock != null)
             MissionManager.Instance?.UnlockMission(missionToUnlock);
 
-        // If the timeline is already paused (last line finished before the loop signal fired),
-        // exit immediately rather than waiting for a signal that will never arrive.
         if (isLoopingSpeech && sequenceTimeline != null &&
             sequenceTimeline.state == PlayState.Paused)
         {
@@ -263,14 +511,19 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
         }
     }
 
-    // Restore normal speed, jump to the end section, play to completion.
     private void ExitTalkLoop()
     {
         isLoopingSpeech = false;
         SetTimelineSpeed(1f);
-        sequenceTimeline.time = endSectionStartTime;
-        sequenceTimeline.stopped += OnSequenceTimelineStopped;
-        sequenceTimeline.Play();
+        if (sequenceTimeline != null)
+        {
+            sequenceTimeline.time = endSectionStartTime;
+            sequenceTimeline.Play();
+        }
+        else
+        {
+            EndSequence();
+        }
     }
 
     // ── Timeline End ──────────────────────────────────────────────────────────
@@ -280,7 +533,12 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
         if (director != sequenceTimeline)
             return;
 
-        sequenceTimeline.stopped -= OnSequenceTimelineStopped;
+        if (destroyConditionItemOnComplete && conditionItemRef != null)
+        {
+            Debug.Log($"[DoorDialogueSequence] Destroying condition item with tag '{conditionItemTag}' after sequence.");
+            DestroyConditionItem();
+        }
+
         EndSequence();
     }
 
@@ -300,11 +558,11 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
         hasPlayed = true;
 
         LockPlayer(false);
+        conditionItemRef = null;
     }
 
     // ── Speaker Animation ─────────────────────────────────────────────────────
 
-    // Cross-fades to the next clip in talkAnimations, cycling back to index 0.
     private void PlayNextTalkAnimation()
     {
         if (speakerAnimator == null || talkAnimations == null || talkAnimations.Length == 0)
@@ -341,8 +599,17 @@ public class DoorDialogueSequence : MonoBehaviour, IInteractable
 
     private void LockPlayer(bool locked)
     {
+        if (playerController == null && PlayerPersistenceManager.Instance != null)
+            playerController = PlayerPersistenceManager.Instance.GetPlayerController();
+
         if (playerController != null)
             playerController.SetControlLocked(locked);
+
+        if (playerInteractor == null && PlayerPersistenceManager.Instance != null)
+        {
+            var persistentPlayer = PlayerPersistenceManager.Instance.gameObject;
+            playerInteractor = persistentPlayer.GetComponent<PlayerInteractor>();
+        }
 
         if (playerInteractor != null)
             playerInteractor.SetInteractionLocked(locked);

@@ -13,7 +13,7 @@ public abstract class BaseInteractable : MonoBehaviour, IInteractable
     public float interactDuration = 1f;
 
     [Tooltip("Text to display via InteractableTextHUD")]
-    public string interactionText = "Interact";
+    public string interactionText = "Open the door";
 
     [Header("Audio")]
     [Tooltip("Sound to play when interaction starts")]
