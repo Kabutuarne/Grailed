@@ -74,6 +74,7 @@
     <Compile Include="Assets\Scripts\GameLogic\MissionEntryUI.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\RandomRoomSpawner.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerAI.cs" />
+    <Compile Include="Assets\Scripts\MenuScripts\BackgroundMusicPlayer.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\ButtonAnimator.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\Types\MeshSave.cs" />
     <Compile Include="Assets\Scripts\Player\UI\ItemDescriptionContainer.cs" />
@@ -117,6 +118,7 @@
     <Compile Include="Assets\Scripts\Player\PlayerInventory.cs" />
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonKnockbackReciever.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\ChanneledAOESpell.cs" />
+    <Compile Include="Assets\Scripts\MenuScripts\AudioRouter.cs" />
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonMovement.cs" />
     <Compile Include="Assets\Scripts\Player\ItemPickup.cs" />
     <Compile Include="Assets\Scripts\World\IntroCameraFade.cs" />

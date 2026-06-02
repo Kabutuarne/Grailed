@@ -300,9 +300,22 @@ public class CastUI : MonoBehaviour
         glowImage.gameObject.SetActive(false);
     }
 
+    // private void PlaySound(AudioClip clip)
+    // {
+    //     if (audioSource != null && clip != null)
+    //         audioSource.PlayOneShot(clip);
+    // }
     private void PlaySound(AudioClip clip)
     {
-        if (audioSource != null && clip != null)
-            audioSource.PlayOneShot(clip);
+        if (audioSource == null || clip == null)
+            return;
+
+        if (AudioRouter.Instance != null)
+        {
+            audioSource.outputAudioMixerGroup =
+                AudioRouter.Instance.SFXGroup;
+        }
+
+        audioSource.PlayOneShot(clip);
     }
 }

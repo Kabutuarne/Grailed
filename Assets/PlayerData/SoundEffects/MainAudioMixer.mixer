@@ -33,6 +33,22 @@ AudioMixerEffectController:
   m_SendTarget: {fileID: 0}
   m_EnableWetMix: 0
   m_Bypass: 0
+--- !u!244 &-3876930103563927762
+AudioMixerEffectController:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_EffectID: b5f2ef2e37d7b0548a9d1304b750fb55
+  m_EffectName: Highpass Simple
+  m_MixLevel: 407133661a06aee47908284ae896edc9
+  m_Parameters:
+  - m_ParameterName: Cutoff freq
+    m_GUID: 16a43950189b33243a2b1344f382ca08
+  m_SendTarget: {fileID: 0}
+  m_EnableWetMix: 0
+  m_Bypass: 0
 --- !u!243 &-468075226772776800
 AudioMixerGroupController:
   m_ObjectHideFlags: 0
@@ -67,7 +83,11 @@ AudioMixerController:
   m_SuspendThreshold: -80
   m_EnableSuspend: 1
   m_UpdateMode: 0
-  m_ExposedParameters: []
+  m_ExposedParameters:
+  - guid: fdceef7d26189c040aeec6dc61c68b91
+    name: MusicVolume
+  - guid: 4be692be7dbda1045a01aa0210c61339
+    name: SFXVolume
   m_AudioMixerGroupViews:
   - guids:
     - 7de471b5600bb4741b848300f80ae622
@@ -124,6 +144,22 @@ AudioMixerSnapshotController:
   m_SnapshotID: a366cb909d9041646a5c0bb66ef45e5d
   m_FloatValues: {}
   m_TransitionOverrides: {}
+--- !u!244 &3377479183306747807
+AudioMixerEffectController:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_EffectID: 1ff1da7352f68a544b2a724813412d10
+  m_EffectName: Highpass Simple
+  m_MixLevel: 3f7ed51879c262444ae7748c30e4ec71
+  m_Parameters:
+  - m_ParameterName: Cutoff freq
+    m_GUID: 81e93c9046b553646816b4919288ab55
+  m_SendTarget: {fileID: 0}
+  m_EnableWetMix: 0
+  m_Bypass: 0
 --- !u!243 &6304886968369079220
 AudioMixerGroupController:
   m_ObjectHideFlags: 0

@@ -180,6 +180,17 @@ public class PlayerPersistenceManager : MonoBehaviour
     /// </summary>
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        // Destroy this persistent object when returning to the main menu
+        if (scene.name == "MainMenuScene")
+        {
+            if (logPersistenceEvents)
+                Debug.Log("MainMenuScene loaded. Destroying PlayerPersistenceManager.");
+
+            Instance = null;
+            Destroy(gameObject);
+            return;
+        }
+
         if (logPersistenceEvents)
             Debug.Log($"Scene '{scene.name}' loaded. Caching UI elements...");
 

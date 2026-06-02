@@ -29,6 +29,7 @@ public class PauseMenuManager : MonoBehaviour
     private PlayerInputActions input;
     private bool isPaused = false;
     private float previousTimeScale = 1f;
+    private bool wasBackpackOpenBeforePause = false;
 
     private void Awake()
     {
@@ -79,6 +80,10 @@ public class PauseMenuManager : MonoBehaviour
         if (isPaused) return;
         isPaused = true;
 
+        // Save the backpack state before we open the pause menu
+        var playerUi = FindFirstObjectByType<PlayerUI>();
+        wasBackpackOpenBeforePause = (playerUi != null && playerUi.IsBackpackOpen);
+
         previousTimeScale = Time.timeScale;
         if (pauseTime) Time.timeScale = 0f;
         AudioListener.pause = true;
@@ -126,12 +131,15 @@ public class PauseMenuManager : MonoBehaviour
         if (pauseTime) Time.timeScale = Mathf.Max(previousTimeScale, 1f);
         AudioListener.pause = false;
 
+        // Close all pause menu UI panels first, so they don't interfere with blocking UI check
+        if (settingsPanel != null) settingsPanel.SetActive(false);
+        if (pauseRoot != null) pauseRoot.SetActive(false);
+
         // Decide whether other UI is still blocking gameplay (e.g. MissionPicker or backpack)
         var missionPicker = FindFirstObjectByType<MissionPickerUI>();
         var playerUi = FindFirstObjectByType<PlayerUI>();
         bool blockingUI = (missionPicker != null && missionPicker.IsOpen) ||
-                          (playerUi != null && playerUi.IsBackpackOpen) ||
-                          (settingsPanel != null && settingsPanel.activeInHierarchy);
+                          (playerUi != null && playerUi.IsBackpackOpen);
 
         // If blocking UI remains open, keep gameplay controls disabled but keep Pause action available.
         if (input != null)
@@ -142,6 +150,7 @@ public class PauseMenuManager : MonoBehaviour
                 {
                     input.Player.Disable();
                     input.Player.Pause.Enable();
+                    input.Player.Backpack.Enable(); // Allow closing backpack with Tab
                 }
                 else
                 {
@@ -150,9 +159,6 @@ public class PauseMenuManager : MonoBehaviour
             }
             catch { }
         }
-
-        if (settingsPanel != null) settingsPanel.SetActive(false);
-        if (pauseRoot != null) pauseRoot.SetActive(false);
 
         if (!blockingUI)
         {
@@ -164,6 +170,14 @@ public class PauseMenuManager : MonoBehaviour
 
             var pc = FindFirstObjectByType<PlayerController>();
             if (pc != null) pc.SetControlLocked(false);
+        }
+        else if (wasBackpackOpenBeforePause)
+        {
+            // Backpack was open when we opened the pause menu, so restore the game canvas
+            // but keep controls locked since the backpack is still open
+            SetGameCanvasActive(true);
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
     }
 
