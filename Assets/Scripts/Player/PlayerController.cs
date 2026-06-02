@@ -67,6 +67,7 @@ public class PlayerController : MonoBehaviour
 
     private bool isCrouching;
     private bool controlsLocked;
+    private int controlLockCount;
 
     private Vector3 externalVelocity;
     public float knockbackDecay = 8f;
@@ -156,9 +157,21 @@ public class PlayerController : MonoBehaviour
 
     public void SetControlLocked(bool locked)
     {
-        controlsLocked = locked;
-
         if (locked)
+        {
+            controlLockCount++;
+        }
+        else
+        {
+            controlLockCount = Mathf.Max(0, controlLockCount - 1);
+        }
+
+        bool shouldBeLocked = controlLockCount > 0;
+        if (shouldBeLocked == controlsLocked)
+            return;
+
+        controlsLocked = shouldBeLocked;
+        if (controlsLocked)
         {
             moveInput = Vector2.zero;
             lookInput = Vector2.zero;

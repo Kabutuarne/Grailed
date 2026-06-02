@@ -154,8 +154,8 @@ public class ButlerAI : MonoBehaviour
         toTarget.y = 0f;
         float distanceToTarget = toTarget.magnitude;
 
-        // In attack range — stop and swing
-        if (distanceToTarget <= combat.attackRange)
+        // Check if within attack range + offset, stop and swing
+        if (combat.ShouldStopMoving(currentTarget))
         {
             movement.SetDesiredVelocity(Vector3.zero);
             desiredMoveSpeed = 0f;

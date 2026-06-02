@@ -9,6 +9,8 @@ public class SkeletonRagdollController : MonoBehaviour
     public Rigidbody[] ragdollBodies;
     [Tooltip("Main root collider used while the skeleton is standing and chasing.")]
     public Collider mainCollider;
+    [Tooltip("Limbs (e.g., legs) that should NOT have collisions while animations are playing. They will only collide when ragdolled.")]
+    public Rigidbody[] limbsToDisableCollisionsWhileAnimating;
 
     private SkeletonAI ai;
     private Animator animator;
@@ -102,9 +104,30 @@ public class SkeletonRagdollController : MonoBehaviour
             foreach (Collider col in allRagdollColliders)
             {
                 if (col == null || col == mainCollider) continue;
-                col.enabled = true; // Always enabled
+
+                // Check if this collider belongs to a limb that should be disabled during animation
+                bool shouldBeDisabled = !enabled && IsLimbToDisable(col);
+                col.enabled = !shouldBeDisabled;
+
+                // Set colliders to triggers when they shouldn't have collisions (during animation)
+                col.isTrigger = shouldBeDisabled;
             }
         }
+    }
+
+    private bool IsLimbToDisable(Collider col)
+    {
+        if (limbsToDisableCollisionsWhileAnimating == null || limbsToDisableCollisionsWhileAnimating.Length == 0)
+            return false;
+
+        foreach (Rigidbody limb in limbsToDisableCollisionsWhileAnimating)
+        {
+            if (limb == null) continue;
+            if (col.gameObject == limb.gameObject || col.GetComponentInParent<Rigidbody>() == limb)
+                return true;
+        }
+
+        return false;
     }
 
     private void SetMainColliderEnabled(bool enabled)

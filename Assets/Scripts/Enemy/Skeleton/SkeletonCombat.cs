@@ -6,6 +6,8 @@ public class SkeletonCombat : MonoBehaviour
 {
     [Header("Combat")]
     public float attackRange = 2.5f;
+    [Tooltip("Extra distance beyond attack range where the enemy will stop moving")]
+    public float stopMovementOffset = 0.3f;
     public float baseAttackInterval = 0.5f;
 
     [Header("Effects")]
@@ -34,6 +36,16 @@ public class SkeletonCombat : MonoBehaviour
 
         foreach (SkeletonLimbHitbox hitbox in limbHitboxes)
             hitbox?.Initialize(this);
+    }
+
+    /// <summary>
+    /// Checks if the enemy should stop moving because they're within attack range + offset.
+    /// </summary>
+    public bool ShouldStopMoving(Transform target)
+    {
+        if (target == null) return false;
+        float dist = Vector3.Distance(transform.position, target.position);
+        return dist <= (attackRange + stopMovementOffset);
     }
 
     public void TickAttack(Transform target)

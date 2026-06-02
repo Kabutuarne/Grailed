@@ -12,18 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e7f7bdba046ba34599015f799664f2f, type: 3}
   m_Name: LevelCatalog
   m_EditorClassIdentifier: Assembly-CSharp::PerLevelCatalog
-  sectionAmount: 25
+  sectionAmount: 15
   items:
-  - prefab: {fileID: 6960709781126975696, guid: 6fe77a04c91d48e40a817cd0b2b1e80e, type: 3}
-    allowedSpots: 050000000200000004000000
-  - prefab: {fileID: 6960709781126975696, guid: 6fe77a04c91d48e40a817cd0b2b1e80e, type: 3}
-    allowedSpots: 050000000200000004000000
-  - prefab: {fileID: 2367634576012939049, guid: f740cc6526bafee4796de5d973129c49, type: 3}
-    allowedSpots: 050000000200000004000000
-  - prefab: {fileID: 2410281949284357227, guid: cdaad88ff57c0d5478e7625a757e92a6, type: 3}
-    allowedSpots: 050000000200000004000000
-  - prefab: {fileID: 2410081487702474211, guid: df7b1ba7f4ec68846bd71af44e95b471, type: 3}
-    allowedSpots: 050000000200000004000000
+  - prefab: {fileID: 3224952145024352279, guid: 34348b3600dfaf548bb963668c7ea935, type: 3}
+    allowedSpots: 03000000
+  - prefab: {fileID: 3224952145024352279, guid: 34348b3600dfaf548bb963668c7ea935, type: 3}
+    allowedSpots: 03000000
+  - prefab: {fileID: 2306477791360080065, guid: 4caf2c2220e440c49aa22520aa90a84d, type: 3}
+    allowedSpots: 03000000
+  - prefab: {fileID: 7051373785769662267, guid: ec8614281be093042bd8bc1e7bcddb0b, type: 3}
+    allowedSpots: 03000000
+  - prefab: {fileID: 1297149910863311153, guid: c4fa039cd78aae14c8de3e9bf64c486c, type: 3}
+    allowedSpots: 040000000500000001000000
+  - prefab: {fileID: 1297149910863311153, guid: c4fa039cd78aae14c8de3e9bf64c486c, type: 3}
+    allowedSpots: 01000000
+  - prefab: {fileID: 1080446556421709562, guid: 5bfdb3eda3e26b14b85396897fe6f368, type: 3}
+    allowedSpots: 01000000
+  - prefab: {fileID: 1297149910863311153, guid: c4fa039cd78aae14c8de3e9bf64c486c, type: 3}
+    allowedSpots: 01000000
+  - prefab: {fileID: 9071877455229588250, guid: bea2c471e4ec1e04184f7034891e27db, type: 3}
+    allowedSpots: 01000000
+  - prefab: {fileID: 8146595917539372128, guid: 5a9cd7990a499124e9e29654d5fed359, type: 3}
+    allowedSpots: 01000000
+  - prefab: {fileID: 1297149910863311153, guid: c4fa039cd78aae14c8de3e9bf64c486c, type: 3}
+    allowedSpots: 01000000
+  - prefab: {fileID: 2852880482968086362, guid: d3ab5633432b5ff4aacdc101e14eaab9, type: 3}
+    allowedSpots: 020000000100000005000000
+  - prefab: {fileID: 4260160323917446259, guid: 6942e0083f133a541a86ed82b1b05320, type: 3}
+    allowedSpots: 0200000001000000
+  - prefab: {fileID: 98299272384648802, guid: 3adbc1072ff6a9944bbe3c4178d35184, type: 3}
+    allowedSpots: 00000000
   enemies:
-  - prefab: {fileID: 8185127658728666488, guid: 481dcb819af8f6446bca8e674297dbed, type: 3}
-    allowedSpots: 0200000004000000
+  - prefab: {fileID: 3814426333869209777, guid: 562eb8d4ca71b1841a7845be6d2166ea, type: 3}
+    allowedSpots: 04000000

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Sydewa;
 
 public class PlayerStats : MonoBehaviour, IResourceHandler
 {
@@ -46,6 +47,12 @@ public class PlayerStats : MonoBehaviour, IResourceHandler
     [Header("Death & Respawn")]
     public float respawnDelay = 3f;
     public Transform respawnPoint;
+
+    [Header("On Death - Object State Changes")]
+    [Tooltip("Optional object to enable when player dies")]
+    public string enableOnDeathName;
+    [Tooltip("Optional object to disable when player dies")]
+    public string disableOnDeathName;
 
     // ── private refs ──────────────────────────────────────────────────────────
     private StatusEffects statusEffects;
@@ -204,6 +211,9 @@ public class PlayerStats : MonoBehaviour, IResourceHandler
         if (inventory != null)
             inventory.DropAllItems(dropOrigin);
 
+        SetObjectActive(enableOnDeathName, true);
+        SetObjectActive(disableOnDeathName, false);
+
         StartCoroutine(RespawnCoroutine());
     }
 
@@ -236,6 +246,23 @@ public class PlayerStats : MonoBehaviour, IResourceHandler
         mana = maxMana * 0.1f;
         stamina = maxStamina * 0.1f;
         isDead = false;
+    }
+
+    // ── helper methods ────────────────────────────────────────────────────────
+
+    private void SetObjectActive(string objectName, bool active)
+    {
+        if (string.IsNullOrWhiteSpace(objectName))
+            return;
+
+        var obj = GameObject.Find(objectName);
+        if (obj == null)
+        {
+            Debug.LogWarning($"Could not find GameObject named '{objectName}'", this);
+            return;
+        }
+
+        obj.SetActive(active);
     }
 
     // ── effective attributes (base + status bonuses) ──────────────────────────

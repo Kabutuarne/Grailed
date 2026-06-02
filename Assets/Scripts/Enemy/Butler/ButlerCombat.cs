@@ -11,6 +11,8 @@ public class ButlerCombat : MonoBehaviour
     [Header("Combat")]
     [Tooltip("Distance to start attacking")]
     public float attackRange = 2f;
+    [Tooltip("Extra distance beyond attack range where the enemy will stop moving")]
+    public float stopMovementOffset = 0.3f;
     [Tooltip("Base time between attacks before agility scaling")]
     public float baseAttackInterval = 1.5f;
     [Tooltip("Effects applied on successful attack")]
@@ -31,6 +33,16 @@ public class ButlerCombat : MonoBehaviour
     {
         ai = butlerAI;
         attackTimer = 0f;
+    }
+
+    /// <summary>
+    /// Checks if the enemy should stop moving because they're within attack range + offset.
+    /// </summary>
+    public bool ShouldStopMoving(Transform target)
+    {
+        if (target == null) return false;
+        float dist = Vector3.Distance(transform.position, target.position);
+        return dist <= (attackRange + stopMovementOffset);
     }
 
     public void TickCooldown()

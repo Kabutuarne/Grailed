@@ -23,6 +23,7 @@ public class SkeletonAI : MonoBehaviour
     public float activationDelayMax = 2f;
     public float activationDelay = 0f;
     public float normalChaseSpeed = 0.7f;
+    public float ragdollTimeoutWithoutTarget = 5f;
 
     [HideInInspector] public AIState currentState = AIState.Ragdoll;
     [HideInInspector] public Transform currentTarget;
@@ -105,10 +106,15 @@ public class SkeletonAI : MonoBehaviour
     private void UpdateRagdoll()
     {
         movement.SetDesiredVelocity(Vector3.zero);
+
+        // Wake up after timeout even without a target
         if (currentTarget == null)
         {
             lastSeenTargetWhileRagdoll = null;
-            activationTimer = 0f;
+            activationTimer += Time.deltaTime;
+
+            if (activationTimer >= ragdollTimeoutWithoutTarget)
+                StartGetUp();
             return;
         }
 
@@ -145,6 +151,14 @@ public class SkeletonAI : MonoBehaviour
     {
         if (currentTarget == null) { movement.SetDesiredVelocity(Vector3.zero); return; }
 
+        // Check if within attack range + offset, stop moving
+        if (combat.ShouldStopMoving(currentTarget))
+        {
+            movement.SetDesiredVelocity(Vector3.zero);
+            combat.TickAttack(currentTarget);
+            return;
+        }
+
         if (pathing.IsJumping)
             return;
 
@@ -173,8 +187,6 @@ public class SkeletonAI : MonoBehaviour
         {
             movement.SetDesiredVelocity(Vector3.zero);
         }
-
-        combat.TickAttack(currentTarget);
     }
 
     public void OnGetUpFinished()

@@ -9,6 +9,13 @@ public class TeleportToSpawnInteractable : BaseInteractable
     [Tooltip("Tag to search for spawn point (default: 'StartTransform')")]
     public string spawnTag = "StartTransform";
 
+    [Header("Entry Actions")]
+    [Tooltip("Optional hierarchy object name to enable when teleporting.")]
+    public string enableObjectName;
+
+    [Tooltip("Optional hierarchy object name to disable when teleporting.")]
+    public string disableObjectName;
+
     protected override void OnInteractComplete(GameObject interactor)
     {
         var spawnPoint = GameObject.FindWithTag(spawnTag);
@@ -19,6 +26,24 @@ public class TeleportToSpawnInteractable : BaseInteractable
         }
 
         TeleportPlayerTo(spawnPoint.transform);
+
+        SetObjectActive(enableObjectName, true);
+        SetObjectActive(disableObjectName, false);
+    }
+
+    private void SetObjectActive(string objectName, bool active)
+    {
+        if (string.IsNullOrWhiteSpace(objectName))
+            return;
+
+        var obj = GameObject.Find(objectName);
+        if (obj == null)
+        {
+            Debug.LogWarning($"Could not find GameObject named '{objectName}'", this);
+            return;
+        }
+
+        obj.SetActive(active);
     }
 
     private void TeleportPlayerTo(Transform targetTransform)

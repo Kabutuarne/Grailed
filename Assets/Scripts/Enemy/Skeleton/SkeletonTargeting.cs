@@ -34,7 +34,8 @@ public class SkeletonTargeting : MonoBehaviour
 
     private Transform FindClosestPlayer()
     {
-        float bestSqrDistance = detectionRadius * detectionRadius;
+        float detectionSqr = detectionRadius * detectionRadius;
+        float bestSqrDistance = float.MaxValue;
         Transform bestTarget = null;
 
         PlayerStats[] statsPlayers = FindObjectsByType<PlayerStats>(FindObjectsSortMode.None);
@@ -43,7 +44,7 @@ public class SkeletonTargeting : MonoBehaviour
         for (int i = 0; i < statsPlayers.Length; i++)
         {
             PlayerStats player = statsPlayers[i];
-            if (player == null) continue;
+            if (player == null || !player.gameObject.activeInHierarchy) continue;
 
             float sqrDistance = (player.transform.position - transform.position).sqrMagnitude;
             if (sqrDistance >= bestSqrDistance) continue;
@@ -55,7 +56,7 @@ public class SkeletonTargeting : MonoBehaviour
         for (int i = 0; i < controllers.Length; i++)
         {
             PlayerController player = controllers[i];
-            if (player == null) continue;
+            if (player == null || !player.gameObject.activeInHierarchy) continue;
             if (player.transform == bestTarget) continue;
 
             float sqrDistance = (player.transform.position - transform.position).sqrMagnitude;
@@ -65,15 +66,18 @@ public class SkeletonTargeting : MonoBehaviour
             bestTarget = player.transform;
         }
 
-        if (bestTarget != null || string.IsNullOrEmpty(playerTag))
-            return bestTarget;
+        if (bestTarget != null)
+            return bestSqrDistance <= detectionSqr ? bestTarget : null;
+
+        if (string.IsNullOrEmpty(playerTag))
+            return null;
 
         // Fallback to tag-based search
         GameObject tagged = GameObject.FindGameObjectWithTag(playerTag);
-        if (tagged == null) return null;
+        if (tagged == null || !tagged.activeInHierarchy) return null;
 
         float taggedDistance = (tagged.transform.position - transform.position).sqrMagnitude;
-        return taggedDistance <= bestSqrDistance ? tagged.transform : null;
+        return taggedDistance <= detectionSqr ? tagged.transform : null;
     }
 
     /// <summary>Distance on XZ plane only.</summary>
