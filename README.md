@@ -1,7 +1,3 @@
-## Latviešu
-
-<details>
-<summary><strong>Atvērt</strong></summary>
 
 # Grailed — Roguelike izdzīvošanas spēle
 
@@ -38,25 +34,17 @@ Atribūti ietekmē kustību, burvestību ātrumu, resursu atjaunošanos un maksi
 
 Slotu balstīts inventārs:
 
-- 9 mugursomas sloti
+- 8 mugursomas sloti
 - 1 rokas slots
-- 4 aksesuāru sloti
+- 3 aksesuāru sloti
 
 Priekšmetu tipi: patēriņa, dekoratīvie, zižļi, burvestības, aksesuāri.
 
 ### Burvestības un cīņa
 
-Burvestības var izmantot tieši vai ievietot zižļos. Pieejami:
+Burvestības var izmantot tieši vai ievietot zižļos. Burvestību veidi:
 
 - Projectile
 - AOE
 - Simple
 - Channeled
-
-Cīņa balstās uz kustību, laika izvēli un resursu pārvaldību.
-
-### Bāzes veidošana
-
-Bāzi var dekorēt ar priekšmetiem, kas iegūti izpētes laikā. Tā kalpo kā sagatavošanās un progresijas centrs.
-
-</details>
