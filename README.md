@@ -14,6 +14,8 @@ Grailed ir pirmās personas roguelike izdzīvošanas spēle, kuras pamatā ir iz
 - Lai uzsāktu projektu, lejupielādē jaunāko "Release" versiju.
 - Atarhīvē failu
 - Atver folderi un klikšķini uz "Grailed.exe"
+- Izbaudi spēli
+<img width="787" height="252" alt="image" src="https://github.com/user-attachments/assets/2efa0179-35a6-4a29-806e-7252890c9c06" />
 
 ## Galvenās iespējas
 
