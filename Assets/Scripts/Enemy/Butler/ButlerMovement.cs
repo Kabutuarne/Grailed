@@ -41,19 +41,15 @@ public class ButlerMovement : MonoBehaviour
     {
         if (ai == null || ai.isDead || rb == null) return;
 
-        // Apply stagger slowdown to velocity
         Vector3 finalVelocity = currentDesiredVelocity;
         if (knockbackReceiver != null && knockbackReceiver.IsStaggered)
-        {
             finalVelocity *= knockbackReceiver.GetStaggerSpeedMultiplier();
-        }
 
-        if (finalVelocity.sqrMagnitude > 0.0001f)
-        {
-            Vector3 next = rb.position + finalVelocity * Time.fixedDeltaTime;
-            rb.MovePosition(next);
-        }
+        // Preserve the vertical velocity Unity has accumulated (gravity, jumps, etc.)
+        Vector3 newVelocity = new Vector3(finalVelocity.x, rb.linearVelocity.y, finalVelocity.z);
+        rb.linearVelocity = newVelocity;
 
+        // Rotation stays the same
         if (currentDesiredFacing.sqrMagnitude > 0.0001f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(currentDesiredFacing, Vector3.up);
@@ -61,7 +57,6 @@ public class ButlerMovement : MonoBehaviour
             rb.MoveRotation(Quaternion.RotateTowards(rb.rotation, targetRotation, maxDegrees));
         }
     }
-
     public bool IsMoving => currentDesiredVelocity.sqrMagnitude > 0.01f;
     public float CurrentSpeed => currentDesiredVelocity.magnitude;
 }

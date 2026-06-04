@@ -62,7 +62,7 @@ public class InteractableTextHUD : MonoBehaviour
                 if (lookedAt is BaseInteractable baseInteractable)
                     targetText.text = baseInteractable.interactionText;
                 else
-                    targetText.text = "Interact";
+                    targetText.text = "Open the door";
                 SetAlpha(1f);
                 fadeElapsed = -1f;
             }
