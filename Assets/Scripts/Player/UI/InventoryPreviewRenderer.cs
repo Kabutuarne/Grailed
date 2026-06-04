@@ -1,5 +1,6 @@
 using UnityEngine;
-using UnityEngine.Rendering.Universal; // Required for URP settings
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 public class InventoryPreviewRenderer : MonoBehaviour
 {
@@ -7,7 +8,7 @@ public class InventoryPreviewRenderer : MonoBehaviour
 
     [Header("Render Settings")]
     public int textureSize = 256;
-    public Color backgroundColor = new Color(0.1f, 0.1f, 0.1f, 1f); // Slightly grey to see if it's working
+    public Color backgroundColor = new Color(0.1f, 0.1f, 0.1f, 1f);
     public float padding = 1.2f;
 
     private Camera cam;
@@ -19,7 +20,6 @@ public class InventoryPreviewRenderer : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
 
-        // Persist this renderer across scene changes so it's available when player persists
         DontDestroyOnLoad(gameObject);
 
         InitializePreviewSystem();
@@ -27,7 +27,6 @@ public class InventoryPreviewRenderer : MonoBehaviour
 
     void OnEnable()
     {
-        // Recreate preview system if it was destroyed during scene transitions
         if (cam == null || previewRoot == null)
         {
             InitializePreviewSystem();
@@ -36,7 +35,6 @@ public class InventoryPreviewRenderer : MonoBehaviour
 
     private void InitializePreviewSystem()
     {
-        // Clean up old preview root if it exists
         if (previewRoot != null)
         {
             DestroyImmediate(previewRoot.gameObject);
@@ -46,29 +44,55 @@ public class InventoryPreviewRenderer : MonoBehaviour
         previewRoot.SetParent(transform, false);
         previewRoot.position = new Vector3(9999, 9999, 9999);
 
-        // Setup Camera
+        int previewLayer = LayerMask.NameToLayer("PreviewOnly");
+        if (previewLayer == -1) previewLayer = 0;
+
         GameObject camGO = new GameObject("PreviewCamera");
         camGO.transform.SetParent(previewRoot, false);
         cam = camGO.AddComponent<Camera>();
 
-        // URP Specific Setup
         var additionalCameraData = cam.GetUniversalAdditionalCameraData();
-        additionalCameraData.renderType = CameraRenderType.Base; // Must be Base to render to RT
+        additionalCameraData.renderType = CameraRenderType.Base;
+        additionalCameraData.renderPostProcessing = false;
+        additionalCameraData.requiresColorOption = CameraOverrideOption.Off;
+        additionalCameraData.requiresDepthOption = CameraOverrideOption.Off;
 
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = backgroundColor;
-        cam.enabled = false; // We trigger it manually
+        cam.enabled = false;
         cam.allowHDR = false;
         cam.allowMSAA = false;
         cam.nearClipPlane = 0.01f;
-        cam.farClipPlane = 1000f; // For some reason this one specific fucking item really needs it to be 1k instead of 100 fml
+        cam.farClipPlane = 1000f;
 
-        // Setup Light (Crucial: 3D models need light to be visible)
+        if (previewLayer != 0)
+            cam.cullingMask = 1 << previewLayer;
+
         GameObject lightGO = new GameObject("PreviewLight");
         lightGO.transform.SetParent(previewRoot);
         previewLight = lightGO.AddComponent<Light>();
         previewLight.type = LightType.Directional;
+        previewLight.intensity = 1.2f;
         lightGO.transform.rotation = Quaternion.Euler(50, -30, 0);
+
+        if (previewLayer != 0)
+        {
+            lightGO.layer = previewLayer;
+            previewLight.cullingMask = 1 << previewLayer;
+        }
+
+        GameObject fillLightGO = new GameObject("PreviewFillLight");
+        fillLightGO.transform.SetParent(previewRoot);
+        Light fillLight = fillLightGO.AddComponent<Light>();
+        fillLight.type = LightType.Directional;
+        fillLight.intensity = 0.4f;
+        fillLightGO.transform.rotation = Quaternion.Euler(-30, 150, 0);
+
+        if (previewLayer != 0)
+        {
+            fillLightGO.layer = previewLayer;
+            fillLight.cullingMask = 1 << previewLayer;
+        }
     }
 
     public RenderTexture RenderPreview(IInventoryPreviewProvider provider)
@@ -76,34 +100,41 @@ public class InventoryPreviewRenderer : MonoBehaviour
         if (provider == null || provider.PreviewPrefab == null)
             return null;
 
-        // Ensure preview system is initialized and camera is valid
         if (cam == null || previewRoot == null)
-        {
             InitializePreviewSystem();
-        }
 
-        // Double-check camera wasn't destroyed
         if (cam == null)
         {
             Debug.LogWarning("InventoryPreviewRenderer: Failed to initialize preview camera");
             return null;
         }
 
-        RenderTexture rt = new RenderTexture(textureSize, textureSize, 16, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
+        // Snapshot global render state
+        AmbientMode prevAmbientMode = RenderSettings.ambientMode;
+        Color prevAmbientLight = RenderSettings.ambientLight;
+        bool prevFog = RenderSettings.fog;
+
+        // Override to isolated, consistent state
+        RenderSettings.ambientMode = AmbientMode.Flat;
+        RenderSettings.ambientLight = new Color(0.3f, 0.3f, 0.3f);
+        RenderSettings.fog = false;
+
+        RenderTexture rt = new RenderTexture(textureSize, textureSize, 16, RenderTextureFormat.ARGB32);
         rt.useMipMap = false;
         rt.autoGenerateMips = false;
         rt.Create();
 
         GameObject inst = Instantiate(provider.PreviewPrefab, previewRoot);
         inst.transform.localPosition = Vector3.zero;
-
-        // Apply Per-Item Tweaks
         inst.transform.localRotation = Quaternion.Euler(provider.PreviewRotation);
         inst.transform.localScale = Vector3.one * provider.PreviewScale;
 
-        // Set to a layer the camera can see (Default)
-        inst.layer = 0;
-        foreach (var t in inst.GetComponentsInChildren<Transform>()) t.gameObject.layer = 0;
+        int previewLayer = LayerMask.NameToLayer("PreviewOnly");
+        if (previewLayer == -1) previewLayer = 0;
+
+        inst.layer = previewLayer;
+        foreach (var t in inst.GetComponentsInChildren<Transform>())
+            t.gameObject.layer = previewLayer;
 
         foreach (var rb in inst.GetComponentsInChildren<Rigidbody>()) rb.isKinematic = true;
         foreach (var col in inst.GetComponentsInChildren<Collider>()) col.enabled = false;
@@ -114,12 +145,18 @@ public class InventoryPreviewRenderer : MonoBehaviour
 
         cam.targetTexture = rt;
         cam.Render();
-
         cam.targetTexture = null;
+
+        // Restore global render state
+        RenderSettings.ambientMode = prevAmbientMode;
+        RenderSettings.ambientLight = prevAmbientLight;
+        RenderSettings.fog = prevFog;
+
         DestroyImmediate(inst);
 
         return rt;
     }
+
     private Bounds CalculateBounds(GameObject go)
     {
         Renderer[] renderers = go.GetComponentsInChildren<Renderer>();

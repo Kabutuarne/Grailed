@@ -270,8 +270,11 @@ public class PlayerController : MonoBehaviour
         if (playerUI != null && playerUI.IsBackpackOpen)
             return;
 
-        float mouseX = lookInput.x * lookSensitivity;
-        float mouseY = lookInput.y * lookSensitivity;
+        // applied multiplier from settings
+        float sensMult = SettingsManager.Instance != null ? SettingsManager.Instance.MouseSensitivity : 1f;
+        if (SettingsManager.Instance == null) Debug.LogWarning("SettingsManager instance not found. Using default mouse sensitivity multiplier of 1.");
+        float mouseX = lookInput.x * lookSensitivity * sensMult;
+        float mouseY = lookInput.y * lookSensitivity * sensMult;
 
         cameraPitch -= mouseY;
         cameraPitch = Mathf.Clamp(cameraPitch, maxPitchDown, maxPitchUp);
