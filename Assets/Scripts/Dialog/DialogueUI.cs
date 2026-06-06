@@ -28,11 +28,9 @@ public class DialogueUI : MonoBehaviour
     public bool IsDialogueActive => isDialogueActive;
     public bool IsTyping => isTyping;
 
-    /// <summary>Fired when a new line begins typing.</summary>
     public event Action OnLineStarted;
-
-    /// <summary>Fired when a line finishes typing naturally or is skipped.</summary>
     public event Action OnLineTypingComplete;
+    public event Action OnLineAdvanced;
 
     private void Awake()
     {
@@ -58,17 +56,13 @@ public class DialogueUI : MonoBehaviour
 
         if (input.Player.Interact.WasPressedThisFrame())
         {
-            // If still typing, skip to end of line; otherwise advance to next line.
             if (isTyping)
                 CompleteCurrentLineInstantly();
             else
-                ShowNextLine();
+                AdvanceToNextLine();
         }
     }
 
-    /// <summary>
-    /// Begins displaying the given DialogueData, calling finishedCallback when all lines are done.
-    /// </summary>
     public void StartDialogue(DialogueData dialogueData, Action finishedCallback = null)
     {
         if (dialogueData == null || dialogueData.lines == null || dialogueData.lines.Count == 0)
@@ -87,12 +81,9 @@ public class DialogueUI : MonoBehaviour
         if (root != null)
             root.SetActive(true);
 
-        ShowNextLine();
+        AdvanceToNextLine();
     }
 
-    /// <summary>
-    /// Immediately closes the dialogue without calling the finished callback.
-    /// </summary>
     public void ForceCloseDialogue()
     {
         if (typingCoroutine != null)
@@ -109,8 +100,7 @@ public class DialogueUI : MonoBehaviour
             root.SetActive(false);
     }
 
-    // Advances to the next line, or finishes the dialogue if none remain.
-    private void ShowNextLine()
+    private void AdvanceToNextLine()
     {
         StopAudio();
 
@@ -133,7 +123,6 @@ public class DialogueUI : MonoBehaviour
         typingCoroutine = StartCoroutine(TypeLineRoutine(currentLine));
     }
 
-    // Reveals the line text one character at a time and plays the audio loop.
     private IEnumerator TypeLineRoutine(DialogueLine line)
     {
         isTyping = true;
@@ -165,7 +154,6 @@ public class DialogueUI : MonoBehaviour
         OnLineTypingComplete?.Invoke();
     }
 
-    // Immediately shows the full line text and stops the typewriter.
     private void CompleteCurrentLineInstantly()
     {
         if (currentLine == null)
@@ -187,10 +175,9 @@ public class DialogueUI : MonoBehaviour
     private void FinishDialogue()
     {
         ForceCloseDialogue();
+        OnLineAdvanced?.Invoke();
         onDialogueFinished?.Invoke();
     }
-
-    // ── Audio helpers ─────────────────────────────────────────────────────────
 
     private void PlayLineAudio(DialogueLine line)
     {

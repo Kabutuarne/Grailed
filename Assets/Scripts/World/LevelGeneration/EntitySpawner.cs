@@ -82,7 +82,14 @@ public class EntitySpawner : MonoBehaviour
                 var slot = allSlots.FirstOrDefault(s => enemy.allowedSpots.Contains(s.category));
                 if (slot.transform != null)
                 {
-                    Instantiate(enemy.prefab, slot.transform.position, slot.transform.rotation, slot.transform.parent);
+                    GameObject spawnedEnemy = Instantiate(enemy.prefab, slot.transform.position, slot.transform.rotation, slot.transform.parent);
+
+                    // Apply stat overrides if enabled
+                    if (enemy.overrideStats)
+                    {
+                        ApplyStatOverrides(spawnedEnemy, enemy);
+                    }
+
                     allSlots.Remove(slot);
                     spawnedEnemies++;
                 }
@@ -95,6 +102,44 @@ public class EntitySpawner : MonoBehaviour
         }
 
         Debug.Log($"[EntitySpawner] Spawned {spawnedEnemies} enemy(s), skipped {skippedEnemies} enemy(s). Total remaining slots: {allSlots.Count}.");
+    }
+
+    private static void ApplyStatOverrides(GameObject enemyObj, PerLevelCatalog.EnemyEntry enemyEntry)
+    {
+        EnemyStats stats = enemyObj.GetComponent<EnemyStats>();
+        if (stats == null)
+        {
+            Debug.LogWarning($"[EntitySpawner] Enemy '{enemyObj.name}' has no EnemyStats component, cannot apply stat overrides.");
+            return;
+        }
+
+        // Store original values to recalculate properly
+        float oldStrength = stats.strength;
+        float oldAgility = stats.agility;
+        float oldIntelligence = stats.intelligence;
+        float oldStamina = stats.stamina;
+
+        // Apply new stats
+        stats.strength = enemyEntry.strength;
+        stats.agility = enemyEntry.agility;
+        stats.intelligence = enemyEntry.intelligence;
+        stats.stamina = enemyEntry.stamina;
+
+        // Recalculate max resources based on new stats
+        float oldMaxHealth = stats.MaxHealth;
+        float oldMaxMana = stats.MaxMana;
+        float oldMaxEnergy = stats.MaxEnergy;
+
+        // Clamp current resources to new max values
+        stats.health = Mathf.Clamp(stats.health, 0f, stats.MaxHealth);
+        stats.mana = Mathf.Clamp(stats.mana, 0f, stats.MaxMana);
+        stats.energy = Mathf.Clamp(stats.energy, 0f, stats.MaxEnergy);
+
+        Debug.Log($"[EntitySpawner] Overrode stats for '{enemyObj.name}': " +
+                  $"STR {oldStrength:F1}→{stats.strength:F1}, " +
+                  $"AGI {oldAgility:F1}→{stats.agility:F1}, " +
+                  $"INT {oldIntelligence:F1}→{stats.intelligence:F1}, " +
+                  $"STA {oldStamina:F1}→{stats.stamina:F1}");
     }
 
     private static void AddSlots(List<(Transform, PerLevelCatalog.PlacementCategory)> list, Transform[] transforms, PerLevelCatalog.PlacementCategory category)

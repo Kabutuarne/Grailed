@@ -38,7 +38,7 @@ public class LevelManager : MonoBehaviour
     {
         currentCatalog = catalog;
 
-        Debug.Log($"[LevelManager] Starting generation for catalog '{catalog.name}' with {catalog.items?.Count ?? 0} item entries and {catalog.enemies?.Count ?? 0} enemy entries.");
+        Debug.Log($"[LevelManager] Starting generation for catalog '{catalog.name}' ");
 
         // Set time to 9 AM
         if (lightingManager != null)

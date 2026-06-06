@@ -81,6 +81,7 @@
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerAnimationController.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyKnockbackImpactBehaviour.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\Types\ColorSave.cs" />
+    <Compile Include="Assets\Scripts\Dialog\DoorSequenceData.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\SaveGameWeb.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Examples\Save Scale\ExampleSaveScale.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\LevelStartInteractable.cs" />
@@ -93,6 +94,7 @@
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonCombat.cs" />
     <Compile Include="Assets\Scripts\GameLogic\MissionPickerUI.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\StatusEffectData.cs" />
+    <Compile Include="Assets\Scripts\Dialog\MissionDoorInteractable.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerCombat.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\SaveGameAuto.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\StatusEffects.cs" />
@@ -125,6 +127,7 @@
     <Compile Include="Assets\Scripts\World\IntroCameraFade.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\Types\Color32Save.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IInteractable.cs" />
+    <Compile Include="Assets\Scripts\World\LevelGeneration\EnemyStatModifier.cs" />
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csAnimationSpin.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Player\UI\InventoryPreviewRenderer.cs" />
@@ -161,7 +164,6 @@
     <Compile Include="Assets\BayatGames\SaveGameFree\Examples\Save Custom\ExampleSaveCustom.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyHitBehaviour.cs" />
     <Compile Include="Assets\52SpecialEffectPack\EffectEditor\ShurikenEffectEditor\csShurikenEffectEditor.cs" />
-    <Compile Include="Assets\Scripts\Dialog\DoorDialogSequence.cs" />
     <Compile Include="Assets\Scripts\Player\UI\WandSlotsPanel.cs" />
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csShowAllEffect.cs" />
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonAnimationController.cs" />

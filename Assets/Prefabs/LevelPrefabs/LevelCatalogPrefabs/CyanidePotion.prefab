@@ -103,7 +103,7 @@ GameObject:
   - component: {fileID: 5198965346697988512}
   m_Layer: 10
   m_Name: CyanidePotion
-  m_TagString: Untagged
+  m_TagString: Potion
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

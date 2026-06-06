@@ -1,6 +1,5 @@
 using UnityEngine;
 using System;
-using System.Collections.Generic;
 
 [CreateAssetMenu(fileName = "NewLevelCatalog", menuName = "Dungeon/Level Catalog")]
 public class PerLevelCatalog : ScriptableObject
@@ -17,6 +16,21 @@ public class PerLevelCatalog : ScriptableObject
     {
         public GameObject prefab;
         public PlacementCategory[] allowedSpots;
+
+        [Header("Stat Override (optional)")]
+        public bool overrideStats = false;
+
+        [Tooltip("Only used if overrideStats is true")]
+        public float strength = 10f;
+
+        [Tooltip("Only used if overrideStats is true")]
+        public float agility = 10f;
+
+        [Tooltip("Only used if overrideStats is true")]
+        public float intelligence = 10f;
+
+        [Tooltip("Only used if overrideStats is true")]
+        public float stamina = 10f;
     }
 
     public enum PlacementCategory { InChest, InShelf, OnGround, OnWall, OnTable, OnCounter, OnOther }
@@ -26,6 +40,6 @@ public class PerLevelCatalog : ScriptableObject
     public int sectionAmount = 10;
 
     [Header("Catalogs")]
-    public List<ItemEntry> items = new List<ItemEntry>();
-    public List<EnemyEntry> enemies = new List<EnemyEntry>();
+    public ItemEntry[] items;
+    public EnemyEntry[] enemies;
 }

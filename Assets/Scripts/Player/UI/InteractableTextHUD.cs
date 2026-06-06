@@ -5,14 +5,16 @@ public class InteractableTextHUD : MonoBehaviour
 {
     [Header("Display Settings")]
     public TMP_Text targetText;
-    public float raycastDistance = 100f;
     public LayerMask interactableLayer = -1;
+
+    [Header("Interaction")]
+    [Tooltip("Must match PlayerInteractor.interactRange")]
+    public float interactRange = 3f;
 
     [Header("Timing")]
     public float fadeSeconds = 0.5f;
 
     private Camera mainCamera;
-    private CanvasGroup canvasGroup;
     private IInteractable currentLookedAtInteractable;
     private float fadeElapsed = -1f;
     private bool overrideTextActive;
@@ -24,7 +26,9 @@ public class InteractableTextHUD : MonoBehaviour
         if (ui == null) return;
 
         var hud = ui.GetComponent<InteractableTextHUD>();
-        if (hud == null) hud = ui.gameObject.AddComponent<InteractableTextHUD>();
+        if (hud == null)
+            hud = ui.gameObject.AddComponent<InteractableTextHUD>();
+
         hud.Initialize();
     }
 
@@ -37,6 +41,7 @@ public class InteractableTextHUD : MonoBehaviour
     public void Initialize()
     {
         mainCamera = Camera.main;
+
         if (mainCamera == null)
             mainCamera = FindFirstObjectByType<Camera>();
 
@@ -48,7 +53,8 @@ public class InteractableTextHUD : MonoBehaviour
 
     private void Update()
     {
-        if (overrideTextActive || mainCamera == null || targetText == null) return;
+        if (overrideTextActive || mainCamera == null || targetText == null)
+            return;
 
         IInteractable lookedAt = GetLookedAtInteractable();
 
@@ -58,40 +64,31 @@ public class InteractableTextHUD : MonoBehaviour
 
             if (lookedAt != null)
             {
-                // Looking at something — show immediately, stop any fade
                 if (lookedAt is BaseInteractable baseInteractable)
                     targetText.text = baseInteractable.interactionText;
                 else
-                    targetText.text = "Open the door";
+                    targetText.text = "Interact";
+
                 SetAlpha(1f);
                 fadeElapsed = -1f;
             }
             else
             {
-                // Looked away — start fade
-                fadeElapsed = 0f;
-            }
-        }
-
-        // fade when looked away
-        if (fadeElapsed >= 0f)
-        {
-            fadeElapsed += Time.deltaTime;
-            float t = Mathf.Clamp01(fadeElapsed / fadeSeconds);
-            SetAlpha(1f - t);
-
-            if (t >= 1f)
+                // Immediately hide when out of range
                 HideImmediate();
+            }
         }
     }
 
     private IInteractable GetLookedAtInteractable()
     {
-        Ray ray = mainCamera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
-        if (Physics.Raycast(ray, out RaycastHit hit, raycastDistance, interactableLayer))
-            return hit.collider.GetComponentInParent<IInteractable>();
+        Ray ray = mainCamera.ScreenPointToRay(
+            new Vector3(Screen.width * 0.5f, Screen.height * 0.5f));
 
-        return null;
+        if (!Physics.Raycast(ray, out RaycastHit hit, interactRange, interactableLayer))
+            return null;
+
+        return hit.collider.GetComponentInParent<IInteractable>();
     }
 
     public void ShowCustomText(string text)
@@ -115,11 +112,13 @@ public class InteractableTextHUD : MonoBehaviour
             return;
 
         HideImmediate();
-        overrideTextActive = false;
     }
 
     private void HideImmediate()
     {
+        if (targetText == null)
+            return;
+
         SetAlpha(0f);
         targetText.text = "";
         fadeElapsed = -1f;
@@ -127,8 +126,10 @@ public class InteractableTextHUD : MonoBehaviour
         overrideTextActive = false;
     }
 
-    private void SetAlpha(float a)
+    private void SetAlpha(float alpha)
     {
-        targetText.color = new Color(targetText.color.r, targetText.color.g, targetText.color.b, a);
+        Color c = targetText.color;
+        c.a = alpha;
+        targetText.color = c;
     }
 }

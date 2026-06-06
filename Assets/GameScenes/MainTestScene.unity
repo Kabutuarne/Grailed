@@ -61644,28 +61644,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 253603113}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1882912691 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8184876609305448741, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
-  m_PrefabInstance: {fileID: 3316028654895596046}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1882912706
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1882912691}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f1235a9312d0b6044a162e1c86d84001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BasicRoaming
-  roamRadius: 8
-  roamPoints: 6
-  waypointReachedDistance: 0.6
-  roamSpeed: 1.1
-  waitAtWaypointDuration: 3
 --- !u!1 &1897509182
 GameObject:
   m_ObjectHideFlags: 0
@@ -282083,18 +282061,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 225088863920090857, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
-      propertyPath: m_CollisionDetection
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 678209422925168116, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
-      propertyPath: m_CollisionDetection
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 880698471887539451, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
-      propertyPath: roaming
-      value: 
-      objectReference: {fileID: 1882912706}
     - target: {fileID: 2679700931555476118, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
       propertyPath: m_LocalPosition.x
       value: 15.98
@@ -282135,38 +282101,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2861356540875090062, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
-      propertyPath: m_CollisionDetection
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 3270837818801802391, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
-      propertyPath: attackRange
-      value: 3.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 3270837818801802391, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
-      propertyPath: stopMovementOffset
-      value: -1.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 4884972822921757259, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
-      propertyPath: m_Interpolate
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4884972822921757259, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
-      propertyPath: m_CollisionDetection
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6110772027015798052, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
-      propertyPath: m_CollisionDetection
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6748620962997016314, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
-      propertyPath: m_CollisionDetection
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 8158719418719854591, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 8184876609305448741, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
       propertyPath: m_Name
       value: Butler
@@ -282174,10 +282108,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8184876609305448741, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1882912706}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
 --- !u!4 &3316659748202765544 stripped
 Transform:
@@ -476206,12 +476137,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3d5bd2bc2114b749a40daf74011eb02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  interactRange: 100
+  interactRange: 30
   interactMask:
     serializedVersion: 2
     m_Bits: 1211
   cam: {fileID: 253240632}
-  doorsTakePriority: 1
+  doorsTakePriority: 0
   playerUI: {fileID: 6789511594413469805}
   uiPointerSafe: 1
 --- !u!1 &6930771522635265401

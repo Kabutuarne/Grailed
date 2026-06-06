@@ -18,7 +18,7 @@ GameObject:
   - component: {fileID: 2241672815965341384}
   m_Layer: 10
   m_Name: FancyRedWand
-  m_TagString: Untagged
+  m_TagString: Wand
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
