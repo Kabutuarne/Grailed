@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 
-/// <summary>
 /// Full serializable snapshot of one save slot.
 /// Stored to disk via SaveGame Free (SaveGame.Save / SaveGame.Load).
 /// Key used on disk: "slot_N"  (N = 0-5)
-/// </summary>
+
 [Serializable]
 public class GameSaveData
 {
@@ -65,4 +64,29 @@ public class GameSaveData
 
     /// <summary>DoorSequenceData asset names that have already played.</summary>
     public List<string> completedSequenceIds = new List<string>();
+
+    // =====================================================================
+    // Item persistence
+    // Snapshot of every item in the cabin: world items on the ground and
+    // items in the player's hand / backpack. Populated by CabinItemPersistence
+    // at save time and consumed by CabinItemPersistence at load time.
+    // =====================================================================
+
+    /// <summary>
+    /// All item instances that existed in CabinScene when the save was written.
+    /// Null / empty on a brand-new save — the scene's pre-placed items are used.
+    /// </summary>
+    public List<SavedItemData> savedItems = new List<SavedItemData>();
+
+    // =====================================================================
+    // Status effect persistence
+    // Only DurationEffects with time remaining are stored here. Instant
+    // effects are fire-and-forget; infinite effects are managed elsewhere.
+    // =====================================================================
+
+    /// <summary>
+    /// Active timed status effects on the player at save time. Re-applied by
+    /// CabinItemPersistence on load so potion timers carry over between sessions.
+    /// </summary>
+    public List<SavedEffectData> savedEffects = new List<SavedEffectData>();
 }

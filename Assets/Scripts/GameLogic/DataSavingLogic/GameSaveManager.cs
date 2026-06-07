@@ -21,8 +21,13 @@ public class GameSaveManager : MonoBehaviour
     [Tooltip("Assign the MissionRegistry ScriptableObject asset here.")]
     [SerializeField] private MissionRegistry missionRegistry;
 
+    [Header("Item Registry")]
+    [Tooltip("Assign the ItemRegistry ScriptableObject asset here. " +
+             "Must contain every item prefab and EffectCarrier that can be saved.")]
+    [SerializeField] private ItemRegistry itemRegistry;
+
     [Header("Scene Names")]
-    [SerializeField] private string mainMenuScene = "MainMenu";
+    [SerializeField] private string mainMenuScene = "MainMenuScene";
     [SerializeField] private string cabinScene = "CabinScene";
 
     // =====================================================================
@@ -108,6 +113,8 @@ public class GameSaveManager : MonoBehaviour
     /// Creates a brand-new save in the given slot and loads into CabinScene.
     /// introHasPlayed and hasSavedPosition are both false so the wake-up
     /// animation plays and the spawn-point tag positions the player.
+    /// savedItems and savedEffects are left empty so the scene's default
+    /// pre-placed items are used on the very first load.
     /// </summary>
     public void CreateNewSave(int slotIndex, string saveName,
                               float intelligence, float strength,
@@ -127,7 +134,8 @@ public class GameSaveManager : MonoBehaviour
             mana = -1f,
             stamina = -1f,
             hasSavedPosition = false, // use spawn-point tag on first load
-            introHasPlayed = false  // play wake-up animation on first load
+            introHasPlayed = false    // play wake-up animation on first load
+            // savedItems and savedEffects default to empty lists — scene defaults used
         };
 
         WriteSlotToDisk(slotIndex, data);
@@ -265,6 +273,32 @@ public class GameSaveManager : MonoBehaviour
             manager.ForceMarkSequenceCompleted(id);
     }
 
+    /// <summary>
+    /// Restores saved items and status effects into the cabin scene.
+    /// Delegates to the CabinItemPersistence component, which uses a
+    /// one-frame coroutine so all scene Awake / Start calls complete first.
+    /// Call this from CabinQuitSave after the scene has initialised.
+    /// Does nothing on a brand-new save (savedItems list is empty) so the
+    /// scene's pre-placed defaults are used instead.
+    /// </summary>
+    public void TryApplyItemsAndEffects(CabinItemPersistence persistence)
+    {
+        if (ActiveSave == null || ActiveSave.isEmpty) return;
+        if (persistence == null)
+        {
+            Debug.LogWarning("[GameSaveManager] TryApplyItemsAndEffects called with null CabinItemPersistence.");
+            return;
+        }
+
+        // Only restore if at least one item was previously saved. On a
+        // brand-new save the list is empty and the scene defaults stand.
+        bool hasItems = ActiveSave.savedItems != null && ActiveSave.savedItems.Count > 0;
+        bool hasEffects = ActiveSave.savedEffects != null && ActiveSave.savedEffects.Count > 0;
+
+        if (hasItems || hasEffects)
+            persistence.StartRestore(ActiveSave);
+    }
+
     // =====================================================================
     // Internal helpers
     // =====================================================================
@@ -279,6 +313,8 @@ public class GameSaveManager : MonoBehaviour
     /// Reads the live game state into ActiveSave before writing to disk.
     /// Also marks introHasPlayed and hasSavedPosition as true so subsequent
     /// loads skip the intro and use the saved position.
+    /// Item / effect snapshotting is handled separately by SnapshotItemsAndEffects
+    /// so CabinQuitSave can call it at the right moment in its shutdown sequence.
     /// </summary>
     private void SnapshotGameState()
     {
@@ -316,6 +352,23 @@ public class GameSaveManager : MonoBehaviour
             ActiveSave.playedMissionIds = MissionManager.Instance.GetPlayedMissionIds();
             ActiveSave.completedSequenceIds = MissionManager.Instance.GetCompletedSequenceIds();
         }
+    }
+
+    /// <summary>
+    /// Snapshots items and status effects from CabinScene into ActiveSave.
+    /// Must be called by CabinQuitSave BEFORE calling SaveAndQuitToMainMenu,
+    /// so the data is ready when SnapshotGameState runs inside that method.
+    /// </summary>
+    public void SnapshotItemsAndEffects(CabinItemPersistence persistence)
+    {
+        if (ActiveSave == null) return;
+        if (persistence == null)
+        {
+            Debug.LogWarning("[GameSaveManager] SnapshotItemsAndEffects called with null CabinItemPersistence.");
+            return;
+        }
+
+        persistence.CollectSnapshot(ActiveSave);
     }
 
     // =====================================================================

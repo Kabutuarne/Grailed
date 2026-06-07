@@ -92,6 +92,7 @@
     <Compile Include="Assets\Scripts\Dialog\DialogueData.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\NewSceneInteract.cs" />
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonCombat.cs" />
+    <Compile Include="Assets\Scripts\GameLogic\DataSavingLogic\CabinItemPersistance.cs" />
     <Compile Include="Assets\Scripts\GameLogic\MissionPickerUI.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\StatusEffectData.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerCombat.cs" />
@@ -104,10 +105,12 @@
     <Compile Include="Assets\Scripts\Player\Effects\EffectCarrier.cs" />
     <Compile Include="Assets\Scripts\Player\UI\WandSlotOverlay.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerPersistenceManager.cs" />
+    <Compile Include="Assets\Scripts\GameLogic\DataSavingLogic\MissionRegistry.cs" />
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonLimbHitbox.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\Types\Vector3Save.cs" />
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csParticleMove.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerAudioController.cs" />
+    <Compile Include="Assets\Scripts\GameLogic\DataSavingLogic\GameSaveData.cs" />
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csMouseOrbit.cs" />
     <Compile Include="Assets\LightingManager_Assets\EventInfo.cs" />
     <Compile Include="Assets\Scripts\Player\UI\ItemLineData.cs" />
@@ -117,6 +120,7 @@
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonDeathHandler.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInteractor.cs" />
     <Compile Include="Assets\52SpecialEffectPack\EffectEditor\ShurikenEffectEditor\csShurikenEffectChanger.cs" />
+    <Compile Include="Assets\Scripts\GameLogic\DataSavingLogic\GameSaveManager.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInventory.cs" />
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonKnockbackReciever.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\ChanneledAOESpell.cs" />
@@ -128,9 +132,10 @@
     <Compile Include="Assets\Scripts\Player\Interfaces\IInteractable.cs" />
     <Compile Include="Assets\Scripts\World\LevelGeneration\EnemyStatModifier.cs" />
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csAnimationSpin.cs" />
+    <Compile Include="Assets\Scripts\GameLogic\DataSavingLogic\SavedItemData.cs" />
+    <Compile Include="Assets\Scripts\GameLogic\DataSavingLogic\ItemRegistry.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Player\UI\InventoryPreviewRenderer.cs" />
-    <Compile Include="Assets\Scripts\GameLogic\MissionRegistry.cs" />
     <Compile Include="Assets\Scripts\GameLogic\MissionManager.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IInventoryIconProvider.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\SpellAimUtility.cs" />
@@ -144,10 +149,8 @@
     <Compile Include="Assets\Scripts\Player\Effects\PlayerEffect.cs" />
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csDestroyEffect.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\Types\Vector4Save.cs" />
-    <Compile Include="Assets\Scripts\GameLogic\GameSaveManager.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ItemTooltipDataUtility.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\Chest.cs" />
-    <Compile Include="Assets\Scripts\GameLogic\GameSaveData.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\Types\Vector2Save.cs" />
     <Compile Include="Assets\PlayerInputActions.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\Serializers\ISaveGameSerializer.cs" />
@@ -173,6 +176,7 @@
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonAI.cs" />
     <Compile Include="Assets\Scripts\Enemy\Interfaces\IResourceHandler.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ICastPermissionProvider.cs" />
+    <Compile Include="Assets\Scripts\GameLogic\DataSavingLogic\SavedEffectData.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerLimbHitbox.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Examples\Shared\Scripts\SerializerDropdown.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\Serializers\SaveGameJsonSerializer.cs" />

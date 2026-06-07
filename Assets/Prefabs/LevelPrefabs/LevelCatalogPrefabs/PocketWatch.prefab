@@ -213,7 +213,7 @@ GameObject:
   - component: {fileID: 1938159829156731391}
   m_Layer: 10
   m_Name: PocketWatch
-  m_TagString: Untagged
+  m_TagString: Accessory
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

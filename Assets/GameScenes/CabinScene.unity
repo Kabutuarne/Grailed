@@ -4008,6 +4008,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6421341856087366959, guid: 5be4ef1db3705594d8fcf0a198834f67, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1279841819}
+    - targetCorrespondingSourceObject: {fileID: 6421341856087366959, guid: 5be4ef1db3705594d8fcf0a198834f67, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1279841820}
   m_SourcePrefab: {fileID: 100100000, guid: 5be4ef1db3705594d8fcf0a198834f67, type: 3}
 --- !u!1 &1279841815 stripped
 GameObject:
@@ -4053,6 +4056,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e34ba57174be8644b408a63784f8491, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CabinQuitSave
+--- !u!114 &1279841820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1279841818}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbae3f95fcd778940866fb9efe08b55d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CabinItemPersistence
+  worldItemTags:
+  - Painting
+  - Potion
+  - Spell
+  - Wand
+  - Accessory
+  itemRegistry: {fileID: 11400000, guid: 9d3b89c6d4d77814cb6c0d602e360136, type: 2}
 --- !u!1 &1326631273
 GameObject:
   m_ObjectHideFlags: 0
