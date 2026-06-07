@@ -7,10 +7,15 @@ public class IntroCameraFade : MonoBehaviour
     [SerializeField] private Image fadeImage;
     [SerializeField] private float fadeDuration = 2f;
 
+    [SerializeField] private Canvas canvas;
+
     private CinemachineCamera virtualCamera;
     private PlayerController playerController;
     private bool priorityChanged;
-    [SerializeField] private Canvas canvas;
+
+    // =====================================================================
+    // Lifecycle
+    // =====================================================================
 
     private void Awake()
     {
@@ -20,16 +25,26 @@ public class IntroCameraFade : MonoBehaviour
 
     private void Start()
     {
-        if (fadeImage == null)
+        var gsm = GameSaveManager.Instance;
+        if (gsm != null && gsm.ShouldSkipIntro)
         {
-            Debug.LogError("Fade Image is not assigned.");
-            enabled = false;
+            SkipIntro();
             return;
         }
 
-        Color color = fadeImage.color;
-        color.a = 1f; // Start fully black
-        fadeImage.color = color;
+        if (fadeImage == null)
+        {
+            Debug.LogError("[IntroCameraFade] Fade Image is not assigned.");
+            SkipIntro();
+            return;
+        }
+
+        // Ensure time is running for a fresh save load.
+        Time.timeScale = 1f;
+
+        var c = fadeImage.color;
+        c.a = 1f;
+        fadeImage.color = c;
 
         if (playerController != null)
             playerController.SetControlLocked(true);
@@ -39,16 +54,15 @@ public class IntroCameraFade : MonoBehaviour
     {
         float t = Mathf.Clamp01(Time.timeSinceLevelLoad / fadeDuration);
 
-        // Fade from black to transparent
-        Color color = fadeImage.color;
-        color.a = 1f - t;
-        fadeImage.color = color;
+        var c = fadeImage.color;
+        c.a = 1f - t;
+        fadeImage.color = c;
 
-        // At 75% fade, hand off to the next camera
         if (!priorityChanged && t >= 0.75f)
         {
             priorityChanged = true;
-            virtualCamera.Priority = 0;
+            if (virtualCamera != null)
+                virtualCamera.Priority = 0;
         }
 
         if (t >= 1f)
@@ -57,8 +71,33 @@ public class IntroCameraFade : MonoBehaviour
                 playerController.SetControlLocked(false);
 
             enabled = false;
-            Destroy(canvas.gameObject);
-            // Destroy(virtualCamera.gameObject);
+            if (canvas != null)
+                Destroy(canvas.gameObject);
         }
+    }
+
+    // =====================================================================
+    // Private
+    // =====================================================================
+
+    /// <summary>
+    /// Used on all loads after the first. Resets timeScale and the control
+    /// lock so a paused previous session does not carry into this one.
+    /// </summary>
+    private void SkipIntro()
+    {
+        Time.timeScale = 1f;
+
+        // Release whatever lock count the previous session left behind.
+        if (playerController != null)
+            playerController.SetControlLocked(false);
+
+        if (virtualCamera != null)
+            virtualCamera.Priority = 0;
+
+        enabled = false;
+
+        if (canvas != null)
+            Destroy(canvas.gameObject);
     }
 }

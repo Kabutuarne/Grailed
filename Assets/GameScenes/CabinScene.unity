@@ -3851,6 +3851,10 @@ PrefabInstance:
       propertyPath: baseSprintSpeed
       value: 30
       objectReference: {fileID: 0}
+    - target: {fileID: 6500014361225707022, guid: 5be4ef1db3705594d8fcf0a198834f67, type: 3}
+      propertyPath: m_TagString
+      value: PlayerCamera
+      objectReference: {fileID: 0}
     - target: {fileID: 6644405180062764209, guid: 5be4ef1db3705594d8fcf0a198834f67, type: 3}
       propertyPath: m_fontSize
       value: 50
@@ -3906,6 +3910,18 @@ PrefabInstance:
     - target: {fileID: 7252522594461211169, guid: 5be4ef1db3705594d8fcf0a198834f67, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7639782423848985153, guid: 5be4ef1db3705594d8fcf0a198834f67, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1279841819}
+    - target: {fileID: 7639782423848985153, guid: 5be4ef1db3705594d8fcf0a198834f67, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SaveAndQuit
+      objectReference: {fileID: 0}
+    - target: {fileID: 7639782423848985153, guid: 5be4ef1db3705594d8fcf0a198834f67, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: CabinQuitSave, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7924559950917675831, guid: 5be4ef1db3705594d8fcf0a198834f67, type: 3}
       propertyPath: m_AnchorMax.y
@@ -3983,9 +3999,15 @@ PrefabInstance:
       insertIndex: 0
       addedObject: {fileID: 205489766}
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5438189926415264470, guid: 5be4ef1db3705594d8fcf0a198834f67, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1527519235}
     - targetCorrespondingSourceObject: {fileID: 4547268057884637444, guid: 5be4ef1db3705594d8fcf0a198834f67, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1279841817}
+    - targetCorrespondingSourceObject: {fileID: 6421341856087366959, guid: 5be4ef1db3705594d8fcf0a198834f67, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1279841819}
   m_SourcePrefab: {fileID: 100100000, guid: 5be4ef1db3705594d8fcf0a198834f67, type: 3}
 --- !u!1 &1279841815 stripped
 GameObject:
@@ -4014,6 +4036,23 @@ MonoBehaviour:
   minOpacity: 0.2
   damageThreshold: 25
   pulseDuration: 0.5
+--- !u!1 &1279841818 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6421341856087366959, guid: 5be4ef1db3705594d8fcf0a198834f67, type: 3}
+  m_PrefabInstance: {fileID: 1279841814}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1279841819
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1279841818}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e34ba57174be8644b408a63784f8491, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CabinQuitSave
 --- !u!1 &1326631273
 GameObject:
   m_ObjectHideFlags: 0
@@ -5052,6 +5091,25 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 5203288357910277459, guid: 0d179ccc47667cb45843610eec0ad4c4, type: 3}
+--- !u!1 &1527519233 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5438189926415264470, guid: 5be4ef1db3705594d8fcf0a198834f67, type: 3}
+  m_PrefabInstance: {fileID: 1279841814}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1527519235
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1527519233}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bcca64e17541eb4e8458197ca516510, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CabinCameraSnap
+  mainCameraTag: MainCamera
+  cinemachineCamTag: PlayerCamera
 --- !u!1 &1550051097
 GameObject:
   m_ObjectHideFlags: 0

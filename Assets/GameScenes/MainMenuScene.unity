@@ -1259,12 +1259,12 @@ MonoBehaviour:
   staminaSlider: {fileID: 47524975}
   staminaValueLabel: {fileID: 190331126}
   remainingPointsLabel: {fileID: 1719360648}
+  nextSectionButton: {fileID: 0}
   confirmNewSaveButton: {fileID: 639402415}
   cancelNewSaveButton: {fileID: 568443534}
   confirmDeleteDialog: {fileID: 848204159}
   confirmDeleteButton: {fileID: 1661571571}
   cancelDeleteButton: {fileID: 497546693}
-  gameSceneName: CabinScene
   slotNormalColor: {r: 0.12941177, g: 0.12941177, b: 0.21568628, a: 0.22745098}
   slotSelectedColor: {r: 0.21475615, g: 0.21475615, b: 0.3584906, a: 0.22745098}
 --- !u!4 &114369641
@@ -1710,6 +1710,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &153496213
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 153496214}
+  - component: {fileID: 153496215}
+  m_Layer: 0
+  m_Name: GameSaveManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &153496214
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 153496213}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.92572, y: 2.59319, z: 0.24721}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &153496215
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 153496213}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d6b0f9aad7a35748a35d050673c010f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameSaveManager
+  missionRegistry: {fileID: 11400000, guid: a6e4eae335b9221419fce6aaaf212793, type: 2}
+  mainMenuScene: MainMenuScene
+  cabinScene: CabinScene
 --- !u!1 &156005634
 GameObject:
   m_ObjectHideFlags: 0
@@ -20921,3 +20968,4 @@ SceneRoots:
   - {fileID: 1805969838}
   - {fileID: 152214073}
   - {fileID: 891178585}
+  - {fileID: 153496214}

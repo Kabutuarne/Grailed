@@ -94,7 +94,6 @@
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonCombat.cs" />
     <Compile Include="Assets\Scripts\GameLogic\MissionPickerUI.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\StatusEffectData.cs" />
-    <Compile Include="Assets\Scripts\Dialog\MissionDoorInteractable.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerCombat.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\SaveGameAuto.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\StatusEffects.cs" />
@@ -131,6 +130,7 @@
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csAnimationSpin.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Player\UI\InventoryPreviewRenderer.cs" />
+    <Compile Include="Assets\Scripts\GameLogic\MissionRegistry.cs" />
     <Compile Include="Assets\Scripts\GameLogic\MissionManager.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\IInventoryIconProvider.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\SpellAimUtility.cs" />
@@ -144,14 +144,17 @@
     <Compile Include="Assets\Scripts\Player\Effects\PlayerEffect.cs" />
     <Compile Include="Assets\52SpecialEffectPack\Animation&amp;Script\csDestroyEffect.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\Types\Vector4Save.cs" />
+    <Compile Include="Assets\Scripts\GameLogic\GameSaveManager.cs" />
     <Compile Include="Assets\Scripts\Player\Interfaces\ItemTooltipDataUtility.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\Chest.cs" />
+    <Compile Include="Assets\Scripts\GameLogic\GameSaveData.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\Types\Vector2Save.cs" />
     <Compile Include="Assets\PlayerInputActions.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\Serializers\ISaveGameSerializer.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyStats.cs" />
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonRagdollController.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\MissionBoardInteractable.cs" />
+    <Compile Include="Assets\Scripts\MenuScripts\CabinQuitSave.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyPathing.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyKnockbackReciever.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerTargeting.cs" />
@@ -187,6 +190,7 @@
     <Compile Include="Assets\Scripts\Player\UI\EquippedItemTitleHUD.cs" />
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonIKBridge.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Examples\Save Web\ExampleSaveWeb.cs" />
+    <Compile Include="Assets\Scripts\GameLogic\MissionDoorInteractable.cs" />
     <Compile Include="Assets\Scripts\Player\UI\CastUI.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\NextButton.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\TeleportToSpawnInteractable.cs" />
@@ -195,6 +199,7 @@
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonTargeting.cs" />
     <Compile Include="Assets\Scripts\Player\UI\InventorySlotUI.cs" />
     <Compile Include="Assets\Scripts\Player\UI\DayTimeDisplay.cs" />
+    <Compile Include="Assets\Scripts\MenuScripts\CabinCameraSnap.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

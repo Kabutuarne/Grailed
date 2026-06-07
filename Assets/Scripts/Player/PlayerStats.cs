@@ -48,23 +48,18 @@ public class PlayerStats : MonoBehaviour, IResourceHandler
     public float respawnDelay = 3f;
     public Transform respawnPoint;
 
-    [Header("On Death - Object State Changes")]
-    [Tooltip("Optional object to enable when player dies")]
-    public string enableOnDeathName;
-    [Tooltip("Optional object to disable when player dies")]
-    public string disableOnDeathName;
-
-    // ── private refs ──────────────────────────────────────────────────────────
+    // private refs
     private StatusEffects statusEffects;
     private PlayerInventory inventory;
     private PlayerController controller;
     private bool isDead;
-    // previous max values used to preserve resource percentages when maxima change
     private float prevMaxHealth;
     private float prevMaxMana;
     private float prevMaxStamina;
 
-    // ── lifecycle ─────────────────────────────────────────────────────────────
+    // =====================================================================
+    // Lifecycle
+    // =====================================================================
 
     void Start()
     {
@@ -72,17 +67,22 @@ public class PlayerStats : MonoBehaviour, IResourceHandler
         inventory = GetComponent<PlayerInventory>();
         controller = GetComponent<PlayerController>();
 
-        // If there is an active save, apply the saved attribute values before
-        // calculating derived maxima so health/mana/stamina are correct.
-        var save = SaveSlotContext.LoadActiveSave();
-        if (save != null && !save.isEmpty)
+        // Apply saved attributes BEFORE computing derived maxima so that
+        // maxHealth / maxMana / maxStamina are correct from the very first frame.
+        // CabinQuitSave also calls TryApplyToPlayer() for resources, but
+        // attributes must be set here so the derived properties are right
+        // when health/mana/stamina are initialised below.
+        var gsm = GameSaveManager.Instance;
+        if (gsm != null && gsm.ActiveSave != null && !gsm.ActiveSave.isEmpty)
         {
-            intelligence = save.intelligence;
-            strength = save.strength;
-            staminaAttr = save.staminaAttr;
-            agility = save.agility;
+            intelligence = gsm.ActiveSave.intelligence;
+            strength = gsm.ActiveSave.strength;
+            staminaAttr = gsm.ActiveSave.staminaAttr;
+            agility = gsm.ActiveSave.agility;
         }
 
+        // Initialise resources to max. CabinQuitSave will overwrite these
+        // with saved values (health >= 0) on the same frame via its own Start().
         health = maxHealth;
         mana = maxMana;
         stamina = maxStamina;
@@ -103,13 +103,14 @@ public class PlayerStats : MonoBehaviour, IResourceHandler
         if (isDead)
             return;
 
-        // Passive regen
         if (mana < maxMana) ModifyMana(manaRegenPerSecond * Time.deltaTime);
         if (health < maxHealth) ModifyHealth(healthRegenPerSecond * Time.deltaTime);
         if (stamina < maxStamina) ModifyEnergy(staminaRegenPerSecond * Time.deltaTime);
     }
 
-    // ── unified resource modification (IResourceHandler) ──────────────────────
+    // =====================================================================
+    // IResourceHandler
+    // =====================================================================
 
     public void ModifyHealth(float amount)
     {
@@ -134,9 +135,7 @@ public class PlayerStats : MonoBehaviour, IResourceHandler
         stamina = Mathf.Clamp(stamina, 0f, maxStamina);
     }
 
-    /// <summary>
-    /// Attempts to spend mana. Returns true if sufficient mana was available.
-    /// </summary>
+    /// <summary>Attempts to spend mana. Returns true if sufficient mana was available.</summary>
     public bool TrySpendMana(float amount)
     {
         if (mana < amount) return false;
@@ -153,34 +152,19 @@ public class PlayerStats : MonoBehaviour, IResourceHandler
         float newMaxStamina = maxStamina;
 
         if (prevMaxHealth > 0f)
-        {
-            float frac = health / prevMaxHealth;
-            health = frac * newMaxHealth;
-        }
+            health = (health / prevMaxHealth) * newMaxHealth;
         else
-        {
             health = Mathf.Clamp(health, 0f, newMaxHealth);
-        }
 
         if (prevMaxMana > 0f)
-        {
-            float frac = mana / prevMaxMana;
-            mana = frac * newMaxMana;
-        }
+            mana = (mana / prevMaxMana) * newMaxMana;
         else
-        {
             mana = Mathf.Clamp(mana, 0f, newMaxMana);
-        }
 
         if (prevMaxStamina > 0f)
-        {
-            float frac = stamina / prevMaxStamina;
-            stamina = frac * newMaxStamina;
-        }
+            stamina = (stamina / prevMaxStamina) * newMaxStamina;
         else
-        {
             stamina = Mathf.Clamp(stamina, 0f, newMaxStamina);
-        }
 
         ClampResources();
 
@@ -189,7 +173,9 @@ public class PlayerStats : MonoBehaviour, IResourceHandler
         prevMaxStamina = newMaxStamina;
     }
 
-    // ── death / respawn ───────────────────────────────────────────────────────
+    // =====================================================================
+    // Death / respawn
+    // =====================================================================
 
     void Die()
     {
@@ -211,8 +197,9 @@ public class PlayerStats : MonoBehaviour, IResourceHandler
         if (inventory != null)
             inventory.DropAllItems(dropOrigin);
 
-        SetObjectActive(enableOnDeathName, true);
-        SetObjectActive(disableOnDeathName, false);
+        GameObject lightingManager = GameObject.Find("GlobalIllumination");
+        if (lightingManager != null)
+            lightingManager.SetActive(true);
 
         StartCoroutine(RespawnCoroutine());
     }
@@ -221,11 +208,9 @@ public class PlayerStats : MonoBehaviour, IResourceHandler
     {
         yield return new WaitForSeconds(respawnDelay);
 
-        // Add 4 hours to the time
         if (LevelManager.Instance != null)
             LevelManager.Instance.AddTime(4f);
 
-        // Teleport to respawn point
         if (LevelManager.Instance != null)
             LevelManager.Instance.TeleportPlayerToRespawn();
         else if (respawnPoint != null)
@@ -234,51 +219,38 @@ public class PlayerStats : MonoBehaviour, IResourceHandler
             transform.rotation = respawnPoint.rotation;
         }
 
-        // Clear status effects
         if (statusEffects != null)
         {
             statusEffects.ClearAllEffects();
             statusEffects.enabled = true;
         }
 
-        // Set stats to 10% of max
         health = maxHealth * 0.1f;
         mana = maxMana * 0.1f;
         stamina = maxStamina * 0.1f;
         isDead = false;
     }
 
-    // ── helper methods ────────────────────────────────────────────────────────
-
-    private void SetObjectActive(string objectName, bool active)
-    {
-        if (string.IsNullOrWhiteSpace(objectName))
-            return;
-
-        var obj = GameObject.Find(objectName);
-        if (obj == null)
-        {
-            Debug.LogWarning($"Could not find GameObject named '{objectName}'", this);
-            return;
-        }
-
-        obj.SetActive(active);
-    }
-
-    // ── effective attributes (base + status bonuses) ──────────────────────────
+    // =====================================================================
+    // Effective attributes (base + status bonuses)
+    // =====================================================================
 
     public float effectiveStrength => strength + (statusEffects != null ? statusEffects.GetStrengthAdd() : 0f);
     public float effectiveIntelligence => intelligence + (statusEffects != null ? statusEffects.GetIntelligenceAdd() : 0f);
     public float effectiveStaminaAttr => staminaAttr + (statusEffects != null ? statusEffects.GetStaminaAdd() : 0f);
     public float effectiveAgility => agility + (statusEffects != null ? statusEffects.GetAgilityAdd() : 0f);
 
-    // ── derived maximums ──────────────────────────────────────────────────────
+    // =====================================================================
+    // Derived maximums
+    // =====================================================================
 
     public float maxHealth => Mathf.Max(1f, (effectiveStrength / 10f) * baseMaxHealth);
     public float maxMana => Mathf.Max(1f, (effectiveIntelligence / 10f) * baseMaxMana);
     public float maxStamina => Mathf.Max(1f, (effectiveStaminaAttr / 10f) * baseMaxEnergy);
 
-    // ── derived regen ─────────────────────────────────────────────────────────
+    // =====================================================================
+    // Derived regen
+    // =====================================================================
 
     public float healthRegenPerSecond => Mathf.Max(0f,
         (effectiveStrength / 10f) * baseHealthRegen *
@@ -292,7 +264,9 @@ public class PlayerStats : MonoBehaviour, IResourceHandler
         (effectiveStaminaAttr / 10f) * baseEnergyRegen *
         (statusEffects != null ? statusEffects.GetEnergyRegenMultiplier() : 1f));
 
-    // ── derived movement ──────────────────────────────────────────────────────
+    // =====================================================================
+    // Derived movement
+    // =====================================================================
 
     public float walkSpeed => Mathf.Max(0f,
         (effectiveStaminaAttr / 10f) * baseWalkSpeed *
@@ -305,7 +279,9 @@ public class PlayerStats : MonoBehaviour, IResourceHandler
     public float castSpeedMultiplier => Mathf.Max(0.01f, (effectiveAgility / 10f) * baseCastSpeed);
     public float consumeSpeedMultiplier => Mathf.Max(0.01f, (effectiveAgility / 10f) * baseConsumeSpeed);
 
-    // ── normalised 0-1 helpers ────────────────────────────────────────────────
+    // =====================================================================
+    // Normalised 0-1 helpers
+    // =====================================================================
 
     public float Health01 => maxHealth > 0f ? health / maxHealth : 0f;
     public float Mana01 => maxMana > 0f ? mana / maxMana : 0f;

@@ -230,49 +230,4 @@ public class PauseMenuManager : MonoBehaviour
         settingsPanel?.SetActive(false);
         mainPanel?.SetActive(true);
     }
-
-    public void OnSaveAndQuitButton()
-    {
-        // Ensure a slot is selected (fall back to slot 0)
-        if (SaveSlotContext.SelectedSlot < 0)
-        {
-            Debug.LogWarning("No save slot selected. Defaulting to slot 0 for AutoSave.");
-            SaveSlotContext.SelectedSlot = 0;
-        }
-
-        var slot = SaveSlotContext.SelectedSlot;
-
-        // Create a minimal SaveData snapshot. Fill attributes if PlayerStats exists.
-        var save = new SaveData();
-        save.isEmpty = false;
-        save.saveName = $"AutoSave {slot + 1}";
-        save.timestamp = DateTime.Now.ToString("s");
-        save.playTimeSeconds = Time.timeSinceLevelLoad;
-
-        var stats = FindFirstObjectByType<PlayerStats>();
-        if (stats != null)
-        {
-            try
-            {
-                save.intelligence = stats.intelligence;
-                save.strength = stats.strength;
-                save.staminaAttr = stats.staminaAttr;
-                save.agility = stats.agility;
-            }
-            catch { /* if fields differ, leave defaults */ }
-        }
-
-        // Write and return to main menu
-        SaveSlotContext.WriteActiveSave(save);
-
-        // Restore time before changing scenes
-        if (pauseTime) Time.timeScale = Mathf.Max(previousTimeScale, 1f);
-        AudioListener.pause = false;
-
-        // Load main menu scene
-        if (!string.IsNullOrEmpty(mainMenuSceneName))
-            SceneManager.LoadScene(mainMenuSceneName);
-        else
-            Debug.LogWarning("Main Menu scene name is empty. Configure the PauseMenuManager.");
-    }
 }

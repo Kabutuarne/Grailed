@@ -21,6 +21,7 @@ TagManager:
   - Wand
   - Potion
   - Skull
+  - PlayerCamera
   layers:
   - Default
   - TransparentFX
