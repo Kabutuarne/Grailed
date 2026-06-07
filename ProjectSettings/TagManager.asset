@@ -23,6 +23,7 @@ TagManager:
   - Skull
   - PlayerCamera
   - Accessory
+  - ArcanePotion
   layers:
   - Default
   - TransparentFX

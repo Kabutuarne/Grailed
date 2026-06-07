@@ -29,15 +29,22 @@ public class PauseMenuManager : MonoBehaviour
     private PlayerInputActions input;
     private bool isPaused = false;
     private float previousTimeScale = 1f;
+
+    /// <summary>True while the pause menu is open.</summary>
+    public bool IsPaused => isPaused;
+
+    // Track ALL blocking UI states, not just the backpack.
+    // Previously only wasBackpackOpenBeforePause was tracked, so mission picker
+    // open before pause would cause Resume() to take the wrong branch and
+    // permanently lock controls or hide the HUD.
     private bool wasBackpackOpenBeforePause = false;
+    private bool wasMissionPickerOpenBeforePause = false;
 
     private void Awake()
     {
-        // Ensure UI starts hidden
         if (pauseRoot != null) pauseRoot.SetActive(false);
         if (settingsPanel != null) settingsPanel.SetActive(false);
 
-        // Create input wrapper and bind Pause action (generated class).
         input = new PlayerInputActions();
         input.Player.Enable();
 
@@ -61,9 +68,6 @@ public class PauseMenuManager : MonoBehaviour
         }
     }
 
-    // Note: we intentionally do not enable/disable input in OnEnable/OnDisable so
-    // the input action remains active even if this GameObject's Canvas is toggled.
-
     private void OnPausePerformed(InputAction.CallbackContext ctx)
     {
         TogglePause();
@@ -80,24 +84,23 @@ public class PauseMenuManager : MonoBehaviour
         if (isPaused) return;
         isPaused = true;
 
-        // Save the backpack state before we open the pause menu
+        // Snapshot ALL blocking UI states before pausing, not just backpack.
         var playerUi = FindFirstObjectByType<PlayerUI>();
-        wasBackpackOpenBeforePause = (playerUi != null && playerUi.IsBackpackOpen);
+        var missionPicker = FindFirstObjectByType<MissionPickerUI>();
+
+        wasBackpackOpenBeforePause = playerUi != null && playerUi.IsBackpackOpen;
+        wasMissionPickerOpenBeforePause = missionPicker != null && missionPicker.IsOpen;
 
         previousTimeScale = Time.timeScale;
         if (pauseTime) Time.timeScale = 0f;
         AudioListener.pause = true;
 
         if (pauseRoot != null) pauseRoot.SetActive(true);
-
-        // When opening the pause menu, default back to the Main panel
-        // so settings don't remain active across closes/re-opens.
         if (settingsPanel != null) settingsPanel.SetActive(false);
         if (mainPanel != null) mainPanel.SetActive(true);
 
-        // Disable gameplay input while paused to prevent casting/actions
-        // from triggering. Keep the Pause action enabled so the player
-        // can unpause with the same input.
+        // Disable gameplay input while paused; keep Pause (and Backpack so Tab still
+        // works) enabled so the player can toggle back.
         if (input != null)
         {
             try
@@ -108,19 +111,29 @@ public class PauseMenuManager : MonoBehaviour
             catch { }
         }
 
-        // Ensure any CastUI is hidden while paused (prevents flash on clicks)
         var cast = FindFirstObjectByType<CastUI>();
         if (cast != null) cast.Hide();
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // Hide player UI canvas (but don't deactivate the GameObject if possible)
-        SetGameCanvasActive(false);
+        // Only hide the game canvas if NO other blocking UI was already showing it
+        // with mouse-cursor mode active. Previously this always hid the canvas, which
+        // clashed with MissionPickerUI having already set up its own overlay on top of
+        // the game canvas. Now we only hide if nothing else needed the canvas visible.
+        if (!wasBackpackOpenBeforePause && !wasMissionPickerOpenBeforePause)
+        {
+            SetGameCanvasActive(false);
+        }
 
-        // Lock player controls if a PlayerController is present
-        var pc = FindFirstObjectByType<PlayerController>();
-        if (pc != null) pc.SetControlLocked(true);
+        // Only lock player movement if no other UI was already locking it.
+        // If MissionPickerUI already called SetControlLocked(true), calling it again
+        // is harmless, but we must NOT unlock it on resume if that UI is still open.
+        if (!wasBackpackOpenBeforePause && !wasMissionPickerOpenBeforePause)
+        {
+            var pc = FindFirstObjectByType<PlayerController>();
+            if (pc != null) pc.SetControlLocked(true);
+        }
     }
 
     public void Resume()
@@ -128,62 +141,80 @@ public class PauseMenuManager : MonoBehaviour
         if (!isPaused) return;
         isPaused = false;
 
-        if (pauseTime) Time.timeScale = Mathf.Max(previousTimeScale, 1f);
+        // Restore exactly the timescale that was active before the pause.
+        // The old code used Mathf.Max(previous, 1f) which would incorrectly snap
+        // slow-motion or any sub-1 timescale up to 1 on resume.
+        if (pauseTime) Time.timeScale = previousTimeScale;
         AudioListener.pause = false;
 
-        // Close all pause menu UI panels first, so they don't interfere with blocking UI check
         if (settingsPanel != null) settingsPanel.SetActive(false);
         if (pauseRoot != null) pauseRoot.SetActive(false);
 
-        // Decide whether other UI is still blocking gameplay (e.g. MissionPicker or backpack)
+        // Re-check what blocking UIs are CURRENTLY open (the player may have closed
+        // the backpack or mission picker while the pause menu was up, even though
+        // input was disabled – they could be closed by other code paths).
         var missionPicker = FindFirstObjectByType<MissionPickerUI>();
         var playerUi = FindFirstObjectByType<PlayerUI>();
-        bool blockingUI = (missionPicker != null && missionPicker.IsOpen) ||
-                          (playerUi != null && playerUi.IsBackpackOpen);
 
-        // If blocking UI remains open, keep gameplay controls disabled but keep Pause action available.
+        bool backpackOpen = playerUi != null && playerUi.IsBackpackOpen;
+        bool missionPickerOpen = missionPicker != null && missionPicker.IsOpen;
+        bool anyBlockingUI = backpackOpen || missionPickerOpen;
+
         if (input != null)
         {
             try
             {
-                if (blockingUI)
+                if (anyBlockingUI)
                 {
+                    // Keep most gameplay inputs off; allow Pause and Backpack toggling.
                     input.Player.Disable();
                     input.Player.Pause.Enable();
-                    input.Player.Backpack.Enable(); // Allow closing backpack with Tab
+                    input.Player.Backpack.Enable();
                 }
                 else
                 {
+                    // Nothing blocking – restore all gameplay inputs.
                     input.Player.Enable();
                 }
             }
             catch { }
         }
 
-        if (!blockingUI)
+        if (!anyBlockingUI)
         {
+            // Normal resume: lock cursor, restore canvas, unlock movement.
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
-            // Restore player UI canvas
             SetGameCanvasActive(true);
 
             var pc = FindFirstObjectByType<PlayerController>();
             if (pc != null) pc.SetControlLocked(false);
         }
-        else if (wasBackpackOpenBeforePause)
+        else
         {
-            // Backpack was open when we opened the pause menu, so restore the game canvas
-            // but keep controls locked since the backpack is still open
+            // Some blocking UI is still open. Keep the canvas visible and cursor
+            // unlocked, but do NOT re-lock player movement – the respective UI
+            // manager (MissionPickerUI / backpack) owns that lock and will release
+            // it when it closes.
             SetGameCanvasActive(true);
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
+
+            // Ensure the HUD is visible regardless of which UI is open.
+            // Previously, when the mission picker was open before pause, and you
+            // resumed, the HUD could end up hidden because SetGameCanvasActive(false)
+            // had been called on pause and the canvas was never re-shown.
+            if (playerUi != null && playerUi.hudRoot != null)
+                playerUi.hudRoot.SetActive(true);
         }
     }
 
-    // Attempt to hide/show the player UI without deactivating the GameObject that may
-    // host this manager. Prefer disabling the Canvas/GraphicRaycaster/CanvasGroup so
-    // MonoBehaviours on the same GameObject remain enabled.
+    /// <summary>
+    /// Attempt to hide/show the player UI without deactivating the GameObject that may
+    /// host this manager. Prefer disabling the Canvas/GraphicRaycaster/CanvasGroup so
+    /// MonoBehaviours on the same GameObject remain enabled.
+    /// </summary>
     private void SetGameCanvasActive(bool active)
     {
         if (GameCanvas == null) return;
@@ -207,7 +238,7 @@ public class PauseMenuManager : MonoBehaviour
             return;
         }
 
-        // Fallback to disabling the GameObject if no Canvas component found
+        // Fallback to disabling the GameObject if no Canvas component found.
         GameCanvas.SetActive(active);
     }
 
@@ -216,7 +247,7 @@ public class PauseMenuManager : MonoBehaviour
     public void OnResumeButton()
     {
         Resume();
-        OnCloseSettings(); // also close settings if open
+        OnCloseSettings();
     }
 
     public void OnSettingsButton()
@@ -229,5 +260,14 @@ public class PauseMenuManager : MonoBehaviour
     {
         settingsPanel?.SetActive(false);
         mainPanel?.SetActive(true);
+    }
+
+    public void OnSaveAndQuitButton()
+    {
+        //Always restore timescale and audio before loading a new scene,
+        // otherwise the main menu will load in a frozen/muted state.
+        Time.timeScale = 1f;
+        AudioListener.pause = false;
+        SceneManager.LoadScene(mainMenuSceneName);
     }
 }

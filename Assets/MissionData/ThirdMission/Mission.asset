@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ae26e9c603b2cb4e99f4044272c8fcd, type: 3}
   m_Name: Mission
   m_EditorClassIdentifier: Assembly-CSharp::MissionData
-  missionId: firstMission
-  title: Book Search
-  description: Head to the "abandoned" castle out in the woods and find and bring
-    back a book.
+  missionId: thirdMission
+  title: Fine Arts 2
+  description: Head back to the castle and bring back a "Haunted" art piece. Be wary
+    of the "movement" in the castle.
   assignedBy: Debt Collector
-  difficulty: 0
+  difficulty: 2
   sceneName: CastleLevelScene
-  levelCatalog: {fileID: 11400000, guid: 22aa43901a5d384409ae5f46dffa5d46, type: 2}
+  levelCatalog: {fileID: 11400000, guid: 8d7ff4a188a53f347a77a52b85b3d38a, type: 2}

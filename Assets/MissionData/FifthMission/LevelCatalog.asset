@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e7f7bdba046ba34599015f799664f2f, type: 3}
+  m_Name: LevelCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::PerLevelCatalog
+  sectionAmount: 40
+  items:
+  - prefab: {fileID: 8221891587872500635, guid: 9ff8a9d5a5731284da0beccdf3876c60, type: 3}
+    allowedSpots: 040000000500000001000000
+  - prefab: {fileID: 8146595917539372128, guid: 5a9cd7990a499124e9e29654d5fed359, type: 3}
+    allowedSpots: 01000000
+  - prefab: {fileID: 8146595917539372128, guid: 5a9cd7990a499124e9e29654d5fed359, type: 3}
+    allowedSpots: 01000000
+  - prefab: {fileID: 4260160323917446259, guid: 6942e0083f133a541a86ed82b1b05320, type: 3}
+    allowedSpots: 0200000001000000
+  - prefab: {fileID: 3224952145024352279, guid: 34348b3600dfaf548bb963668c7ea935, type: 3}
+    allowedSpots: 03000000
+  - prefab: {fileID: 6322365949125581566, guid: 8c836ee5b5ccc1d4c9db84e00e2ee8b1, type: 3}
+    allowedSpots: 03000000
+  - prefab: {fileID: 6322365949125581566, guid: 8c836ee5b5ccc1d4c9db84e00e2ee8b1, type: 3}
+    allowedSpots: 03000000
+  - prefab: {fileID: 3681294035944099949, guid: 192db82396225b247a70a3b97ed9b430, type: 3}
+    allowedSpots: 02000000
+  - prefab: {fileID: 8786579971374366377, guid: 346a13aa2236d8f4cbc5a4abb10fcfc2, type: 3}
+    allowedSpots: 02000000
+  - prefab: {fileID: 3615294656466825966, guid: 371d66568a1762d40835917b2e976f42, type: 3}
+    allowedSpots: 000000000200000005000000
+  - prefab: {fileID: 3610078582526577181, guid: bf9c317b9a4d67043befd76faeb2bda9, type: 3}
+    allowedSpots: 000000000200000005000000
+  - prefab: {fileID: 2623293608672745919, guid: c7283130d7be95c4eacf2ec9bc976aa5, type: 3}
+    allowedSpots: 000000000200000005000000
+  - prefab: {fileID: 6377813642051328171, guid: e055fc696edddf4458efe5f663866def, type: 3}
+    allowedSpots: 000000000200000005000000
+  - prefab: {fileID: 8360227716874691585, guid: aa0524615494e144782f69dd33e5cc4c, type: 3}
+    allowedSpots: 000000000200000005000000
+  enemies:
+  - prefab: {fileID: 8184876609305448741, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
+    allowedSpots: 02000000
+    overrideStats: 1
+    strength: 8
+    agility: 10
+    intelligence: 10
+    stamina: 10

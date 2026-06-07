@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ae26e9c603b2cb4e99f4044272c8fcd, type: 3}
   m_Name: Mission
   m_EditorClassIdentifier: Assembly-CSharp::MissionData
-  missionId: firstMission
-  title: Book Search
-  description: Head to the "abandoned" castle out in the woods and find and bring
-    back a book.
+  missionId: fifthMission
+  title: Monster Clearing
+  description: Go to the castle for the final time, and kill the monster roaming
+    it. Don't forget to bring proof!
   assignedBy: Debt Collector
-  difficulty: 0
+  difficulty: 3
   sceneName: CastleLevelScene
-  levelCatalog: {fileID: 11400000, guid: 22aa43901a5d384409ae5f46dffa5d46, type: 2}
+  levelCatalog: {fileID: 11400000, guid: f86691839a4379442a0e55401706266f, type: 2}

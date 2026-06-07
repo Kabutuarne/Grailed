@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: MissionFailed
   m_EditorClassIdentifier: Assembly-CSharp::DialogueData
   lines:
-  - speakerName: Debt Goon
+  - speakerName: Debt Collector
     text: I'm here for something that wont make me sell you in little pieces.
     lettersPerSecond: 20
     talkingLoopClip: {fileID: 8300000, guid: ff3be4751973814409316a39a9e804dc, type: 3}
-  - speakerName: Debt Goon
-    text: Nothing..? Really?
+  - speakerName: Debt Collector
+    text: Nothing..? Really? I had such high hopes for you.
     lettersPerSecond: 20
     talkingLoopClip: {fileID: 8300000, guid: c9c0703d9ac8d464fa69cf7b57a91779, type: 3}
-  - speakerName: Debt Goon
+  - speakerName: Debt Collector
     text: Don't say we didn't give you a chance!
     lettersPerSecond: 25
     talkingLoopClip: {fileID: 8300000, guid: c9c0703d9ac8d464fa69cf7b57a91779, type: 3}

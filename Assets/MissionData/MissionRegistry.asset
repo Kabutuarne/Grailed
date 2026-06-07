@@ -14,3 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MissionRegistry
   allMissions:
   - {fileID: 11400000, guid: a515b3168ff8d414ca8bce2f3f3e87d2, type: 2}
+  - {fileID: 11400000, guid: f28e720d0bb553e44b2fbdb10cd27bb4, type: 2}
+  - {fileID: 11400000, guid: 541030ff41e2800408de158953892750, type: 2}
+  - {fileID: 11400000, guid: 54f48530744b99e40b844c67a34a2eb7, type: 2}
+  - {fileID: 11400000, guid: 5f1d44cf5b708dc43b524fe44c13b8d5, type: 2}

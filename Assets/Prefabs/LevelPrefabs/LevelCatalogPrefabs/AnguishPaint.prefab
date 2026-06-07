@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 5895177194306159300}
   m_Layer: 10
   m_Name: AnguishPaint
-  m_TagString: Painting
+  m_TagString: CreepyPainting
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

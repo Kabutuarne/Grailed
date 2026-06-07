@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ae26e9c603b2cb4e99f4044272c8fcd, type: 3}
   m_Name: Mission
   m_EditorClassIdentifier: Assembly-CSharp::MissionData
-  missionId: firstMission
-  title: Book Search
-  description: Head to the "abandoned" castle out in the woods and find and bring
-    back a book.
+  missionId: fourthMission
+  title: Arcane Wizardry
+  description: Rumors of an "Arcane Potion" exist, possible of healing any wound.
+    Bring one to the debt collector.
   assignedBy: Debt Collector
-  difficulty: 0
+  difficulty: 2
   sceneName: CastleLevelScene
-  levelCatalog: {fileID: 11400000, guid: 22aa43901a5d384409ae5f46dffa5d46, type: 2}
+  levelCatalog: {fileID: 11400000, guid: 6ea8b5e982fe6a949956c87377380832, type: 2}

@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63fc6a8dcf668964590f30a42d177eb8, type: 3}
+  m_Name: DialogData
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueData
+  lines:
+  - speakerName: Debt Collector
+    text: I'm here for something that wont make me sell you in little pieces.
+    lettersPerSecond: 20
+    talkingLoopClip: {fileID: 8300000, guid: ff3be4751973814409316a39a9e804dc, type: 3}
+  - speakerName: Debt Collector
+    text: Hey... Seems I was a little wrong about the painting.
+    lettersPerSecond: 20
+    talkingLoopClip: {fileID: 8300000, guid: 7e4fb32d10aff234b910c1506f88e592, type: 3}
+  - speakerName: Debt Collector
+    text: Turns out he wants a dreadful painting. Something "haunted".
+    lettersPerSecond: 15
+    talkingLoopClip: {fileID: 8300000, guid: ff3be4751973814409316a39a9e804dc, type: 3}
+  - speakerName: Debt Collector
+    text: Next time i'm here you better bring it to me, time is running out.
+    lettersPerSecond: 14
+    talkingLoopClip: {fileID: 8300000, guid: ff3be4751973814409316a39a9e804dc, type: 3}
+  - speakerName: Debt Collector
+    text: By the way... Careful... There was some "movement" over there.
+    lettersPerSecond: 14
+    talkingLoopClip: {fileID: 8300000, guid: c9c0703d9ac8d464fa69cf7b57a91779, type: 3}
+  - speakerName: Debt Collector
+    text: You don't have a choice anyway.
+    lettersPerSecond: 14
+    talkingLoopClip: {fileID: 8300000, guid: c9c0703d9ac8d464fa69cf7b57a91779, type: 3}

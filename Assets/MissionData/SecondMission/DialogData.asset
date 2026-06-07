@@ -10,22 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 63fc6a8dcf668964590f30a42d177eb8, type: 3}
-  m_Name: MissionSuccsess
+  m_Name: DialogData
   m_EditorClassIdentifier: Assembly-CSharp::DialogueData
   lines:
-  - speakerName: Debt Goon
+  - speakerName: Debt Collector
     text: I'm here for something that wont make me sell you in little pieces.
     lettersPerSecond: 20
     talkingLoopClip: {fileID: 8300000, guid: ff3be4751973814409316a39a9e804dc, type: 3}
-  - speakerName: Debt Goon
-    text: Oh... You actually have something?
+  - speakerName: Debt Collector
+    text: Oh.. You actually have something...
     lettersPerSecond: 20
-    talkingLoopClip: {fileID: 8300000, guid: c9c0703d9ac8d464fa69cf7b57a91779, type: 3}
-  - speakerName: Debt Goon
-    text: And you even lived...
-    lettersPerSecond: 17
     talkingLoopClip: {fileID: 8300000, guid: 7e4fb32d10aff234b910c1506f88e592, type: 3}
-  - speakerName: Debt Goon
-    text: I will see what my boss thinks of this and get back to you for more work.
-    lettersPerSecond: 25
+  - speakerName: Debt Collector
+    text: I did not think you had it in you. You might actually have some use.
+    lettersPerSecond: 15
+    talkingLoopClip: {fileID: 8300000, guid: ff3be4751973814409316a39a9e804dc, type: 3}
+  - speakerName: Debt Collector
+    text: Head back over there and bring my boss a painting, he recently has gotten
+      into art apperantly...
+    lettersPerSecond: 14
+    talkingLoopClip: {fileID: 8300000, guid: ff3be4751973814409316a39a9e804dc, type: 3}
+  - speakerName: Debt Collector
+    text: By the way I will be keeping that book.
+    lettersPerSecond: 14
     talkingLoopClip: {fileID: 8300000, guid: c9c0703d9ac8d464fa69cf7b57a91779, type: 3}

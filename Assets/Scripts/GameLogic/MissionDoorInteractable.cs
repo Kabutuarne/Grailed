@@ -1,5 +1,6 @@
 // MissionDoorInteractable.cs
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Playables;
 using Unity.Cinemachine;
@@ -25,7 +26,7 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
     private MissionData givenMission;
     private bool waitingForLineAdvance;
     private double loopStartTime;
-    private bool hasBeenPlayed;  // Tracks if THIS sequence has been played
+    private bool hasBeenPlayed;
 
     // Cached Components
     private AudioSource knockAudioSource;
@@ -33,10 +34,13 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
     private PlayerController playerController;
     private PlayerInteractor playerInteractor;
 
+    // =====================================================================
     // IInteractable
+    // =====================================================================
+
     public bool CanInteract(GameObject interactor)
     {
-        if (hasBeenPlayed) return false;  // Don't allow interaction if current sequence already played
+        if (hasBeenPlayed) return false;
         if (!canBeInteractedWith || sequenceRunning) return false;
         if (currentSequenceData == null) return false;
         return true;
@@ -48,12 +52,14 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
             StartSequence();
     }
 
+    // =====================================================================
     // Unity Lifecycle
+    // =====================================================================
+
     protected virtual void Start()
     {
         AutoFindComponents();
 
-        // Check if current sequence already played
         if (currentSequenceData != null && currentSequenceData.HasBeenPlayed())
         {
             hasBeenPlayed = true;
@@ -85,7 +91,10 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
             MissionManager.Instance.OnMissionEnded -= OnMissionEnded;
     }
 
-    // Scene Reload Resolution
+    // =====================================================================
+    // Scene Reload / Mission Resolution
+    // =====================================================================
+
     private void TryResolveReturnedMission()
     {
         if (currentSequenceData == null) return;
@@ -96,22 +105,21 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
 
         foreach (var m in currentSequenceData.missionsToGive)
         {
-            if (m == last)
+            if (m != last) continue;
+
+            bool hasItem = !string.IsNullOrEmpty(currentSequenceData.conditionItemTag) &&
+                           PlayerHasConditionItem(currentSequenceData.conditionItemTag);
+
+            DoorSequenceData next = hasItem
+                ? currentSequenceData.nextSequenceWithItem
+                : currentSequenceData.nextSequenceWithoutItem;
+
+            if (next != null)
             {
-                bool hasItem = !string.IsNullOrEmpty(currentSequenceData.conditionItemTag) &&
-                               PlayerHasConditionItem(currentSequenceData.conditionItemTag);
-
-                DoorSequenceData next = hasItem
-                    ? currentSequenceData.nextSequenceWithItem
-                    : currentSequenceData.nextSequenceWithoutItem;
-
-                if (next != null)
-                {
-                    if (debugMode) Debug.Log($"[MissionDoor] Scene reloaded — resolving transition to: {next.sequenceName}");
-                    ApplySequenceTransition(next);
-                }
-                return;
+                if (debugMode) Debug.Log($"[MissionDoor] Scene reloaded — resolving transition to: {next.sequenceName}");
+                ApplySequenceTransition(next);
             }
+            return;
         }
     }
 
@@ -131,13 +139,12 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
         if (next != null)
         {
             if (debugMode) Debug.Log($"[MissionDoor] Mission ended — transitioning to: {next.sequenceName}");
-            TransitionToSequence(next);
 
-            // If the player has the condition item, destroy it
+            // Destroy exactly one condition item before transitioning
             if (hasItem && !string.IsNullOrEmpty(currentSequenceData?.conditionItemTag))
-            {
-                DestroyConditionItem(currentSequenceData.conditionItemTag);
-            }
+                DestroyOneConditionItem(currentSequenceData.conditionItemTag);
+
+            TransitionToSequence(next);
         }
         else
         {
@@ -145,57 +152,21 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
         }
     }
 
-    // Destroy all items in the scene with the given tag
-    private void DestroyConditionItem(string tag)
-    {
-        GameObject[] items = GameObject.FindGameObjectsWithTag(tag);
-        foreach (GameObject item in items)
-        {
-            if (debugMode) Debug.Log($"[MissionDoor] Destroying condition item: {item.name}");
-            Destroy(item);
-        }
+    // =====================================================================
+    // Item detection — finds both active AND inactive GameObjects
+    // =====================================================================
 
-        // Also check player inventory
-        PlayerInventory inv = FindFirstObjectByType<PlayerInventory>();
-        if (inv != null)
-        {
-            // Check right hand
-            if (inv.rightHandItem != null && inv.rightHandItem.CompareTag(tag))
-            {
-                if (debugMode) Debug.Log($"[MissionDoor] Destroying condition item from right hand");
-                Destroy(inv.rightHandItem);
-                inv.rightHandItem = null;
-            }
-
-            // Check backpack
-            for (int i = 0; i < inv.backpack.Length; i++)
-            {
-                if (inv.backpack[i] != null && inv.backpack[i].CompareTag(tag))
-                {
-                    if (debugMode) Debug.Log($"[MissionDoor] Destroying condition item from backpack slot {i}");
-                    Destroy(inv.backpack[i]);
-                    inv.backpack[i] = null;
-                }
-            }
-
-            // Check accessories
-            for (int i = 0; i < inv.accessories.Length; i++)
-            {
-                if (inv.accessories[i] != null && inv.accessories[i].CompareTag(tag))
-                {
-                    if (debugMode) Debug.Log($"[MissionDoor] Destroying condition item from accessory slot {i}");
-                    Destroy(inv.accessories[i]);
-                    inv.accessories[i] = null;
-                }
-            }
-        }
-    }
-
+    /// <summary>
+    /// Returns true if a GameObject with <paramref name="tag"/> exists anywhere in
+    /// the scene (including disabled objects) OR in the player's inventory.
+    /// </summary>
     private bool PlayerHasConditionItem(string tag)
     {
-        if (GameObject.FindGameObjectWithTag(tag) != null) return true;
+        // Search all scene objects, including inactive ones
+        if (FindObjectWithTagIncludingInactive(tag) != null) return true;
 
-        PlayerInventory inv = FindFirstObjectByType<PlayerInventory>();
+        // Fallback: check inventory slots directly
+        PlayerInventory inv = FindFirstObjectByType<PlayerInventory>(FindObjectsInactive.Include);
         if (inv == null) return false;
 
         if (inv.rightHandItem != null && inv.rightHandItem.CompareTag(tag)) return true;
@@ -209,6 +180,121 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
         return false;
     }
 
+    /// <summary>
+    /// Destroys exactly ONE GameObject with <paramref name="tag"/>, preferring
+    /// the player's held/inventory item, then falling back to any scene instance
+    /// (active or inactive).
+    /// </summary>
+    private void DestroyOneConditionItem(string tag)
+    {
+        // 1. Check inventory first (most specific / intentional)
+        PlayerInventory inv = FindFirstObjectByType<PlayerInventory>(FindObjectsInactive.Include);
+        if (inv != null)
+        {
+            if (TryDestroyInventoryItem(inv, tag))
+                return;
+        }
+
+        // 2. Fall back to any scene object with the tag (active or inactive)
+        GameObject target = FindObjectWithTagIncludingInactive(tag);
+        if (target != null)
+        {
+            if (debugMode) Debug.Log($"[MissionDoor] Destroying condition item in scene: {target.name} (active={target.activeInHierarchy})");
+            Destroy(target);
+        }
+        else
+        {
+            Debug.LogWarning($"[MissionDoor] DestroyOneConditionItem: no object found with tag '{tag}'");
+        }
+    }
+
+    /// <summary>
+    /// Attempts to destroy one item with <paramref name="tag"/> from the
+    /// player's inventory slots. Returns true if an item was found and destroyed.
+    /// </summary>
+    private bool TryDestroyInventoryItem(PlayerInventory inv, string tag)
+    {
+        // Right hand
+        if (inv.rightHandItem != null && inv.rightHandItem.CompareTag(tag))
+        {
+            if (debugMode) Debug.Log($"[MissionDoor] Destroying condition item from right hand: {inv.rightHandItem.name}");
+            Destroy(inv.rightHandItem);
+            inv.rightHandItem = null;
+            return true;
+        }
+
+        // Backpack slots
+        for (int i = 0; i < inv.backpack.Length; i++)
+        {
+            if (inv.backpack[i] != null && inv.backpack[i].CompareTag(tag))
+            {
+                if (debugMode) Debug.Log($"[MissionDoor] Destroying condition item from backpack slot {i}: {inv.backpack[i].name}");
+                Destroy(inv.backpack[i]);
+                inv.backpack[i] = null;
+                return true;
+            }
+        }
+
+        // Accessory slots
+        for (int i = 0; i < inv.accessories.Length; i++)
+        {
+            if (inv.accessories[i] != null && inv.accessories[i].CompareTag(tag))
+            {
+                if (debugMode) Debug.Log($"[MissionDoor] Destroying condition item from accessory slot {i}: {inv.accessories[i].name}");
+                Destroy(inv.accessories[i]);
+                inv.accessories[i] = null;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Searches ALL root GameObjects and their full hierarchies for the first
+    /// object whose tag matches <paramref name="tag"/>, including inactive ones.
+    /// Unity's built-in FindGameObjectsWithTag skips inactive objects; this does not.
+    /// </summary>
+    private GameObject FindObjectWithTagIncludingInactive(string tag)
+    {
+        // FindObjectsByType with Include finds all, regardless of active state
+        // We iterate roots manually for a lightweight tag scan
+        GameObject[] allObjects = FindObjectsByType<GameObject>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        foreach (GameObject go in allObjects)
+        {
+            if (go.CompareTag(tag))
+                return go;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Returns ALL GameObjects in the scene (active or inactive) that carry
+    /// <paramref name="tag"/>. Use sparingly — iterates the full scene graph.
+    /// </summary>
+    private List<GameObject> FindAllObjectsWithTagIncludingInactive(string tag)
+    {
+        GameObject[] allObjects = FindObjectsByType<GameObject>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        var results = new List<GameObject>();
+        foreach (GameObject go in allObjects)
+        {
+            if (go.CompareTag(tag))
+                results.Add(go);
+        }
+        return results;
+    }
+
+    // =====================================================================
+    // Sequence Transitions
+    // =====================================================================
+
     private void TransitionToSequence(DoorSequenceData next)
     {
         UnsubscribeFromTimeline(currentSequenceData);
@@ -219,11 +305,8 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
     private void ApplySequenceTransition(DoorSequenceData next)
     {
         currentSequenceData = next;
-
-        // RESET the played flag when transitioning to a new sequence
         hasBeenPlayed = false;
 
-        // Check if the new sequence has already been played globally
         if (currentSequenceData != null && currentSequenceData.HasBeenPlayed())
         {
             hasBeenPlayed = true;
@@ -233,16 +316,13 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
         UpdateKnockAudio();
         UpdatePromptVisibility();
 
-        // Reset interaction availability - need to restart the knock/wait cycle
         if (!hasBeenPlayed)
         {
             StopKnocking();
-            // Restart the scene start routine for the new sequence
             StartCoroutine(RestartSequenceRoutine());
         }
     }
 
-    // NEW: Restart the knock/wait cycle for a new sequence
     private IEnumerator RestartSequenceRoutine()
     {
         canBeInteractedWith = false;
@@ -265,6 +345,10 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
         if (debugMode) Debug.Log($"[MissionDoor] New sequence {currentSequenceData?.sequenceName} ready for interaction");
     }
 
+    // =====================================================================
+    // Timeline helpers
+    // =====================================================================
+
     private void SubscribeToTimeline(DoorSequenceData seq)
     {
         if (seq?.sequenceTimeline != null)
@@ -282,6 +366,10 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
         if (knockAudioSource != null && currentSequenceData?.knockClip != null)
             knockAudioSource.clip = currentSequenceData.knockClip;
     }
+
+    // =====================================================================
+    // Component setup
+    // =====================================================================
 
     private void AutoFindComponents()
     {
@@ -301,9 +389,12 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
         }
     }
 
+    // =====================================================================
+    // Scene start / knock routines
+    // =====================================================================
+
     private IEnumerator SceneStartRoutine()
     {
-        // Skip knock and prompt if already played
         if (hasBeenPlayed)
         {
             canBeInteractedWith = false;
@@ -332,7 +423,6 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
 
     private IEnumerator KnockLoopRoutine()
     {
-        // Don't knock if already played
         if (hasBeenPlayed) yield break;
 
         float interval = currentSequenceData?.knockInterval ?? 3f;
@@ -344,10 +434,14 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
         }
     }
 
+    // =====================================================================
+    // Sequence playback
+    // =====================================================================
+
     private void StartSequence()
     {
         if (currentSequenceData == null) return;
-        if (hasBeenPlayed) return;  // Prevent playing again
+        if (hasBeenPlayed) return;
 
         sequenceRunning = true;
         isInTalkLoop = false;
@@ -376,7 +470,6 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
         }
     }
 
-    // Called by timeline signal when intro finishes - RECORD THE LOOP START TIME
     public void OnIntroFinished()
     {
         if (currentSequenceData == null || !sequenceRunning)
@@ -384,27 +477,21 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
 
         isInTalkLoop = true;
 
-        // Record the current time as the loop start point
         if (currentSequenceData.sequenceTimeline != null)
         {
             loopStartTime = currentSequenceData.sequenceTimeline.time;
             if (debugMode) Debug.Log($"[MissionDoor] Loop start time recorded: {loopStartTime}");
         }
 
-        // Start the dialogue if not already active
         if (dialogueUI != null && !dialogueUI.IsDialogueActive)
-        {
             StartDialogue();
-        }
     }
 
-    // Called by timeline signal when reaching the end of the loop section
     public void OnTalkLoopEnd()
     {
         if (!sequenceRunning || !isInTalkLoop)
             return;
 
-        // If waiting for player input, pause and don't loop
         if (waitingForLineAdvance)
         {
             if (currentSequenceData?.sequenceTimeline != null)
@@ -412,20 +499,16 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
             return;
         }
 
-        // If dialogue is finished, exit the talk loop
         if (dialogueFinished)
         {
             ExitTalkLoop();
             return;
         }
 
-        // While typing is active OR we're between lines (not waiting for input), 
-        // loop back to the recorded start time
         if (lineTypingActive || !waitingForLineAdvance)
         {
             if (currentSequenceData?.sequenceTimeline != null)
             {
-                // Jump back to the recorded loop start time
                 currentSequenceData.sequenceTimeline.time = loopStartTime;
                 currentSequenceData.sequenceTimeline.Play();
                 if (debugMode) Debug.Log($"[MissionDoor] Looping back to time: {loopStartTime}");
@@ -443,7 +526,6 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
 
         talkAnimationLoopCoroutine = StartCoroutine(TalkAnimationLoopRoutine());
 
-        // Ensure timeline is playing during typing
         if (isInTalkLoop && currentSequenceData?.sequenceTimeline != null &&
             currentSequenceData.sequenceTimeline.state != PlayState.Playing)
         {
@@ -462,7 +544,6 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
             talkAnimationLoopCoroutine = null;
         }
 
-        // Pause the timeline until player presses interact
         if (isInTalkLoop && currentSequenceData?.sequenceTimeline != null)
         {
             currentSequenceData.sequenceTimeline.Pause();
@@ -510,7 +591,6 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
     {
         waitingForLineAdvance = false;
 
-        // Resume the timeline to continue the loop for the next line
         if (isInTalkLoop && currentSequenceData?.sequenceTimeline != null &&
             currentSequenceData.sequenceTimeline.state == PlayState.Paused)
         {
@@ -537,12 +617,11 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
         lineTypingActive = false;
         waitingForLineAdvance = false;
         dialogueFinished = true;
-        hasBeenPlayed = true;  // Mark this sequence as played
+        hasBeenPlayed = true;
 
         GiveMissionsFromSequence();
         currentSequenceData?.MarkAsPlayed();
 
-        // Resume timeline one last time to exit the talk loop
         if (isInTalkLoop && currentSequenceData?.sequenceTimeline != null &&
             currentSequenceData.sequenceTimeline.state == PlayState.Paused)
         {
@@ -556,9 +635,7 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
         if (!sequenceRunning) return;
         if (dialogueUI == null) return;
         if (dialogueUI.IsDialogueActive && !dialogueUI.IsTyping)
-        {
             currentSequenceData.sequenceTimeline.Pause();
-        }
     }
 
     private void GiveMissionsFromSequence()
@@ -582,13 +659,9 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
         SetTimelineSpeed(1f);
 
         if (currentSequenceData?.sequenceTimeline != null)
-        {
             currentSequenceData.sequenceTimeline.Play();
-        }
         else
-        {
             EndSequence();
-        }
     }
 
     private void OnSequenceTimelineStopped(PlayableDirector director)
@@ -604,6 +677,7 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
             StopCoroutine(talkAnimationLoopCoroutine);
             talkAnimationLoopCoroutine = null;
         }
+
         if (dialogueUI != null)
         {
             dialogueUI.OnLineStarted -= OnLineStarted;
@@ -622,6 +696,10 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
         UpdatePromptVisibility();
     }
 
+    // =====================================================================
+    // Animation
+    // =====================================================================
+
     private void PlayNextTalkAnimation()
     {
         if (currentSequenceData?.speakerAnimator == null || currentSequenceData.talkAnimations == null) return;
@@ -636,6 +714,10 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
             currentSequenceData.speakerAnimator.CrossFadeInFixedTime(clip.name, 0.1f);
     }
 
+    // =====================================================================
+    // UI / Camera helpers
+    // =====================================================================
+
     private void UpdatePromptVisibility()
     {
         if (interactionPromptObject == null) return;
@@ -643,7 +725,7 @@ public class MissionDoorInteractable : MonoBehaviour, IInteractable
         bool shouldShow = canBeInteractedWith &&
                           currentSequenceData != null &&
                           !sequenceRunning &&
-                          !hasBeenPlayed;  // Don't show prompt if current sequence already played
+                          !hasBeenPlayed;
 
         if (interactionPromptObject.activeSelf != shouldShow)
             interactionPromptObject.SetActive(shouldShow);

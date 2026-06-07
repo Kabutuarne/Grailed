@@ -79,7 +79,6 @@ public class MissionPickerUI : MonoBehaviour
             root.SetActive(true);
 
         FreezePlayer(true);
-
         RefreshMissionList();
     }
 
@@ -96,7 +95,7 @@ public class MissionPickerUI : MonoBehaviour
         if (missionListParent == null || missionEntryPrefab == null)
             return;
 
-        ClearSpawnedEntries();
+        // ClearSpawnedEntries();
         selectedMission = null;
         selectedEntry = null;
         UpdateSelectedMissionDetails();
@@ -158,30 +157,40 @@ public class MissionPickerUI : MonoBehaviour
 
     private void FreezePlayer(bool freeze)
     {
+        if (playerController == null)
+            playerController = FindFirstObjectByType<PlayerController>();
+
+        if (playerInteractor == null)
+            playerInteractor = FindFirstObjectByType<PlayerInteractor>();
+
         if (playerController != null)
             playerController.SetControlLocked(freeze);
 
         if (playerInteractor != null)
             playerInteractor.SetInteractionLocked(freeze);
 
-        // Hide or show main HUD
+        // Resolve PlayerUI reference if missing.
         if (playerUI == null)
             playerUI = FindFirstObjectByType<PlayerUI>();
 
         if (playerUI != null)
         {
-            // Keep the main HUD visible at all times. The mission picker is a modal overlay,
-            // so the HUD should not be turned off by opening it.
+            // Always keep the HUD visible. The mission picker is a modal overlay;
+            // hiding the HUD behind it was unnecessary and caused it to stay hidden
+            // when the picker closed while the pause menu had also toggled the canvas.
             if (playerUI.hudRoot != null)
                 playerUI.hudRoot.SetActive(true);
 
-            // Close backpack if open while the picker is active.
+            // Close backpack if open when the picker opens (avoids two modal UIs at once).
             if (freeze && playerUI.IsBackpackOpen && playerUI.backpackRoot != null)
                 playerUI.backpackRoot.SetActive(false);
         }
 
-        // Disable player cast/consume components so input can't trigger actions while frozen
-        var playerObj = playerController != null ? playerController.gameObject : GameObject.FindWithTag("Player");
+        // Disable player cast/consume components so input can't trigger actions while frozen.
+        var playerObj = playerController != null
+            ? playerController.gameObject
+            : GameObject.FindWithTag("Player");
+
         if (playerObj != null)
         {
             var casts = playerObj.GetComponents<PlayerCast>();
@@ -190,19 +199,28 @@ public class MissionPickerUI : MonoBehaviour
             var consumes = playerObj.GetComponents<PlayerConsume>();
             foreach (var c in consumes) if (c != null) c.enabled = !freeze;
         }
-        Cursor.lockState = freeze ? CursorLockMode.None : CursorLockMode.Locked;
-        Cursor.visible = freeze;
+
+        // Only touch Cursor state when the pause menu is NOT currently open.
+        // If PauseMenuManager already set the cursor to visible/unlocked, we must
+        // not fight it by locking it again on unfreeze. Conversely, when unfreezing
+        // while the pause menu is still open, the cursor must stay visible.
+        var pauseMenu = FindFirstObjectByType<PauseMenuManager>();
+        bool pauseMenuOpen = pauseMenu != null && IsPauseMenuOpen(pauseMenu);
+
+        if (!pauseMenuOpen)
+        {
+            Cursor.lockState = freeze ? CursorLockMode.None : CursorLockMode.Locked;
+            Cursor.visible = freeze;
+        }
+        // If pause menu IS open, leave cursor as-is (it's already unlocked/visible).
     }
 
-    private void ClearSpawnedEntries()
+    /// <summary>
+    /// Returns true when PauseMenuManager currently has the game paused.
+    /// </summary>
+    private static bool IsPauseMenuOpen(PauseMenuManager mgr)
     {
-        for (int i = spawnedEntries.Count - 1; i >= 0; i--)
-        {
-            if (spawnedEntries[i] != null)
-                Destroy(spawnedEntries[i].gameObject);
-        }
-
-        spawnedEntries.Clear();
+        return mgr != null && mgr.IsPaused;
     }
 
     // Public helper to indicate whether the picker root is currently shown.
