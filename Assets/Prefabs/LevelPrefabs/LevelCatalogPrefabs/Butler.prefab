@@ -4659,8 +4659,9 @@ MonoBehaviour:
   health: 0
   mana: 0
   energy: 0
-  deathDropPrefabs: []
-  dropScatterRadius: 1
+  deathDropPrefabs:
+  - {fileID: 4724876724938684, guid: ad46f1d642a1a4f42b826b3ed175dd06, type: 3}
+  dropScatterRadius: 0.2
 --- !u!114 &880698471887539451
 MonoBehaviour:
   m_ObjectHideFlags: 0

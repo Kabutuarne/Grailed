@@ -24,6 +24,7 @@ TagManager:
   - PlayerCamera
   - Accessory
   - ArcanePotion
+  - NavMeshSurface
   layers:
   - Default
   - TransparentFX

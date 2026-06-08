@@ -44,6 +44,7 @@ MonoBehaviour:
   - {fileID: 8142274016252836915, guid: b50a7f34c37065c4b8a71b3b7b5931cd, type: 3}
   - {fileID: 4260160323917446259, guid: 6942e0083f133a541a86ed82b1b05320, type: 3}
   - {fileID: 98299272384648802, guid: 3adbc1072ff6a9944bbe3c4178d35184, type: 3}
+  - {fileID: 4724876724938684, guid: ad46f1d642a1a4f42b826b3ed175dd06, type: 3}
   effectCarriers:
   - {fileID: 11400000, guid: e6e9c6307a5ed2f4da91fb240f743ff3, type: 2}
   - {fileID: 11400000, guid: 3f8554148b7ab96478af24a5b3c32382, type: 2}

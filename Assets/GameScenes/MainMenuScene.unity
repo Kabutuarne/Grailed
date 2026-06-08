@@ -978,6 +978,135 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &101267512
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 101267514}
+  - component: {fileID: 101267513}
+  m_Layer: 0
+  m_Name: UIClick
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!82 &101267513
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 101267512}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: -468075226772776800, guid: 9de8894cf64c9534aba113c6c09b6c31, type: 2}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!4 &101267514
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 101267512}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 340.84933, y: 0.00001, z: -287.4975}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &101873304
 GameObject:
   m_ObjectHideFlags: 0
@@ -1633,6 +1762,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameSaveManager
   missionRegistry: {fileID: 11400000, guid: a6e4eae335b9221419fce6aaaf212793, type: 2}
   itemRegistry: {fileID: 11400000, guid: 9d3b89c6d4d77814cb6c0d602e360136, type: 2}
+  worldItemTags:
+  - Painting
+  - CreepyPainting
+  - Book
+  - Spell
+  - Wand
+  - Potion
+  - Skull
+  - Accessory
+  - ArcanePotion
   mainMenuScene: MainMenuScene
   cabinScene: CabinScene
 --- !u!1 &156005634
@@ -2444,6 +2583,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 1317924488}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &220108176
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3847,6 +3989,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 1430131967}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &331280650
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4652,6 +4797,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 1638620094}
+  audioSource: {fileID: 0}
+  clickSound: {fileID: 0}
+  clickVolume: 1
 --- !u!114 &391870549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5290,6 +5438,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 1781573352}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &420618952
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6058,6 +6209,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 1053032911}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &497546696
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6523,6 +6677,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 440822457}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &541263642
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6888,6 +7045,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 2048997758}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &568443532
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7030,6 +7190,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 289465815}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &585768601
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7178,6 +7341,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 261521795}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &586974922
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7369,6 +7535,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 1398869852}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &639402413
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7648,6 +7817,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 2143785718}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &647126422
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7963,6 +8135,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 156005634}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &745541947
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8105,6 +8280,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 187323585}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &761502140
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14615,6 +14793,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 1455114628}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &1558219545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15464,6 +15645,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 1865920296}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &1603900460
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15952,6 +16136,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 1591714800}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &1661571569
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19679,6 +19866,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 1833973883}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &2026248687
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20375,6 +20565,9 @@ MonoBehaviour:
   resetHoverOnEnter: 0
   resetIdleOnExit: 0
   buttonGlow: {fileID: 1218636664}
+  audioSource: {fileID: 101267513}
+  clickSound: {fileID: 8300000, guid: 23ec3a0017015d746a8d30e033d61c64, type: 3}
+  clickVolume: 1
 --- !u!114 &2127299387
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20537,3 +20730,4 @@ SceneRoots:
   - {fileID: 1805969838}
   - {fileID: 152214073}
   - {fileID: 153496214}
+  - {fileID: 101267514}

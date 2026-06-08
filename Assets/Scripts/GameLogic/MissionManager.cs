@@ -3,263 +3,196 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// Singleton that owns all mission state and persists across scene loads.
-/// Simplified to focus on the core flow: dialogue -> mission -> success/failure -> next dialogue
-/// </summary>
 public class MissionManager : MonoBehaviour
 {
-    // =====================================================================
-    // Singleton
-    // =====================================================================
-
     public static MissionManager Instance { get; private set; }
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    private void OnDestroy()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
-    // =====================================================================
-    // Events
-    // =====================================================================
+    private void OnDestroy() => SceneManager.sceneLoaded -= OnSceneLoaded;
 
     public event Action<IReadOnlyCollection<MissionData>> OnAvailableMissionsChanged;
     public event Action<MissionData> OnMissionEnded;
     public event Action<MissionData> OnMissionStarted;
 
-    // =====================================================================
-    // State
-    // =====================================================================
-
     private readonly HashSet<string> completedMissionIds = new HashSet<string>();
     private readonly HashSet<string> playedMissionIds = new HashSet<string>();
     private readonly HashSet<string> completedSequenceIds = new HashSet<string>();
-    private readonly List<MissionData> availableMissions = new List<MissionData>();
+    private readonly HashSet<string> playedSequenceIds = new HashSet<string>();
+    private readonly List<MissionData> unlockedMissions = new List<MissionData>();
 
     private MissionData currentMission;
     private MissionData lastCompletedMission;
+    private string lastUnlockedMissionId = "";
 
-    // =====================================================================
-    // Public API — mission queries
-    // =====================================================================
+    // Door progression
+    private readonly Dictionary<string, string> doorCurrentSequenceNames = new Dictionary<string, string>();
 
-    public IReadOnlyCollection<MissionData> GetAvailableMissions()
-    {
-        return availableMissions.AsReadOnly();
-    }
-
-    public bool IsMissionComplete(MissionData mission)
-    {
-        return mission != null && completedMissionIds.Contains(mission.Id);
-    }
-
-    public bool IsMissionActive(MissionData mission)
-    {
-        return currentMission == mission;
-    }
-
-    public bool HasMissionBeenPlayed(MissionData mission)
-    {
-        return mission != null && playedMissionIds.Contains(mission.Id);
-    }
-
+    // ---------- Public queries ----------
+    public IReadOnlyCollection<MissionData> GetUnlockedMissions() => unlockedMissions.AsReadOnly();
+    public IReadOnlyCollection<MissionData> GetAvailableMissions() => unlockedMissions.AsReadOnly(); // alias
+    public bool IsMissionComplete(MissionData mission) => mission != null && completedMissionIds.Contains(mission.Id);
+    public bool IsMissionActive(MissionData mission) => currentMission == mission;
+    public bool HasMissionBeenPlayed(MissionData mission) => mission != null && playedMissionIds.Contains(mission.Id);
     public MissionData GetLastCompletedMission() => lastCompletedMission;
-
     public MissionData CurrentMission => currentMission;
+    public string GetLastUnlockedMissionId() => lastUnlockedMissionId;
 
-    // =====================================================================
-    // Public API — mission lifecycle
-    // =====================================================================
-
+    // ---------- Mission lifecycle ----------
     public void UnlockMission(MissionData mission)
     {
         if (mission == null) return;
         if (completedMissionIds.Contains(mission.Id)) return;
-        if (availableMissions.Contains(mission)) return;
+        if (unlockedMissions.Contains(mission)) return;
 
-        availableMissions.Add(mission);
-        OnAvailableMissionsChanged?.Invoke(availableMissions.AsReadOnly());
+        unlockedMissions.Add(mission);
+        lastUnlockedMissionId = mission.Id;
+        OnAvailableMissionsChanged?.Invoke(unlockedMissions.AsReadOnly());
         Debug.Log($"[MissionManager] Mission unlocked: {mission.title}");
     }
 
-    public void UnlockMissions(MissionData[] missions)
+    /// <summary>Unlock a mission without firing the event (for batch restore).</summary>
+    public void UnlockMissionWithoutNotify(MissionData mission)
     {
-        if (missions == null || missions.Length == 0) return;
+        if (mission == null) return;
+        if (completedMissionIds.Contains(mission.Id)) return;
+        if (unlockedMissions.Contains(mission)) return;
+        unlockedMissions.Add(mission);
+        lastUnlockedMissionId = mission.Id;
+        Debug.Log($"[MissionManager] Mission unlocked (silent): {mission.title}");
+    }
 
-        bool changed = false;
-        foreach (var mission in missions)
-        {
-            if (mission == null) continue;
-            if (completedMissionIds.Contains(mission.Id)) continue;
-            if (availableMissions.Contains(mission)) continue;
-
-            availableMissions.Add(mission);
-            changed = true;
-            Debug.Log($"[MissionManager] Mission unlocked: {mission.title}");
-        }
-
-        if (changed)
-            OnAvailableMissionsChanged?.Invoke(availableMissions.AsReadOnly());
+    /// <summary>Fire the available missions changed event once (call after bulk operations).</summary>
+    public void NotifyAvailableMissionsChanged()
+    {
+        OnAvailableMissionsChanged?.Invoke(unlockedMissions.AsReadOnly());
     }
 
     public void StartMission(MissionData mission)
     {
         if (mission == null) return;
-
         currentMission = mission;
         MarkMissionAsPlayed(mission);
-
-        if (GameManager.Instance != null)
-            GameManager.Instance.ActiveLevel = mission.levelCatalog;
-
-        Debug.Log($"[MissionManager] Starting mission: {mission.title} -> scene: {mission.sceneName}");
+        if (GameManager.Instance != null) GameManager.Instance.ActiveLevel = mission.levelCatalog;
         OnMissionStarted?.Invoke(mission);
         SceneManager.LoadScene(mission.sceneName);
     }
 
     public void MarkMissionAsPlayed(MissionData mission)
     {
-        if (mission != null)
-            playedMissionIds.Add(mission.Id);
+        if (mission != null) playedMissionIds.Add(mission.Id);
     }
 
     public void EndCurrentMission()
     {
         if (currentMission == null) return;
-
         completedMissionIds.Add(currentMission.Id);
         lastCompletedMission = currentMission;
-        availableMissions.Remove(currentMission);
-
+        unlockedMissions.Remove(currentMission);
         Debug.Log($"[MissionManager] Mission complete: {currentMission.title}");
         OnMissionEnded?.Invoke(currentMission);
-
         currentMission = null;
-        OnAvailableMissionsChanged?.Invoke(availableMissions.AsReadOnly());
+        NotifyAvailableMissionsChanged();
     }
 
     public void FailCurrentMission()
     {
         if (currentMission == null) return;
-
         Debug.Log($"[MissionManager] Mission failed: {currentMission.title}");
-        var failedMission = currentMission;
+        var failed = currentMission;
         currentMission = null;
-
-        OnMissionEnded?.Invoke(failedMission);
+        OnMissionEnded?.Invoke(failed);
     }
 
-    // =====================================================================
-    // Public API -- sequence management
-    // =====================================================================
-
-    public bool HasSequenceBeenPlayed(DoorSequenceData sequence)
-    {
-        return sequence != null && completedSequenceIds.Contains(sequence.name);
-    }
+    // ---------- Sequences ----------
+    public bool HasSequenceBeenPlayed(DoorSequenceData sequence) =>
+        sequence != null && (completedSequenceIds.Contains(sequence.name) || playedSequenceIds.Contains(sequence.name));
 
     public void MarkSequenceAsPlayed(DoorSequenceData sequence)
     {
-        if (sequence != null)
-            completedSequenceIds.Add(sequence.name);
+        if (sequence == null) return;
+        playedSequenceIds.Add(sequence.name);
+        completedSequenceIds.Add(sequence.name); // playing = played at least once
     }
 
-    // =====================================================================
-    // Public API -- progress reset
-    // =====================================================================
+    /// <summary>Used by save system to mark a sequence as played without a DoorSequenceData reference.</summary>
+    public void MarkSequenceAsPlayedById(string sequenceAssetName)
+    {
+        if (!string.IsNullOrWhiteSpace(sequenceAssetName))
+        {
+            playedSequenceIds.Add(sequenceAssetName);
+            completedSequenceIds.Add(sequenceAssetName);
+        }
+    }
+
+    // ---------- Door progression ----------
+    public void SetDoorCurrentSequence(string doorId, DoorSequenceData sequence)
+    {
+        if (string.IsNullOrEmpty(doorId) || sequence == null) return;
+        doorCurrentSequenceNames[doorId] = sequence.name;
+    }
+
+    public string GetDoorCurrentSequenceName(string doorId)
+    {
+        doorCurrentSequenceNames.TryGetValue(doorId, out string name);
+        return name;
+    }
+
+    public void GetDoorProgression(out List<string> keys, out List<string> values)
+    {
+        keys = new List<string>(doorCurrentSequenceNames.Keys);
+        values = new List<string>(doorCurrentSequenceNames.Values);
+    }
+
+    public void RestoreDoorProgression(List<string> keys, List<string> values)
+    {
+        doorCurrentSequenceNames.Clear();
+        if (keys == null || values == null || keys.Count != values.Count) return;
+        for (int i = 0; i < keys.Count; i++)
+            doorCurrentSequenceNames[keys[i]] = values[i];
+    }
+
+    // ---------- Save system helpers ----------
+    public List<string> GetUnlockedMissionIds()
+    {
+        var ids = new List<string>(unlockedMissions.Count);
+        foreach (var m in unlockedMissions) if (m != null) ids.Add(m.Id);
+        return ids;
+    }
+    public List<string> GetCompletedMissionIds() => new List<string>(completedMissionIds);
+    public List<string> GetPlayedMissionIds() => new List<string>(playedMissionIds);
+    public List<string> GetCompletedSequenceIds() => new List<string>(completedSequenceIds);
+    public List<string> GetPlayedSequenceIds() => new List<string>(playedSequenceIds);
+
+    public void ForceMarkCompleted(MissionData mission)
+    {
+        if (mission != null) completedMissionIds.Add(mission.Id);
+    }
+    public void ForceMarkSequenceCompleted(string seqName)
+    {
+        if (!string.IsNullOrWhiteSpace(seqName))
+            completedSequenceIds.Add(seqName);
+    }
 
     public void ClearAllProgress()
     {
         completedMissionIds.Clear();
         playedMissionIds.Clear();
         completedSequenceIds.Clear();
-        availableMissions.Clear();
+        playedSequenceIds.Clear();
+        unlockedMissions.Clear();
+        doorCurrentSequenceNames.Clear();
         currentMission = null;
         lastCompletedMission = null;
-        OnAvailableMissionsChanged?.Invoke(availableMissions.AsReadOnly());
-        Debug.Log("[MissionManager] All progress cleared.");
+        lastUnlockedMissionId = "";
+        OnAvailableMissionsChanged?.Invoke(unlockedMissions.AsReadOnly());
     }
-
-    // =====================================================================
-    // Public API -- save system integration (called by GameSaveManager)
-    // =====================================================================
-
-    /// <summary>
-    /// Returns a snapshot list of the Ids of all currently available missions.
-    /// Called by GameSaveManager when writing to disk.
-    /// </summary>
-    public List<string> GetAvailableMissionIds()
-    {
-        var ids = new List<string>(availableMissions.Count);
-        foreach (var m in availableMissions)
-            if (m != null) ids.Add(m.Id);
-        return ids;
-    }
-
-    /// <summary>
-    /// Returns a snapshot list of the Ids of all completed missions.
-    /// Called by GameSaveManager when writing to disk.
-    /// </summary>
-    public List<string> GetCompletedMissionIds()
-    {
-        return new List<string>(completedMissionIds);
-    }
-
-    /// <summary>
-    /// Returns a snapshot list of the Ids of all missions the player has started at least once.
-    /// Called by GameSaveManager when writing to disk.
-    /// </summary>
-    public List<string> GetPlayedMissionIds()
-    {
-        return new List<string>(playedMissionIds);
-    }
-
-    /// <summary>
-    /// Returns a snapshot list of all completed door sequence asset names.
-    /// Called by GameSaveManager when writing to disk.
-    /// </summary>
-    public List<string> GetCompletedSequenceIds()
-    {
-        return new List<string>(completedSequenceIds);
-    }
-
-    /// <summary>
-    /// Marks a mission as completed without firing any events.
-    /// Used during save restore so listeners are not accidentally triggered.
-    /// </summary>
-    public void ForceMarkCompleted(MissionData mission)
-    {
-        if (mission == null) return;
-        completedMissionIds.Add(mission.Id);
-    }
-
-    /// <summary>
-    /// Marks a door sequence as completed by raw asset name.
-    /// Used during save restore so the sequence is not replayed.
-    /// </summary>
-    public void ForceMarkSequenceCompleted(string sequenceAssetName)
-    {
-        if (!string.IsNullOrWhiteSpace(sequenceAssetName))
-            completedSequenceIds.Add(sequenceAssetName);
-    }
-
-    // =====================================================================
-    // Private -- scene events
-    // =====================================================================
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {

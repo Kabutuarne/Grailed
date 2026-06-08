@@ -94,6 +94,7 @@
     <Compile Include="Assets\Scripts\Enemy\Skeleton\SkeletonCombat.cs" />
     <Compile Include="Assets\Scripts\GameLogic\DataSavingLogic\CabinItemPersistance.cs" />
     <Compile Include="Assets\Scripts\GameLogic\MissionPickerUI.cs" />
+    <Compile Include="Assets\Scripts\MenuScripts\CabinDeleteSave.cs" />
     <Compile Include="Assets\Scripts\Player\Effects\StatusEffectData.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerCombat.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\SaveGameAuto.cs" />
@@ -152,6 +153,7 @@
     <Compile Include="Assets\Scripts\Player\Interfaces\ItemTooltipDataUtility.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\Chest.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\Types\Vector2Save.cs" />
+    <Compile Include="Assets\Scripts\World\QuitButtonLabel.cs" />
     <Compile Include="Assets\PlayerInputActions.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\Serializers\ISaveGameSerializer.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyStats.cs" />
@@ -166,6 +168,7 @@
     <Compile Include="Assets\Scripts\Player\Spells\ChanneledProjectileSpell.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Examples\Auto Save\ExampleMoveObject.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerStats.cs" />
+    <Compile Include="Assets\Scripts\Dialog\LossSequenceHandler.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerIKBridge.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Examples\Save Custom\ExampleSaveCustom.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyHitBehaviour.cs" />
@@ -178,8 +181,10 @@
     <Compile Include="Assets\Scripts\Player\Interfaces\ICastPermissionProvider.cs" />
     <Compile Include="Assets\Scripts\GameLogic\DataSavingLogic\SavedEffectData.cs" />
     <Compile Include="Assets\Scripts\Enemy\Butler\ButlerLimbHitbox.cs" />
+    <Compile Include="Assets\Scripts\Dialog\WinSequenceHandler.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Examples\Shared\Scripts\SerializerDropdown.cs" />
     <Compile Include="Assets\BayatGames\SaveGameFree\Scripts\Serializers\SaveGameJsonSerializer.cs" />
+    <Compile Include="Assets\Scripts\World\MidnightDeathSequence.cs" />
     <Compile Include="Assets\Scripts\Player\Items\WandItem.cs" />
     <Compile Include="Assets\Scripts\Enemy\Interfaces\IEffectTarget.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
@@ -197,6 +202,7 @@
     <Compile Include="Assets\Scripts\GameLogic\MissionDoorInteractable.cs" />
     <Compile Include="Assets\Scripts\Player\UI\CastUI.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\NextButton.cs" />
+    <Compile Include="Assets\Scripts\World\CinemachineCameraLayerHelper.cs" />
     <Compile Include="Assets\Scripts\World\Interactables\TeleportToSpawnInteractable.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\SettingsUI.cs" />
     <Compile Include="Assets\Scripts\Player\Spells\ProjectileImpactBehaviour.cs" />

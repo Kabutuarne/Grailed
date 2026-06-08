@@ -2,6 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Teleports the player to the spawn point (StartTransform) of the generated level sections.
+/// Finds objects by name even if they are inactive.
 /// </summary>
 public class TeleportToSpawnInteractable : BaseInteractable
 {
@@ -36,7 +37,8 @@ public class TeleportToSpawnInteractable : BaseInteractable
         if (string.IsNullOrWhiteSpace(objectName))
             return;
 
-        var obj = GameObject.Find(objectName);
+        GameObject obj = FindGameObjectByNameIncludingInactive(objectName);
+
         if (obj == null)
         {
             Debug.LogWarning($"Could not find GameObject named '{objectName}'", this);
@@ -44,6 +46,22 @@ public class TeleportToSpawnInteractable : BaseInteractable
         }
 
         obj.SetActive(active);
+    }
+
+    private GameObject FindGameObjectByNameIncludingInactive(string objectName)
+    {
+        Transform[] transforms = Resources.FindObjectsOfTypeAll<Transform>();
+
+        foreach (Transform t in transforms)
+        {
+            if (t.name == objectName &&
+                t.gameObject.hideFlags == HideFlags.None)
+            {
+                return t.gameObject;
+            }
+        }
+
+        return null;
     }
 
     private void TeleportPlayerTo(Transform targetTransform)

@@ -11,7 +11,7 @@ using UnityEngine.UI;
 /// </summary>
 public class SettingsUI : MonoBehaviour
 {
-    // ── Sub-section panels (toggle via the tab buttons) ───────────────────────
+    //  Sub-section panels (toggle via the tab buttons) 
 
     [Header("Settings Sub-Sections")]
     [SerializeField] private GameObject audioSection;
@@ -26,7 +26,7 @@ public class SettingsUI : MonoBehaviour
     [SerializeField] private Button keybindsTabButton;
     [SerializeField] private GameObject keybindsTabButtonGlow;
 
-    // ── Audio ─────────────────────────────────────────────────────────────────
+    //  Audio 
 
     [Header("Audio Controls")]
     [SerializeField] private Slider musicVolumeSlider;
@@ -34,7 +34,7 @@ public class SettingsUI : MonoBehaviour
     [SerializeField] private Slider sfxVolumeSlider;
     [SerializeField] private TMP_Text sfxVolumeLabel;
 
-    // ── Display ───────────────────────────────────────────────────────────────
+    //  Display 
 
     [Header("Display Controls")]
     [SerializeField] private Toggle fullscreenToggle;
@@ -47,14 +47,14 @@ public class SettingsUI : MonoBehaviour
     [SerializeField] private Slider mouseSensitivitySlider;
     [SerializeField] private TMP_Text mouseSensitivityLabel;
 
-    // ── Keybinds ──────────────────────────────────────────────────────────────
+    //  Keybinds 
 
     [Header("Keybind Controls")]
     [SerializeField] private Transform keybindContainer;   // Scroll content parent
     [SerializeField] private RebindActionUI rebindRowPrefab;    // Prefab with RebindActionUI
     [SerializeField] private Button resetBindingsButton;
 
-    // ── Internal ──────────────────────────────────────────────────────────────
+    //  Internal 
 
     private SettingsManager _settings;
     private readonly List<RebindActionUI> _rebindRows = new();
@@ -68,7 +68,7 @@ public class SettingsUI : MonoBehaviour
         "Look",
     };
 
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
+    //  Lifecycle 
 
     private void OnEnable()
     {
@@ -97,7 +97,7 @@ public class SettingsUI : MonoBehaviour
         UnregisterUICallbacks();
     }
 
-    // ── Section Tabs ──────────────────────────────────────────────────────────
+    //  Section Tabs 
 
     public void ShowAudioSection() => ActivateSection(audioSection);
     public void ShowDisplaySection() => ActivateSection(displaySection);
@@ -130,7 +130,7 @@ public class SettingsUI : MonoBehaviour
         }
     }
 
-    // ── Control Registration ──────────────────────────────────────────────────
+    //  Control Registration 
 
     private void RegisterUICallbacks()
     {
@@ -159,6 +159,7 @@ public class SettingsUI : MonoBehaviour
         _settings.OnFullscreenChanged += OnFullscreenChangedExternally;
         _settings.OnResolutionScaleChanged += OnResolutionScaleChangedExternally;
         _settings.OnMouseSensitivityChanged += OnMouseSensitivityChangedExternally;
+        _settings.OnBindingsChanged += OnBindingsChangedExternally;
     }
 
     private void UnsubscribeFromEvents()
@@ -169,9 +170,10 @@ public class SettingsUI : MonoBehaviour
         _settings.OnFullscreenChanged -= OnFullscreenChangedExternally;
         _settings.OnResolutionScaleChanged -= OnResolutionScaleChangedExternally;
         _settings.OnMouseSensitivityChanged -= OnMouseSensitivityChangedExternally;
+        _settings.OnBindingsChanged -= OnBindingsChangedExternally;
     }
 
-    // ── Refresh ───────────────────────────────────────────────────────────────
+    //  Refresh 
 
     private void RefreshAllControls()
     {
@@ -198,7 +200,7 @@ public class SettingsUI : MonoBehaviour
         mouseSensitivitySlider.wholeNumbers = false;
     }
 
-    // ── UI Setters ────────────────────────────────────────────────────────────
+    //  UI Setters 
 
     private void SetMusicUI(float value)
     {
@@ -233,7 +235,7 @@ public class SettingsUI : MonoBehaviour
             mouseSensitivityLabel.text = $"{value:F1}x";
     }
 
-    // ── UI Event Handlers ─────────────────────────────────────────────────────
+    //  UI Event Handlers 
 
     private void OnMusicSliderChanged(float value) => _settings.SetMusicVolume(value);
     private void OnSFXSliderChanged(float value) => _settings.SetSFXVolume(value);
@@ -249,7 +251,7 @@ public class SettingsUI : MonoBehaviour
         BuildKeybindRows();
     }
 
-    // ── SettingsManager Event Handlers ────────────────────────────────────────
+    //  SettingsManager Event Handlers 
 
     private void OnMusicVolumeChangedExternally(float v) => SetMusicUI(v);
     private void OnSFXVolumeChangedExternally(float v) => SetSFXUI(v);
@@ -257,7 +259,16 @@ public class SettingsUI : MonoBehaviour
     private void OnResolutionScaleChangedExternally(int i) => SetResolutionUI(i);
     private void OnMouseSensitivityChangedExternally(float v) => SetMouseSensitivityUI(v);
 
-    // ── Keybind Row Builder ───────────────────────────────────────────────────
+    private void OnBindingsChangedExternally()
+    {
+        // Only rebuild if the keybinds section is currently active
+        if (keybindsSection != null && keybindsSection.activeSelf)
+        {
+            BuildKeybindRows();
+        }
+    }
+
+    //  Keybind Row Builder 
 
     private void BuildKeybindRows()
     {

@@ -20,6 +20,8 @@ MonoBehaviour:
     allowedSpots: 040000000500000001000000
   - prefab: {fileID: 1080446556421709562, guid: 5bfdb3eda3e26b14b85396897fe6f368, type: 3}
     allowedSpots: 01000000
+  - prefab: {fileID: 3087586270100140276, guid: f6084e3c69e1aab45a810ba039a83462, type: 3}
+    allowedSpots: 0200000001000000000000000400000005000000
   - prefab: {fileID: 8146595917539372128, guid: 5a9cd7990a499124e9e29654d5fed359, type: 3}
     allowedSpots: 01000000
   - prefab: {fileID: 694335472919652223, guid: 47663b1953f0f4147bccc9b7b9ec94ad, type: 3}

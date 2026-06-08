@@ -1,4 +1,5 @@
 using UnityEngine;
+using Unity.AI.Navigation;
 using System.Collections;
 using Sydewa;
 using Kartograph.Entities;
@@ -82,11 +83,44 @@ public class LevelManager : MonoBehaviour
         // Teleport player to spawn
         TeleportPlayerToSpawn();
 
-        Debug.Log("[LevelManager] Level generation and entity population complete.");
+        // Bake NavMesh after level is fully created
+        yield return StartCoroutine(BakeNavMesh());
 
-        // Unlock player controls now generation/teleport is complete
+        Debug.Log("[LevelManager] Level generation, entity population, and NavMesh baking complete.");
+
+        // Unlock player controls now that everything is complete
         if (scenePlayerController != null)
             scenePlayerController.SetControlLocked(false);
+    }
+
+    private IEnumerator BakeNavMesh()
+    {
+        // Find NavMeshSurface by tag
+        GameObject navMeshObject = GameObject.FindWithTag("NavMeshSurface");
+
+        if (navMeshObject == null)
+        {
+            Debug.LogWarning("[LevelManager] No GameObject with tag 'NavMeshSurface' found. Skipping NavMesh bake.");
+            yield break;
+        }
+
+        NavMeshSurface surface = navMeshObject.GetComponent<NavMeshSurface>();
+
+        if (surface == null)
+        {
+            Debug.LogWarning("[LevelManager] Found GameObject with tag 'NavMeshSurface' but it has no NavMeshSurface component. Skipping NavMesh bake.");
+            yield break;
+        }
+
+        Debug.Log("[LevelManager] Starting NavMesh bake...");
+
+        // Bake the NavMesh
+        surface.BuildNavMesh();
+
+        // Wait one frame to ensure the NavMesh is fully built
+        yield return null;
+
+        Debug.Log("[LevelManager] NavMesh bake complete.");
     }
 
     public void TeleportPlayerToSpawn()

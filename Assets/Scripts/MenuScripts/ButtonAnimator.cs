@@ -6,16 +6,18 @@ using UnityEngine.UI;
 /// <summary>
 /// Loops through a sprite array to animate a UI Image button.
 /// Switches to a separate sprite array (and framerate) when the pointer hovers.
+/// Plays a sound when clicked.
 ///
 /// Usage:
 ///  1. Attach to a GameObject that has an Image component.
 ///  2. Populate Idle Frames and Hover Frames in the Inspector.
 ///  3. Optionally tune the framerate for each state.
+///  4. Assign an AudioSource and click sound.
 /// </summary>
 [RequireComponent(typeof(Image))]
-public class ButtonAnimator : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class ButtonAnimator : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
-    // ── Inspector ─────────────────────────────────────────────────────────────
+    //  Inspector 
 
     [Header("Idle State")]
     [Tooltip("Sprites cycled when the button is not hovered.")]
@@ -37,19 +39,49 @@ public class ButtonAnimator : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
     [Tooltip("If true, the idle animation always starts at frame 0 on exit.")]
     [SerializeField] private bool resetIdleOnExit = false;
+
     [SerializeField] private GameObject buttonGlow; // Optional child object for glow effect, toggled on hover
-    // ── Internal ──────────────────────────────────────────────────────────────
+
+    [Header("Audio")]
+    [Tooltip("AudioSource to play the click sound from.")]
+    [SerializeField] private AudioSource audioSource;
+
+    [Tooltip("Sound to play when button is clicked.")]
+    [SerializeField] private AudioClip clickSound;
+
+    [Tooltip("Volume of the click sound (0-1).")]
+    [SerializeField, Range(0f, 1f)] private float clickVolume = 1f;
+
+    //  Internal 
 
     private Image _image;
     private Coroutine _animCoroutine;
     private int _currentFrame;
 
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
+    //  Lifecycle 
 
     private void Awake()
     {
         _image = GetComponent<Image>();
         if (buttonGlow != null) buttonGlow.SetActive(false);
+
+        // Auto-assign AudioSource if not set
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            if (audioSource == null && (clickSound != null))
+            {
+                Debug.LogWarning($"No AudioSource found on {gameObject.name}. Adding one automatically.", gameObject);
+                audioSource = gameObject.AddComponent<AudioSource>();
+            }
+        }
+
+        // Configure AudioSource for UI sounds
+        if (audioSource != null)
+        {
+            audioSource.playOnAwake = false;
+            audioSource.spatialBlend = 0f; // 2D sound for UI
+        }
     }
 
     private void OnEnable()
@@ -64,7 +96,7 @@ public class ButtonAnimator : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         if (buttonGlow != null) buttonGlow.SetActive(false);
     }
 
-    // ── Pointer Events ────────────────────────────────────────────────────────
+    // Pointer Events
 
     public void OnPointerEnter(PointerEventData eventData)
     {
@@ -77,12 +109,65 @@ public class ButtonAnimator : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         PlayState(isHover: false, resetFrame: resetIdleOnExit);
         if (buttonGlow != null) buttonGlow.SetActive(false);
     }
+
     public void OnPointerDown(PointerEventData eventData)
     {
         if (buttonGlow != null) buttonGlow.SetActive(false);
     }
 
-    // ── Animation Control ─────────────────────────────────────────────────────
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        PlayClickSound();
+    }
+
+    // Audio
+
+    /// <summary>
+    /// Plays the assigned click sound from the AudioSource.
+    /// Can be called from Unity Events as well.
+    /// </summary>
+    public void PlayClickSound()
+    {
+        if (audioSource == null)
+        {
+            Debug.LogWarning($"AudioSource is not assigned on {gameObject.name}. Cannot play click sound.", gameObject);
+            return;
+        }
+
+        if (clickSound == null)
+        {
+            Debug.LogWarning($"Click sound is not assigned on {gameObject.name}.", gameObject);
+            return;
+        }
+
+        audioSource.PlayOneShot(clickSound, clickVolume);
+    }
+
+    /// <summary>
+    /// Sets a new click sound at runtime.
+    /// </summary>
+    public void SetClickSound(AudioClip newClip)
+    {
+        clickSound = newClip;
+    }
+
+    /// <summary>
+    /// Sets the volume of the click sound at runtime.
+    /// </summary>
+    public void SetClickVolume(float volume)
+    {
+        clickVolume = Mathf.Clamp01(volume);
+    }
+
+    /// <summary>
+    /// Assigns an AudioSource at runtime.
+    /// </summary>
+    public void SetAudioSource(AudioSource source)
+    {
+        audioSource = source;
+    }
+
+    // Animation Control
 
     private void PlayState(bool isHover, bool resetFrame)
     {

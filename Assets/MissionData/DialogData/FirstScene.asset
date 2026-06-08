@@ -15,18 +15,33 @@ MonoBehaviour:
   lines:
   - speakerName: Debt Collector
     text: YOU DONT CLOSE THAT! You owe my boss A LOT of money, buddy.
-    lettersPerSecond: 20
-    talkingLoopClip: {fileID: 8300000, guid: ff3be4751973814409316a39a9e804dc, type: 3}
+    lettersPerSecond: 25
+    talkingLoopClip: {fileID: 8300000, guid: c6aebad8a791b1b4284ec9e92331a321, type: 3}
   - speakerName: Debt Collector
     text: We have been patient and want what is owed. Either you give me what is
-      owed now or i break your legs!
-    lettersPerSecond: 20
-    talkingLoopClip: {fileID: 8300000, guid: c9c0703d9ac8d464fa69cf7b57a91779, type: 3}
+      owed now or I break your legs!
+    lettersPerSecond: 23
+    talkingLoopClip: {fileID: 8300000, guid: c6aebad8a791b1b4284ec9e92331a321, type: 3}
   - speakerName: Debt Collector
     text: Oh... You umm... Live like this?
     lettersPerSecond: 15
-    talkingLoopClip: {fileID: 8300000, guid: 7e4fb32d10aff234b910c1506f88e592, type: 3}
+    talkingLoopClip: {fileID: 8300000, guid: c6aebad8a791b1b4284ec9e92331a321, type: 3}
   - speakerName: Debt Collector
     text: Thats kind of... sad...
     lettersPerSecond: 14
-    talkingLoopClip: {fileID: 8300000, guid: 7e4fb32d10aff234b910c1506f88e592, type: 3}
+    talkingLoopClip: {fileID: 8300000, guid: c6aebad8a791b1b4284ec9e92331a321, type: 3}
+  - speakerName: Debt Collector
+    text: Since there is a job you could do for me, you have a chance to prove your
+      worth.
+    lettersPerSecond: 25
+    talkingLoopClip: {fileID: 8300000, guid: c6aebad8a791b1b4284ec9e92331a321, type: 3}
+  - speakerName: Debt Collector
+    text: If you can show me you are worth more alive than dead, by bringing me a
+      special book, I might let you live.
+    lettersPerSecond: 25
+    talkingLoopClip: {fileID: 8300000, guid: c6aebad8a791b1b4284ec9e92331a321, type: 3}
+  - speakerName: Debt Collector
+    text: There is an abandoned castle, still containing items. If you're lucky,
+      you might find something.
+    lettersPerSecond: 25
+    talkingLoopClip: {fileID: 8300000, guid: c6aebad8a791b1b4284ec9e92331a321, type: 3}

@@ -11,11 +11,11 @@ using UnityEngine.InputSystem;
 [DefaultExecutionOrder(-100)]
 public class SettingsManager : MonoBehaviour
 {
-    // ── Singleton ─────────────────────────────────────────────────────────────
+    //  Singleton 
 
     public static SettingsManager Instance { get; private set; }
 
-    // ── Inspector ─────────────────────────────────────────────────────────────
+    //  Inspector 
 
     [Header("Audio Mixer")]
     [Tooltip("AudioMixer with exposed 'MusicVolume' and 'SFXVolume' parameters.")]
@@ -25,21 +25,21 @@ public class SettingsManager : MonoBehaviour
     [Tooltip("The PlayerInputActions asset used by your game.")]
     [SerializeField] private InputActionAsset inputActions;
 
-    // ── Resolution Scale Options ──────────────────────────────────────────────
+    //  Resolution Scale Options 
 
     /// <summary>Render / window scale fractions applied to the native resolution.</summary>
     public static readonly float[] ResolutionScaleValues = { 0.50f, 0.667f, 0.75f, 1.00f, 1.25f, 1.50f };
     public static readonly string[] ResolutionScaleLabels = { "50%", "67%", "75%", "100%", "125%", "150%" };
     public const int DefaultResolutionScaleIndex = 3; // 100 %
 
-    // ── Mouse Sensitivity Options ─────────────────────────────────────────────
+    //  Mouse Sensitivity Options 
 
     /// <summary>Minimum and maximum multiplier for mouse-look sensitivity.</summary>
     public const float MouseSensitivityMin = 0.1f;
     public const float MouseSensitivityMax = 5.0f;
     public const float MouseSensitivityDefault = 1.0f;
 
-    // ── Public State ──────────────────────────────────────────────────────────
+    //  Public State 
 
     public float MusicVolume { get; private set; } = 1f;
     public float SFXVolume { get; private set; } = 1f;
@@ -51,7 +51,7 @@ public class SettingsManager : MonoBehaviour
     /// </summary>
     public float MouseSensitivity { get; private set; } = MouseSensitivityDefault;
 
-    // ── Events (used by SettingsUI to stay in sync) ───────────────────────────
+    //  Events (used by SettingsUI to stay in sync) 
 
     public event Action<float> OnMusicVolumeChanged;
     public event Action<float> OnSFXVolumeChanged;
@@ -60,7 +60,7 @@ public class SettingsManager : MonoBehaviour
     public event Action<float> OnMouseSensitivityChanged;
     public event Action OnBindingsChanged;
 
-    // ── PlayerPrefs Keys ──────────────────────────────────────────────────────
+    //  PlayerPrefs Keys 
 
     private const string KeyMusic = "Settings_MusicVolume";
     private const string KeySFX = "Settings_SFXVolume";
@@ -69,12 +69,12 @@ public class SettingsManager : MonoBehaviour
     private const string KeyMouseSens = "Settings_MouseSensitivity";
     private const string KeyBindings = "Settings_KeybindOverrides";
 
-    // ── Native Resolution Cache ───────────────────────────────────────────────
+    //  Native Resolution Cache 
 
     private int _nativeWidth;
     private int _nativeHeight;
 
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
+    //  Lifecycle 
 
     private void Awake()
     {
@@ -108,7 +108,7 @@ public class SettingsManager : MonoBehaviour
         }
     }
 
-    // ── Music Volume ──────────────────────────────────────────────────────────
+    //  Music Volume 
 
     /// <param name="value">Linear 0–1 volume.</param>
     public void SetMusicVolume(float value)
@@ -125,7 +125,7 @@ public class SettingsManager : MonoBehaviour
             audioMixer.SetFloat("MusicVolume", LinearToDecibel(MusicVolume));
     }
 
-    // ── SFX Volume ────────────────────────────────────────────────────────────
+    //  SFX Volume 
 
     /// <param name="value">Linear 0–1 volume.</param>
     public void SetSFXVolume(float value)
@@ -142,7 +142,7 @@ public class SettingsManager : MonoBehaviour
             audioMixer.SetFloat("SFXVolume", LinearToDecibel(SFXVolume));
     }
 
-    // ── Fullscreen ────────────────────────────────────────────────────────────
+    //  Fullscreen 
 
     public void SetFullscreen(bool value)
     {
@@ -152,7 +152,7 @@ public class SettingsManager : MonoBehaviour
         OnFullscreenChanged?.Invoke(IsFullscreen);
     }
 
-    // ── Resolution Scale ──────────────────────────────────────────────────────
+    //  Resolution Scale 
 
     public void SetResolutionScaleIndex(int index)
     {
@@ -170,7 +170,7 @@ public class SettingsManager : MonoBehaviour
         Screen.SetResolution(w, h, Screen.fullScreen);
     }
 
-    // ── Mouse Sensitivity ─────────────────────────────────────────────────────
+    //  Mouse Sensitivity 
 
     /// <summary>
     /// Sets the mouse-look sensitivity multiplier.
@@ -185,17 +185,48 @@ public class SettingsManager : MonoBehaviour
         OnMouseSensitivityChanged?.Invoke(MouseSensitivity);
     }
 
-    // ── Keybinds ──────────────────────────────────────────────────────────────
+    //  Keybinds 
 
     /// <summary>Returns the InputActionAsset so UI scripts can iterate actions.</summary>
     public InputActionAsset GetInputActions() => inputActions;
+
+    /// <summary>
+    /// Applies binding overrides to all action maps by properly reloading overrides.
+    /// This ensures all bound controls use the latest override settings.
+    /// </summary>
+    public void ApplyBindingOverridesToAllActions()
+    {
+        if (inputActions == null) return;
+
+        // IMPORTANT: We need to disable all maps, then re-enable them AFTER 
+        // the overrides are applied to ensure they take effect.
+        // The LoadBindingOverridesFromJson is only called once during load,
+        // but we need to ensure the actions are re-initialized with the overrides.
+
+        // First, disable all action maps
+        foreach (var map in inputActions.actionMaps)
+        {
+            map.Disable();
+        }
+
+        // Then re-enable them - this forces the Input System to re-read the overrides
+        foreach (var map in inputActions.actionMaps)
+        {
+            map.Enable();
+        }
+    }
 
     /// <summary>Serialises all current binding overrides to PlayerPrefs.</summary>
     public void SaveBindingOverrides()
     {
         if (inputActions == null) return;
-        PlayerPrefs.SetString(KeyBindings, inputActions.SaveBindingOverridesAsJson());
+
+        // Save the overrides to PlayerPrefs
+        string json = inputActions.SaveBindingOverridesAsJson();
+        PlayerPrefs.SetString(KeyBindings, json);
         PlayerPrefs.Save();
+
+        // No need to re-apply here - the overrides are already active on the actions
         OnBindingsChanged?.Invoke();
     }
 
@@ -205,14 +236,19 @@ public class SettingsManager : MonoBehaviour
         if (inputActions == null) return;
 
         foreach (var map in inputActions.actionMaps)
+        {
+            map.Disable();
             map.RemoveAllBindingOverrides();
+            map.Enable();
+        }
 
         PlayerPrefs.DeleteKey(KeyBindings);
         PlayerPrefs.Save();
+
         OnBindingsChanged?.Invoke();
     }
 
-    // ── Persistence ───────────────────────────────────────────────────────────
+    //  Persistence 
 
     private void LoadSettings()
     {
@@ -230,20 +266,38 @@ public class SettingsManager : MonoBehaviour
         {
             string json = PlayerPrefs.GetString(KeyBindings, string.Empty);
             if (!string.IsNullOrEmpty(json))
+            {
                 inputActions.LoadBindingOverridesFromJson(json);
+            }
         }
     }
 
     private void ApplyAllSettings()
     {
+        // Apply audio to mixer
         ApplyMusicVolume();
         ApplySFXVolume();
+
+        // Apply display
         Screen.fullScreen = IsFullscreen;
         ApplyResolutionScale();
+
+        // Apply input bindings - ensure they are loaded and actions are re-enabled
+        if (inputActions != null && PlayerPrefs.HasKey(KeyBindings))
+        {
+            // Overrides were already loaded in LoadSettings(), but we need to ensure
+            // all action maps are re-initialized with the overrides
+            foreach (var map in inputActions.actionMaps)
+            {
+                map.Disable();
+                map.Enable();
+            }
+        }
+
         // MouseSensitivity is read on-demand by camera/look controllers — no Apply needed.
     }
 
-    // ── Utility ───────────────────────────────────────────────────────────────
+    //  Utility 
 
     /// <summary>Converts a linear 0–1 gain to decibels for AudioMixer.</summary>
     private static float LinearToDecibel(float linear) =>

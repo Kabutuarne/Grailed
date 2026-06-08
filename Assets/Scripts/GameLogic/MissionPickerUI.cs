@@ -8,6 +8,7 @@ public class MissionPickerUI : MonoBehaviour
 {
     [Header("Root")]
     [SerializeField] private GameObject root;
+    [SerializeField] private Canvas rootCanvas; // assign the Canvas component of root
 
     [Header("Mission List")]
     [SerializeField] private Transform missionListParent;
@@ -25,11 +26,8 @@ public class MissionPickerUI : MonoBehaviour
     [SerializeField] private Button closeButton;
 
     [Header("Player Control")]
-    [Tooltip("Optional PlayerController used to lock movement while the mission picker is open.")]
     [SerializeField] private PlayerController playerController;
-    [Tooltip("Optional PlayerInteractor used to prevent world interaction while the mission picker is open.")]
     [SerializeField] private PlayerInteractor playerInteractor;
-    [Tooltip("Optional PlayerUI used to hide the HUD while the mission picker is open.")]
     [SerializeField] private PlayerUI playerUI;
 
     private MissionData selectedMission;
@@ -38,26 +36,14 @@ public class MissionPickerUI : MonoBehaviour
 
     private void Awake()
     {
-        if (root != null)
-            root.SetActive(false);
-
-        if (playerController == null)
-            playerController = FindFirstObjectByType<PlayerController>();
-
-        if (playerInteractor == null)
-            playerInteractor = FindFirstObjectByType<PlayerInteractor>();
-
-        if (startMissionButton != null)
-            startMissionButton.onClick.AddListener(OnStartMissionPressed);
-
-        if (closeButton != null)
-            closeButton.onClick.AddListener(Hide);
+        if (root != null) root.SetActive(false);
+        if (startMissionButton != null) startMissionButton.onClick.AddListener(OnStartMissionPressed);
+        if (closeButton != null) closeButton.onClick.AddListener(Hide);
     }
 
     private void OnEnable()
     {
         RefreshMissionList();
-
         if (MissionManager.Instance != null)
             MissionManager.Instance.OnAvailableMissionsChanged += OnAvailableMissionsChanged;
     }
@@ -76,8 +62,10 @@ public class MissionPickerUI : MonoBehaviour
     public void Show()
     {
         if (root != null)
+        {
             root.SetActive(true);
-
+            if (rootCanvas != null) rootCanvas.enabled = true; // ensure visible
+        }
         FreezePlayer(true);
         RefreshMissionList();
     }
@@ -85,26 +73,23 @@ public class MissionPickerUI : MonoBehaviour
     public void Hide()
     {
         if (root != null)
+        {
             root.SetActive(false);
-
+        }
         FreezePlayer(false);
     }
 
     public void RefreshMissionList()
     {
-        if (missionListParent == null || missionEntryPrefab == null)
-            return;
-
-        // ClearSpawnedEntries();
+        if (missionListParent == null || missionEntryPrefab == null) return;
+        ClearSpawnedEntries();
         selectedMission = null;
         selectedEntry = null;
         UpdateSelectedMissionDetails();
 
-        var missions = MissionManager.Instance?.GetAvailableMissions() ?? Array.Empty<MissionData>();
+        var missions = MissionManager.Instance?.GetUnlockedMissions() ?? Array.Empty<MissionData>();
         bool hasMissions = missions.Count > 0;
-
-        if (noMissionsMessage != null)
-            noMissionsMessage.SetActive(!hasMissions);
+        if (noMissionsMessage != null) noMissionsMessage.SetActive(!hasMissions);
 
         foreach (var mission in missions)
         {
@@ -114,17 +99,17 @@ public class MissionPickerUI : MonoBehaviour
         }
     }
 
+    private void ClearSpawnedEntries()
+    {
+        foreach (var e in spawnedEntries) if (e != null) Destroy(e.gameObject);
+        spawnedEntries.Clear();
+    }
+
     private void OnMissionEntrySelected(MissionData mission, MissionEntryUI entry)
     {
         selectedMission = mission;
         selectedEntry = entry;
-
-        foreach (var spawned in spawnedEntries)
-        {
-            if (spawned != null)
-                spawned.SetSelected(spawned == selectedEntry);
-        }
-
+        foreach (var e in spawnedEntries) if (e != null) e.SetSelected(e == selectedEntry);
         UpdateSelectedMissionDetails();
     }
 
@@ -132,97 +117,62 @@ public class MissionPickerUI : MonoBehaviour
     {
         if (selectedTitleText != null)
             selectedTitleText.text = selectedMission != null ? selectedMission.title : "Select a mission";
-
         if (selectedDescriptionText != null)
             selectedDescriptionText.text = selectedMission != null ? selectedMission.description : "Choose one of the available missions to see the details.";
-
         if (selectedAssignedByText != null)
-            selectedAssignedByText.text = selectedMission != null ? $"By: {selectedMission.assignedBy}" : string.Empty;
-
+            selectedAssignedByText.text = selectedMission != null ? $"By: {selectedMission.assignedBy}" : "";
         if (selectedDifficultyText != null)
-            selectedDifficultyText.text = selectedMission != null ? $"{selectedMission.DifficultyRoman}" : string.Empty;
-
+            selectedDifficultyText.text = selectedMission != null ? selectedMission.DifficultyRoman : "";
         if (startMissionButton != null)
             startMissionButton.interactable = selectedMission != null;
     }
 
     private void OnStartMissionPressed()
     {
-        if (selectedMission == null)
-            return;
-
+        if (selectedMission == null) return;
         MissionManager.Instance?.StartMission(selectedMission);
         Hide();
     }
 
     private void FreezePlayer(bool freeze)
     {
-        if (playerController == null)
-            playerController = FindFirstObjectByType<PlayerController>();
+        if (playerController == null) playerController = FindFirstObjectByType<PlayerController>();
+        if (playerInteractor == null) playerInteractor = FindFirstObjectByType<PlayerInteractor>();
 
-        if (playerInteractor == null)
-            playerInteractor = FindFirstObjectByType<PlayerInteractor>();
+        if (playerController != null) playerController.SetControlLocked(freeze);
+        if (playerInteractor != null) playerInteractor.SetInteractionLocked(freeze);
 
-        if (playerController != null)
-            playerController.SetControlLocked(freeze);
-
-        if (playerInteractor != null)
-            playerInteractor.SetInteractionLocked(freeze);
-
-        // Resolve PlayerUI reference if missing.
-        if (playerUI == null)
-            playerUI = FindFirstObjectByType<PlayerUI>();
-
+        if (playerUI == null) playerUI = FindFirstObjectByType<PlayerUI>();
         if (playerUI != null)
         {
-            // Always keep the HUD visible. The mission picker is a modal overlay;
-            // hiding the HUD behind it was unnecessary and caused it to stay hidden
-            // when the picker closed while the pause menu had also toggled the canvas.
-            if (playerUI.hudRoot != null)
-                playerUI.hudRoot.SetActive(true);
+            if (playerUI.hudRoot != null) playerUI.hudRoot.SetActive(true); // always keep HUD on
 
-            // Close backpack if open when the picker opens (avoids two modal UIs at once).
             if (freeze && playerUI.IsBackpackOpen && playerUI.backpackRoot != null)
                 playerUI.backpackRoot.SetActive(false);
         }
 
-        // Disable player cast/consume components so input can't trigger actions while frozen.
-        var playerObj = playerController != null
-            ? playerController.gameObject
-            : GameObject.FindWithTag("Player");
-
+        var playerObj = playerController != null ? playerController.gameObject : GameObject.FindWithTag("Player");
         if (playerObj != null)
         {
-            var casts = playerObj.GetComponents<PlayerCast>();
-            foreach (var c in casts) if (c != null) c.enabled = !freeze;
-
-            var consumes = playerObj.GetComponents<PlayerConsume>();
-            foreach (var c in consumes) if (c != null) c.enabled = !freeze;
+            foreach (var c in playerObj.GetComponents<PlayerCast>()) if (c != null) c.enabled = !freeze;
+            foreach (var c in playerObj.GetComponents<PlayerConsume>()) if (c != null) c.enabled = !freeze;
         }
 
-        // Only touch Cursor state when the pause menu is NOT currently open.
-        // If PauseMenuManager already set the cursor to visible/unlocked, we must
-        // not fight it by locking it again on unfreeze. Conversely, when unfreezing
-        // while the pause menu is still open, the cursor must stay visible.
         var pauseMenu = FindFirstObjectByType<PauseMenuManager>();
-        bool pauseMenuOpen = pauseMenu != null && IsPauseMenuOpen(pauseMenu);
-
-        if (!pauseMenuOpen)
+        if (pauseMenu == null || !pauseMenu.IsPaused)
         {
             Cursor.lockState = freeze ? CursorLockMode.None : CursorLockMode.Locked;
             Cursor.visible = freeze;
         }
-        // If pause menu IS open, leave cursor as-is (it's already unlocked/visible).
     }
 
-    /// <summary>
-    /// Returns true when PauseMenuManager currently has the game paused.
-    /// </summary>
-    private static bool IsPauseMenuOpen(PauseMenuManager mgr)
+    public bool IsOpen
     {
-        return mgr != null && mgr.IsPaused;
+        get
+        {
+            if (rootCanvas != null)
+                return rootCanvas.enabled && rootCanvas.gameObject.activeInHierarchy;
+            return root != null && root.activeInHierarchy;
+        }
     }
-
-    // Public helper to indicate whether the picker root is currently shown.
-    public bool IsOpen => root != null && root.activeInHierarchy;
 }

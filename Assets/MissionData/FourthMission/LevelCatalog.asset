@@ -36,6 +36,8 @@ MonoBehaviour:
     allowedSpots: 000000000200000005000000
   - prefab: {fileID: 2623293608672745919, guid: c7283130d7be95c4eacf2ec9bc976aa5, type: 3}
     allowedSpots: 000000000200000005000000
+  - prefab: {fileID: 3087586270100140276, guid: f6084e3c69e1aab45a810ba039a83462, type: 3}
+    allowedSpots: 0200000001000000000000000400000005000000
   - prefab: {fileID: 3266769235531539152, guid: fbac2037814985841b2b212fa36b46be, type: 3}
     allowedSpots: 000000000200000005000000
   - prefab: {fileID: 6645023036200439495, guid: bd9e961281535fe4083e2ada90a3483e, type: 3}
@@ -48,7 +50,7 @@ MonoBehaviour:
   - prefab: {fileID: 8184876609305448741, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
     allowedSpots: 02000000
     overrideStats: 1
-    strength: 4
+    strength: 10
     agility: 8
     intelligence: 8
-    stamina: 8
+    stamina: 10

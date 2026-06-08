@@ -46,7 +46,7 @@ MonoBehaviour:
   - prefab: {fileID: 8184876609305448741, guid: 5cbed3e9df050a94990d8145874fa735, type: 3}
     allowedSpots: 02000000
     overrideStats: 1
-    strength: 8
-    agility: 10
+    strength: 7
+    agility: 9
     intelligence: 10
-    stamina: 10
+    stamina: 11

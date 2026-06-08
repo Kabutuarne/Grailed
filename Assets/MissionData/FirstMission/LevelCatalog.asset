@@ -16,14 +16,16 @@ MonoBehaviour:
   items:
   - prefab: {fileID: 1297149910863311153, guid: c4fa039cd78aae14c8de3e9bf64c486c, type: 3}
     allowedSpots: 040000000500000001000000
+  - prefab: {fileID: 3087586270100140276, guid: f6084e3c69e1aab45a810ba039a83462, type: 3}
+    allowedSpots: 0200000001000000000000000400000005000000
   - prefab: {fileID: 1080446556421709562, guid: 5bfdb3eda3e26b14b85396897fe6f368, type: 3}
     allowedSpots: 01000000
   - prefab: {fileID: 8146595917539372128, guid: 5a9cd7990a499124e9e29654d5fed359, type: 3}
     allowedSpots: 01000000
   - prefab: {fileID: 2852880482968086362, guid: d3ab5633432b5ff4aacdc101e14eaab9, type: 3}
     allowedSpots: 020000000100000005000000
-  - prefab: {fileID: 4260160323917446259, guid: 6942e0083f133a541a86ed82b1b05320, type: 3}
-    allowedSpots: 0200000001000000
   - prefab: {fileID: 5626251720775261439, guid: 969d8b5ded0b218429584c9c8b189b28, type: 3}
     allowedSpots: 00000000
+  - prefab: {fileID: 4260160323917446259, guid: 6942e0083f133a541a86ed82b1b05320, type: 3}
+    allowedSpots: 020000000100000000000000
   enemies: []

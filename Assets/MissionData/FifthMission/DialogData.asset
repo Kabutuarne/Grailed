@@ -16,24 +16,24 @@ MonoBehaviour:
   - speakerName: Debt Collector
     text: I'm here for something that wont make me sell you in little pieces.
     lettersPerSecond: 20
-    talkingLoopClip: {fileID: 8300000, guid: ff3be4751973814409316a39a9e804dc, type: 3}
+    talkingLoopClip: {fileID: 8300000, guid: c6aebad8a791b1b4284ec9e92331a321, type: 3}
   - speakerName: Debt Collector
     text: Hey... Seems I was a little wrong about the painting.
     lettersPerSecond: 20
-    talkingLoopClip: {fileID: 8300000, guid: 7e4fb32d10aff234b910c1506f88e592, type: 3}
+    talkingLoopClip: {fileID: 8300000, guid: c6aebad8a791b1b4284ec9e92331a321, type: 3}
   - speakerName: Debt Collector
     text: Turns out he wants a dreadful painting. Something "haunted".
     lettersPerSecond: 15
-    talkingLoopClip: {fileID: 8300000, guid: ff3be4751973814409316a39a9e804dc, type: 3}
+    talkingLoopClip: {fileID: 8300000, guid: c6aebad8a791b1b4284ec9e92331a321, type: 3}
   - speakerName: Debt Collector
     text: Next time i'm here you better bring it to me, time is running out.
     lettersPerSecond: 14
-    talkingLoopClip: {fileID: 8300000, guid: ff3be4751973814409316a39a9e804dc, type: 3}
+    talkingLoopClip: {fileID: 8300000, guid: c6aebad8a791b1b4284ec9e92331a321, type: 3}
   - speakerName: Debt Collector
     text: By the way... Careful... There was some "movement" over there.
     lettersPerSecond: 14
-    talkingLoopClip: {fileID: 8300000, guid: c9c0703d9ac8d464fa69cf7b57a91779, type: 3}
+    talkingLoopClip: {fileID: 8300000, guid: c6aebad8a791b1b4284ec9e92331a321, type: 3}
   - speakerName: Debt Collector
     text: You don't have a choice anyway.
     lettersPerSecond: 14
-    talkingLoopClip: {fileID: 8300000, guid: c9c0703d9ac8d464fa69cf7b57a91779, type: 3}
+    talkingLoopClip: {fileID: 8300000, guid: c6aebad8a791b1b4284ec9e92331a321, type: 3}

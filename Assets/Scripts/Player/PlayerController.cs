@@ -33,11 +33,11 @@ public class PlayerController : MonoBehaviour
     public PlayerUI playerUI;
 
     [Header("Movement Sounds")]
-    [Tooltip("AudioSource for left-foot footstep sounds.")]
-    [SerializeField] private AudioSource footstepLeft;
+    [Tooltip("Audio clips for left-foot footstep sounds.")]
+    [SerializeField] private AudioClip[] footstepLeftClips;
 
-    [Tooltip("AudioSource for right-foot footstep sounds.")]
-    [SerializeField] private AudioSource footstepRight;
+    [Tooltip("Audio clips for right-foot footstep sounds.")]
+    [SerializeField] private AudioClip[] footstepRightClips;
 
     [Tooltip("Distance traveled (in units) between each footstep at walk speed.")]
     [SerializeField] private float footstepDistance = 2.0f;
@@ -409,10 +409,30 @@ public class PlayerController : MonoBehaviour
 
     void PlayFootstep()
     {
-        AudioSource source = (footstepIndex % 2 == 0) ? footstepLeft : footstepRight;
+        // Determine which foot and get the appropriate clip array
+        AudioClip[] clips = (footstepIndex % 2 == 0) ? footstepLeftClips : footstepRightClips;
 
-        if (source != null)
-            source.Play();
+        if (clips == null || clips.Length == 0)
+            return;
+
+        // Pick a random clip from the array
+        AudioClip clipToPlay = clips[Random.Range(0, clips.Length)];
+
+        if (clipToPlay == null)
+            return;
+
+        // Create a temporary GameObject with an AudioSource
+        GameObject tempAudio = new GameObject("FootstepTemp");
+        tempAudio.transform.position = transform.position;
+        tempAudio.transform.parent = null; // Don't parent to player so it doesn't move with them
+
+        AudioSource tempSource = tempAudio.AddComponent<AudioSource>();
+        tempSource.clip = clipToPlay;
+        tempSource.spatialBlend = 1f; // 3D sound
+        tempSource.Play();
+
+        // Destroy the GameObject after the clip finishes playing
+        Destroy(tempAudio, clipToPlay.length);
 
         footstepIndex++;
     }
@@ -494,6 +514,7 @@ public class PlayerController : MonoBehaviour
         if (source != null)
             source.Play();
     }
+
     void OnControllerColliderHit(ControllerColliderHit hit)
     {
         // Notify any DecorationItem we walk into

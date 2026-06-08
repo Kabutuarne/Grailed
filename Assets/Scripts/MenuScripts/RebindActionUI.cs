@@ -123,7 +123,24 @@ public class RebindActionUI : MonoBehaviour
     private void OnRebindComplete(InputActionRebindingExtensions.RebindingOperation op)
     {
         FinishRebind();
+
+        // CRITICAL FIX: After rebinding, we need to explicitly save the overrides
+        // AND ensure the action is properly re-initialized with the new binding
         SettingsManager.Instance?.SaveBindingOverrides();
+
+        // Force the action map to re-enable to apply the binding change immediately
+        // This ensures the new binding works without needing to restart the game
+        var actionMap = _action.actionMap;
+        if (actionMap != null)
+        {
+            bool wasEnabled = actionMap.enabled;
+            if (wasEnabled)
+            {
+                actionMap.Disable();
+                actionMap.Enable();
+            }
+        }
+
         RefreshBindingDisplay();
     }
 

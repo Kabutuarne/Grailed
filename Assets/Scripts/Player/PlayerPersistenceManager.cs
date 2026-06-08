@@ -145,28 +145,24 @@ public class PlayerPersistenceManager : MonoBehaviour
     {
         // ------------------------------------------------------------------
         // PRIORITY 1 -- returning from a mission.
-        // Checked before everything else so it overrides both the new-save
-        // early-return and the saved-position restore.
         // ------------------------------------------------------------------
         if (PlayerPrefs.HasKey(LastSpawnPointTagKey))
         {
             string missionReturnTag = PlayerPrefs.GetString(LastSpawnPointTagKey);
-
-            // Delete immediately so a crash never leaves a stale pref.
             PlayerPrefs.DeleteKey(LastSpawnPointTagKey);
             PlayerPrefs.Save();
 
             if (logEvents)
                 Debug.Log($"[PlayerPersistenceManager] Mission return -- teleporting to '{missionReturnTag}'.");
 
-            // snapCamera: true -- the cutscene is over, camera must follow.
-            StartCoroutine(TeleportToTagCoroutine(missionReturnTag, snapCamera: true));
+            // Restore items with a delay, then teleport
+            StartCoroutine(RestoreItemsThenTeleportTag(missionReturnTag));
             return;
         }
 
         var gsm = GameSaveManager.Instance;
 
-        // No active save -- editor direct-play without going through the menu.
+        // No active save -- editor direct-play.
         if (gsm == null || gsm.ActiveSave == null)
         {
             if (logEvents)
@@ -175,10 +171,15 @@ public class PlayerPersistenceManager : MonoBehaviour
             return;
         }
 
+        // ----------------------------------------------------------------
+        // RESTORE ITEMS (first time only per session) with a one-frame delay
+        // so PlayerInventory and UI are fully initialised.
+        // ----------------------------------------------------------------
+        if (!gsm.ActiveSave.isEmpty)
+            StartCoroutine(DelayedItemRestore());
+
         // ------------------------------------------------------------------
         // PRIORITY 2 -- brand-new save, very first load.
-        // Player is already at the correct intro position. Do not teleport.
-        // Do not snap the camera either -- the intro cutscene owns it.
         // ------------------------------------------------------------------
         if (!gsm.ActiveSave.introHasPlayed)
         {
@@ -208,6 +209,19 @@ public class PlayerPersistenceManager : MonoBehaviour
         StartCoroutine(TeleportToTagCoroutine(spawnPointTag, snapCamera: true));
     }
 
+    // New helper coroutine that waits one frame, then calls TryApplyItems.
+    private IEnumerator DelayedItemRestore()
+    {
+        yield return null; // wait until end of frame – all Awake/Start have run
+        GameSaveManager.Instance?.TryApplyItems(gameObject);
+    }
+
+    // For mission return, we also want to restore items before teleporting.
+    private IEnumerator RestoreItemsThenTeleportTag(string tag)
+    {
+        yield return StartCoroutine(DelayedItemRestore());
+        StartCoroutine(TeleportToTagCoroutine(tag, snapCamera: true));
+    }
     // =====================================================================
     // Private -- teleport coroutines
     // =====================================================================
