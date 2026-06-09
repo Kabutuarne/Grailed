@@ -54,6 +54,7 @@ Burvestības var izmantot tieši vai ievietot zižļos. Burvestību veidi:
 - Channeled -- tiks izsaukta katru kadru, turot, pēc izsaukšanas pabeigšanas
 ------------------------------------
 Līmeņa interjera eksplorācijas piemērs:
+
 <img width="298" height="168" alt="download (1)" src="https://github.com/user-attachments/assets/cefedb22-bc99-4946-98ee-5226d284c125" />
 
 
