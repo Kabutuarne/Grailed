@@ -47,8 +47,15 @@ Priekšmetu tipi: patēriņa, dekoratīvie, zižļi, burvestības, aksesuāri.
 
 Burvestības var izmantot tieši vai ievietot zižļos. Burvestību veidi:
 
-- Projectile
-- AOE
-- Simple
-- Channeled
-<img width="200" height="200" alt="Grailed" src="https://github.com/user-attachments/assets/38b6a26b-1374-4de6-a3e3-2c683d47267e" />
+- Projectile -- ietekmēs tikai entītijas, kurām trāpīs ar šāviņu
+- AOE -- ietekmēs visas entītijas noteiktajā rādiusā
+------------------------------------
+- Simple -- tiks izsaukta tikai vienreiz, pēc izsaukšanas pabeigšanas
+- Channeled -- tiks izsaukta katru kadru, turot, pēc izsaukšanas pabeigšanas
+------------------------------------
+Līmeņa interjera eksplorācijas piemērs:
+<img width="298" height="168" alt="download (1)" src="https://github.com/user-attachments/assets/cefedb22-bc99-4946-98ee-5226d284c125" />
+
+
+
+
